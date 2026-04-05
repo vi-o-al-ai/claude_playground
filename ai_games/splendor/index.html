@@ -1,0 +1,2505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Splendor</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: #fff; min-height: 100vh; overflow-x: hidden;
+}
+button {
+  cursor: pointer; border: none; border-radius: 8px; padding: 10px 20px;
+  font-size: 1rem; font-weight: 600; transition: all 0.2s;
+  background: rgba(255,255,255,0.15); color: #fff;
+}
+button:hover { background: rgba(255,255,255,0.25); transform: translateY(-1px); }
+button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+button.primary { background: #6c5ce7; }
+button.primary:hover { background: #7d6ff0; }
+button.danger { background: #e74c3c; }
+button.danger:hover { background: #f05a4a; }
+input, select {
+  padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08); color: #fff; font-size: 1rem; outline: none;
+}
+input::placeholder { color: rgba(255,255,255,0.4); }
+input:focus, select:focus { border-color: #6c5ce7; }
+select option { background: #302b63; color: #fff; }
+
+/* ========== LOBBY ========== */
+#lobby-screen {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 100vh; padding: 20px;
+}
+.lobby-title {
+  font-size: 3.5rem; font-weight: 800; letter-spacing: 6px;
+  background: linear-gradient(135deg, #FFD700, #f0f0f0, #6c5ce7);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+.lobby-subtitle { color: rgba(255,255,255,0.5); font-size: 1.1rem; margin-bottom: 40px; }
+.lobby-options {
+  display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; max-width: 800px; width: 100%;
+}
+.lobby-card {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 30px; flex: 1; min-width: 280px;
+}
+.lobby-card h2 { margin-bottom: 20px; font-size: 1.3rem; color: #a8e6cf; }
+.lobby-card .form-group { margin-bottom: 16px; }
+.lobby-card .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+.lobby-card .form-group input, .lobby-card .form-group select { width: 100%; }
+.lobby-card button { width: 100%; margin-top: 8px; }
+
+#room-info {
+  display: none; text-align: center; margin-top: 30px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 30px; max-width: 500px; width: 100%;
+}
+.room-code-display {
+  font-size: 3rem; font-weight: 800; letter-spacing: 10px; color: #FFD700;
+  background: rgba(255,215,0,0.1); border-radius: 12px; padding: 15px 30px;
+  display: inline-block; margin: 15px 0; cursor: pointer;
+}
+.room-code-display:hover::after { content: ' (click to copy)'; font-size: 0.8rem; letter-spacing: 1px; }
+#player-list { list-style: none; margin: 20px 0; }
+#player-list li {
+  padding: 8px 16px; margin: 4px 0; background: rgba(255,255,255,0.06);
+  border-radius: 8px; font-size: 1rem;
+}
+#waiting-msg { color: rgba(255,255,255,0.5); font-style: italic; margin: 10px 0; }
+
+.local-divider {
+  width: 100%; max-width: 800px; text-align: center; margin: 30px 0;
+  color: rgba(255,255,255,0.3); position: relative;
+}
+.local-divider::before, .local-divider::after {
+  content: ''; position: absolute; top: 50%; width: 40%;
+  height: 1px; background: rgba(255,255,255,0.15);
+}
+.local-divider::before { left: 0; }
+.local-divider::after { right: 0; }
+
+#local-setup {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 30px; max-width: 500px; width: 100%;
+}
+#local-setup h2 { margin-bottom: 20px; font-size: 1.3rem; color: #a8e6cf; }
+.local-player-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+.local-player-row input { flex: 1; }
+
+/* ========== GAME SCREEN ========== */
+#game-screen { display: none; padding: 10px; max-width: 1400px; margin: 0 auto; }
+
+.top-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 10px;
+}
+.top-bar .turn-info { font-size: 1.1rem; font-weight: 600; }
+.top-bar .room-code-small { color: #FFD700; font-size: 0.9rem; }
+#game-log {
+  font-size: 0.85rem; color: rgba(255,255,255,0.6); max-height: 24px;
+  overflow: hidden; transition: max-height 0.3s;
+}
+
+.game-layout { display: grid; grid-template-columns: 1fr 280px; gap: 12px; }
+
+/* Board area */
+.board-area { display: flex; flex-direction: column; gap: 10px; }
+
+/* Nobles */
+.nobles-row {
+  display: flex; gap: 8px; padding: 10px; background: rgba(255,255,255,0.04);
+  border-radius: 12px; flex-wrap: wrap;
+}
+.noble-tile {
+  width: 80px; height: 80px; background: rgba(255,215,0,0.1);
+  border: 2px solid rgba(255,215,0,0.3); border-radius: 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 0.75rem; position: relative;
+}
+.noble-tile .noble-pts {
+  position: absolute; top: 4px; left: 8px; font-weight: 800; font-size: 1rem; color: #FFD700;
+}
+.noble-reqs { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+.noble-req { display: flex; align-items: center; gap: 2px; font-size: 0.7rem; }
+
+/* Token bank */
+.token-bank {
+  display: flex; gap: 8px; padding: 10px; background: rgba(255,255,255,0.04);
+  border-radius: 12px; flex-wrap: wrap; justify-content: center;
+}
+.bank-token {
+  width: 60px; height: 60px; border-radius: 50%; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  font-weight: 700; cursor: pointer; transition: all 0.2s;
+  border: 3px solid transparent; position: relative;
+}
+.bank-token:hover { transform: scale(1.1); }
+.bank-token.selected { border-color: #FFD700; box-shadow: 0 0 15px rgba(255,215,0,0.5); }
+.bank-token .token-count {
+  font-size: 1.2rem; font-weight: 800;
+}
+.bank-token .token-label { font-size: 0.6rem; text-transform: uppercase; }
+
+/* Card tiers */
+.card-tier {
+  display: flex; gap: 8px; align-items: center;
+}
+.deck-indicator {
+  width: 90px; height: 130px; border-radius: 10px; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem; border: 2px dashed rgba(255,255,255,0.2);
+  flex-shrink: 0; cursor: pointer;
+}
+.deck-indicator:hover { background: rgba(255,255,255,0.05); }
+.deck-indicator .deck-count { font-size: 1.5rem; }
+.tier-cards { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; }
+
+/* Cards */
+.game-card {
+  width: 110px; height: 150px; border-radius: 10px; position: relative;
+  cursor: pointer; transition: all 0.2s; overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.1);
+  display: flex; flex-direction: column;
+}
+.game-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+.game-card.empty-slot {
+  border: 2px dashed rgba(255,255,255,0.1); cursor: default;
+  background: transparent !important;
+}
+.game-card.empty-slot:hover { transform: none; box-shadow: none; }
+.game-card .card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 8px;
+}
+.game-card .card-points {
+  font-size: 1.3rem; font-weight: 800; color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+.game-card .card-bonus {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.5);
+}
+.game-card .card-cost {
+  margin-top: auto; padding: 6px 8px; display: flex;
+  flex-direction: column; gap: 2px;
+}
+.cost-item {
+  display: flex; align-items: center; gap: 4px; font-size: 0.75rem; font-weight: 600;
+}
+.cost-gem {
+  width: 16px; height: 16px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 0.65rem;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.game-card.highlight { border-color: #4CAF50; box-shadow: 0 0 15px rgba(76,175,80,0.4); }
+
+/* Right panel - players */
+.players-panel { display: flex; flex-direction: column; gap: 10px; }
+.player-card {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 14px;
+}
+.player-card.active-player {
+  border-color: #6c5ce7; box-shadow: 0 0 20px rgba(108,92,231,0.3);
+}
+.player-card.current-user { border-color: rgba(255,215,0,0.3); }
+.player-name { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+.player-points { color: #FFD700; font-weight: 800; font-size: 1.1rem; }
+.player-gems {
+  display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap;
+}
+.player-gem {
+  width: 28px; height: 28px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; font-size: 0.75rem;
+  font-weight: 700; border: 1px solid rgba(255,255,255,0.2);
+}
+.player-bonuses { display: flex; gap: 4px; margin-top: 6px; }
+.player-bonus {
+  width: 24px; height: 24px; border-radius: 4px; display: flex;
+  align-items: center; justify-content: center; font-size: 0.7rem;
+  font-weight: 700; border: 1px solid rgba(255,255,255,0.15);
+}
+.player-reserved-count { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+/* Bottom panel - current player actions */
+.action-bar {
+  display: flex; gap: 8px; margin-top: 10px; padding: 12px;
+  background: rgba(0,0,0,0.3); border-radius: 12px; align-items: center;
+  flex-wrap: wrap; justify-content: center;
+}
+.action-bar button { min-width: 100px; }
+
+/* Reserved cards display */
+.reserved-area {
+  margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.04);
+  border-radius: 12px;
+}
+.reserved-area h3 { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.reserved-cards { display: flex; gap: 8px; }
+.reserved-cards .game-card { width: 90px; height: 120px; }
+
+/* Overlays */
+.overlay {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center;
+}
+.overlay.active { display: flex; }
+.overlay-content {
+  background: linear-gradient(135deg, #1a1545, #2d2460);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 20px;
+  padding: 30px; max-width: 500px; width: 90%; text-align: center;
+}
+.overlay-content h2 { margin-bottom: 20px; color: #FFD700; }
+
+.gem-selector { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+.gem-select-btn {
+  width: 60px; height: 60px; border-radius: 50%; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  font-weight: 700; cursor: pointer; border: 3px solid transparent;
+  transition: all 0.2s;
+}
+.gem-select-btn.selected { border-color: #FFD700; transform: scale(1.15); }
+.gem-select-btn.disabled { opacity: 0.3; cursor: not-allowed; }
+
+.noble-selector { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+
+/* Game over */
+.game-over-content { padding: 40px; }
+.game-over-content h1 { font-size: 2.5rem; color: #FFD700; margin-bottom: 10px; }
+.game-over-content .winner-name { font-size: 1.8rem; color: #a8e6cf; margin-bottom: 20px; }
+.final-scores { margin: 20px 0; }
+.final-score-row {
+  display: flex; justify-content: space-between; padding: 8px 16px;
+  background: rgba(255,255,255,0.06); border-radius: 8px; margin: 4px 0;
+}
+
+/* Chat */
+#chat-toggle {
+  position: fixed; bottom: 20px; right: 20px; z-index: 50;
+  width: 50px; height: 50px; border-radius: 50%; background: #6c5ce7;
+  font-size: 1.5rem; display: none;
+}
+#chat-panel {
+  position: fixed; right: -350px; top: 0; width: 340px; height: 100%;
+  background: rgba(15,12,41,0.95); border-left: 1px solid rgba(255,255,255,0.1);
+  z-index: 60; transition: right 0.3s; display: flex; flex-direction: column;
+}
+#chat-panel.open { right: 0; }
+#chat-messages {
+  flex: 1; overflow-y: auto; padding: 60px 16px 16px;
+}
+.chat-msg { margin-bottom: 8px; }
+.chat-msg .chat-author { font-weight: 700; font-size: 0.8rem; color: #6c5ce7; }
+.chat-msg .chat-text { font-size: 0.9rem; }
+#chat-input-area {
+  display: flex; gap: 8px; padding: 12px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+#chat-input-area input { flex: 1; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .game-layout { grid-template-columns: 1fr; }
+  .game-card { width: 80px; height: 115px; }
+  .game-card .card-points { font-size: 1rem; }
+  .deck-indicator { width: 60px; height: 115px; }
+  .bank-token { width: 48px; height: 48px; }
+  .lobby-title { font-size: 2.5rem; }
+  .noble-tile { width: 60px; height: 60px; }
+}
+
+/* Card background tints */
+.card-bg-white { background: linear-gradient(135deg, rgba(240,240,240,0.15), rgba(240,240,240,0.05)); }
+.card-bg-blue { background: linear-gradient(135deg, rgba(33,150,243,0.2), rgba(33,150,243,0.05)); }
+.card-bg-green { background: linear-gradient(135deg, rgba(76,175,80,0.2), rgba(76,175,80,0.05)); }
+.card-bg-red { background: linear-gradient(135deg, rgba(244,67,54,0.2), rgba(244,67,54,0.05)); }
+.card-bg-black { background: linear-gradient(135deg, rgba(66,66,66,0.3), rgba(66,66,66,0.1)); }
+
+/* Gem background colors */
+.gem-white { background: #e8e8e8; color: #333; }
+.gem-blue { background: #2196F3; color: #fff; }
+.gem-green { background: #4CAF50; color: #fff; }
+.gem-red { background: #f44336; color: #fff; }
+.gem-black { background: #424242; color: #fff; }
+.gem-gold { background: #FFD700; color: #333; }
+
+.action-mode-label {
+  background: rgba(108,92,231,0.3); padding: 6px 16px; border-radius: 20px;
+  font-size: 0.9rem; color: #a8e6cf;
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== LOBBY SCREEN ==================== -->
+<div id="lobby-screen">
+  <div class="lobby-title">SPLENDOR</div>
+  <div class="lobby-subtitle">Renaissance Gem Trading Game</div>
+
+  <div class="lobby-options">
+    <div class="lobby-card">
+      <h2>Create Game</h2>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="host-name" placeholder="Enter your name" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label>Number of Players</label>
+        <select id="host-player-count">
+          <option value="2">2 Players</option>
+          <option value="3">3 Players</option>
+          <option value="4" selected>4 Players</option>
+        </select>
+      </div>
+      <button class="primary" onclick="createRoom()">Create Room</button>
+    </div>
+
+    <div class="lobby-card">
+      <h2>Join Game</h2>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="join-name" placeholder="Enter your name" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label>Room Code</label>
+        <input type="text" id="join-code" placeholder="ABC123" maxlength="6" style="text-transform:uppercase;">
+      </div>
+      <button class="primary" onclick="joinRoom()">Join Room</button>
+    </div>
+  </div>
+
+  <div id="room-info">
+    <div id="room-host-info">
+      <p>Share this code with other players:</p>
+      <div class="room-code-display" id="room-code-display" onclick="copyRoomCode()"></div>
+      <ul id="player-list"></ul>
+      <button class="primary" id="start-game-btn" onclick="startOnlineGame()" disabled>Start Game</button>
+    </div>
+    <div id="room-client-info" style="display:none;">
+      <p>Connected to room:</p>
+      <div class="room-code-display" id="room-code-display2"></div>
+      <ul id="player-list-client"></ul>
+      <p id="waiting-msg">Waiting for host to start the game...</p>
+    </div>
+  </div>
+
+  <div class="local-divider">OR</div>
+
+  <div id="local-setup">
+    <h2>Local Game</h2>
+    <div class="form-group">
+      <label>Number of Players</label>
+      <select id="local-player-count" onchange="updateLocalPlayerInputs()">
+        <option value="2">2 Players</option>
+        <option value="3">3 Players</option>
+        <option value="4" selected>4 Players</option>
+      </select>
+    </div>
+    <div id="local-player-inputs"></div>
+    <button class="primary" onclick="startLocalGame()" style="width:100%;margin-top:12px;">Start Local Game</button>
+  </div>
+</div>
+
+<!-- ==================== GAME SCREEN ==================== -->
+<div id="game-screen">
+  <div class="top-bar">
+    <div>
+      <span class="turn-info" id="turn-info">Waiting...</span>
+      <div id="game-log"></div>
+    </div>
+    <div>
+      <span class="room-code-small" id="game-room-code"></span>
+      <button onclick="showChat()" id="chat-btn" style="display:none;margin-left:8px;padding:6px 12px;font-size:0.8rem;">Chat</button>
+    </div>
+  </div>
+
+  <div class="board-area">
+    <!-- Nobles -->
+    <div class="nobles-row" id="nobles-row"></div>
+
+    <!-- Token bank -->
+    <div class="token-bank" id="token-bank"></div>
+
+    <div class="game-layout">
+      <div class="card-tiers">
+        <!-- Tier 3 -->
+        <div class="card-tier" id="tier-3"></div>
+        <!-- Tier 2 -->
+        <div class="card-tier" id="tier-2"></div>
+        <!-- Tier 1 -->
+        <div class="card-tier" id="tier-1"></div>
+      </div>
+
+      <!-- Players panel -->
+      <div class="players-panel" id="players-panel"></div>
+    </div>
+
+    <!-- Reserved cards for current user -->
+    <div class="reserved-area" id="reserved-area" style="display:none;">
+      <h3>Your Reserved Cards</h3>
+      <div class="reserved-cards" id="reserved-cards"></div>
+    </div>
+
+    <!-- Action bar -->
+    <div class="action-bar" id="action-bar">
+      <span class="action-mode-label" id="action-mode">Select an action</span>
+      <button id="btn-confirm" class="primary" onclick="confirmAction()" style="display:none;">Confirm</button>
+      <button id="btn-cancel" class="danger" onclick="cancelAction()" style="display:none;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== OVERLAYS ==================== -->
+<div class="overlay" id="gem-return-overlay">
+  <div class="overlay-content">
+    <h2>Return Gems</h2>
+    <p id="gem-return-msg">You have too many gems. Select gems to return.</p>
+    <div class="gem-selector" id="gem-return-selector"></div>
+    <button class="primary" onclick="confirmGemReturn()">Confirm Return</button>
+  </div>
+</div>
+
+<div class="overlay" id="noble-choice-overlay">
+  <div class="overlay-content">
+    <h2>Choose a Noble</h2>
+    <p>Multiple nobles wish to visit you!</p>
+    <div class="noble-selector" id="noble-selector"></div>
+  </div>
+</div>
+
+<div class="overlay" id="game-over-overlay">
+  <div class="overlay-content game-over-content">
+    <h1>Game Over!</h1>
+    <div class="winner-name" id="winner-name"></div>
+    <div class="final-scores" id="final-scores"></div>
+    <button class="primary" onclick="location.reload()" style="margin-top:20px;font-size:1.1rem;padding:12px 30px;">Play Again</button>
+  </div>
+</div>
+
+<!-- Chat panel -->
+<div id="chat-panel">
+  <div style="padding:16px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;">
+    <strong>Chat</strong>
+    <button onclick="hideChat()" style="padding:4px 10px;font-size:0.8rem;">Close</button>
+  </div>
+  <div id="chat-messages"></div>
+  <div id="chat-input-area">
+    <input type="text" id="chat-input" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChatMsg()">
+    <button onclick="sendChatMsg()" style="padding:8px 14px;">Send</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// Splendor Board Game Engine
+// ============================================================
+
+const GEM_COLORS = ['white', 'blue', 'green', 'red', 'black'];
+const GEM_DISPLAY = { white: '💎', blue: '🔷', green: '🟢', red: '🔴', black: '⬛' };
+const GEM_HEX = { white: '#f0f0f0', blue: '#2196F3', green: '#4CAF50', red: '#f44336', black: '#424242', gold: '#FFD700' };
+
+const TIER1_CARDS = [
+  // White bonus
+  { tier: 1, bonus: 'white', points: 0, cost: { blue: 1, green: 1, red: 1, black: 1 } },
+  { tier: 1, bonus: 'white', points: 0, cost: { red: 2, black: 1 } },
+  { tier: 1, bonus: 'white', points: 0, cost: { blue: 2, green: 2, black: 1 } },
+  { tier: 1, bonus: 'white', points: 0, cost: { white: 3, blue: 1, black: 1 } },
+  { tier: 1, bonus: 'white', points: 0, cost: { blue: 2, black: 2 } },
+  { tier: 1, bonus: 'white', points: 0, cost: { green: 2, red: 1 } },
+  { tier: 1, bonus: 'white', points: 0, cost: { blue: 3 } },
+  { tier: 1, bonus: 'white', points: 1, cost: { green: 4 } },
+  // Blue bonus
+  { tier: 1, bonus: 'blue', points: 0, cost: { white: 1, green: 1, red: 1, black: 1 } },
+  { tier: 1, bonus: 'blue', points: 0, cost: { white: 1, black: 2 } },
+  { tier: 1, bonus: 'blue', points: 0, cost: { white: 2, red: 2, black: 1 } },
+  { tier: 1, bonus: 'blue', points: 0, cost: { blue: 1, green: 3, red: 1 } },
+  { tier: 1, bonus: 'blue', points: 0, cost: { green: 2, black: 2 } },
+  { tier: 1, bonus: 'blue', points: 0, cost: { white: 1, red: 2 } },
+  { tier: 1, bonus: 'blue', points: 0, cost: { black: 3 } },
+  { tier: 1, bonus: 'blue', points: 1, cost: { red: 4 } },
+  // Green bonus
+  { tier: 1, bonus: 'green', points: 0, cost: { white: 1, blue: 1, red: 1, black: 1 } },
+  { tier: 1, bonus: 'green', points: 0, cost: { blue: 2, red: 1 } },
+  { tier: 1, bonus: 'green', points: 0, cost: { white: 1, blue: 1, red: 1, black: 2 } },
+  { tier: 1, bonus: 'green', points: 0, cost: { blue: 1, red: 3, black: 1 } },
+  { tier: 1, bonus: 'green', points: 0, cost: { white: 2, blue: 2 } },
+  { tier: 1, bonus: 'green', points: 0, cost: { red: 2, black: 1 } },
+  { tier: 1, bonus: 'green', points: 0, cost: { red: 3 } },
+  { tier: 1, bonus: 'green', points: 1, cost: { black: 4 } },
+  // Red bonus
+  { tier: 1, bonus: 'red', points: 0, cost: { white: 1, blue: 1, green: 1, black: 1 } },
+  { tier: 1, bonus: 'red', points: 0, cost: { white: 2, green: 1 } },
+  { tier: 1, bonus: 'red', points: 0, cost: { white: 2, green: 1, black: 2 } },
+  { tier: 1, bonus: 'red', points: 0, cost: { white: 1, red: 1, black: 3 } },
+  { tier: 1, bonus: 'red', points: 0, cost: { white: 2, red: 2 } },
+  { tier: 1, bonus: 'red', points: 0, cost: { blue: 2, green: 1 } },
+  { tier: 1, bonus: 'red', points: 0, cost: { white: 3 } },
+  { tier: 1, bonus: 'red', points: 1, cost: { blue: 4 } },
+  // Black bonus
+  { tier: 1, bonus: 'black', points: 0, cost: { white: 1, blue: 1, green: 1, red: 1 } },
+  { tier: 1, bonus: 'black', points: 0, cost: { green: 1, red: 2 } },
+  { tier: 1, bonus: 'black', points: 0, cost: { green: 2, red: 1, black: 2 } },
+  { tier: 1, bonus: 'black', points: 0, cost: { white: 1, green: 1, red: 3 } },
+  { tier: 1, bonus: 'black', points: 0, cost: { green: 2, red: 2 } },
+  { tier: 1, bonus: 'black', points: 0, cost: { white: 2, blue: 1 } },
+  { tier: 1, bonus: 'black', points: 0, cost: { green: 3 } },
+  { tier: 1, bonus: 'black', points: 1, cost: { white: 4 } },
+];
+
+const TIER2_CARDS = [
+  // White bonus
+  { tier: 2, bonus: 'white', points: 1, cost: { green: 3, red: 2, black: 2 } },
+  { tier: 2, bonus: 'white', points: 1, cost: { white: 2, blue: 3, red: 3 } },
+  { tier: 2, bonus: 'white', points: 2, cost: { red: 5 } },
+  { tier: 2, bonus: 'white', points: 2, cost: { red: 4, black: 1 } },
+  { tier: 2, bonus: 'white', points: 2, cost: { white: 1, blue: 4, green: 2 } },
+  { tier: 2, bonus: 'white', points: 3, cost: { white: 6 } },
+  // Blue bonus
+  { tier: 2, bonus: 'blue', points: 1, cost: { blue: 2, green: 2, red: 3 } },
+  { tier: 2, bonus: 'blue', points: 1, cost: { blue: 2, green: 3, black: 3 } },
+  { tier: 2, bonus: 'blue', points: 2, cost: { blue: 5 } },
+  { tier: 2, bonus: 'blue', points: 2, cost: { white: 2, red: 1, black: 4 } },
+  { tier: 2, bonus: 'blue', points: 2, cost: { green: 5, red: 3 } },
+  { tier: 2, bonus: 'blue', points: 3, cost: { blue: 6 } },
+  // Green bonus
+  { tier: 2, bonus: 'green', points: 1, cost: { white: 3, green: 2, red: 2 } },
+  { tier: 2, bonus: 'green', points: 1, cost: { white: 2, blue: 3, black: 2 } },
+  { tier: 2, bonus: 'green', points: 2, cost: { green: 5 } },
+  { tier: 2, bonus: 'green', points: 2, cost: { white: 4, blue: 2 } },
+  { tier: 2, bonus: 'green', points: 2, cost: { blue: 5, green: 3 } },
+  { tier: 2, bonus: 'green', points: 3, cost: { green: 6 } },
+  // Red bonus
+  { tier: 2, bonus: 'red', points: 1, cost: { white: 2, red: 2, black: 3 } },
+  { tier: 2, bonus: 'red', points: 1, cost: { blue: 3, red: 2, black: 3 } },
+  { tier: 2, bonus: 'red', points: 2, cost: { black: 5 } },
+  { tier: 2, bonus: 'red', points: 2, cost: { white: 3, black: 5 } },
+  { tier: 2, bonus: 'red', points: 2, cost: { white: 1, blue: 2, green: 4 } },
+  { tier: 2, bonus: 'red', points: 3, cost: { red: 6 } },
+  // Black bonus
+  { tier: 2, bonus: 'black', points: 1, cost: { white: 3, blue: 2, green: 2 } },
+  { tier: 2, bonus: 'black', points: 1, cost: { white: 3, green: 3, black: 2 } },
+  { tier: 2, bonus: 'black', points: 2, cost: { white: 5 } },
+  { tier: 2, bonus: 'black', points: 2, cost: { green: 1, red: 4, black: 2 } },
+  { tier: 2, bonus: 'black', points: 2, cost: { white: 5, red: 3 } },
+  { tier: 2, bonus: 'black', points: 3, cost: { black: 6 } },
+];
+
+const TIER3_CARDS = [
+  // White bonus
+  { tier: 3, bonus: 'white', points: 3, cost: { blue: 3, green: 3, red: 5, black: 3 } },
+  { tier: 3, bonus: 'white', points: 4, cost: { white: 3, red: 3, black: 6 } },
+  { tier: 3, bonus: 'white', points: 4, cost: { black: 7 } },
+  { tier: 3, bonus: 'white', points: 5, cost: { white: 3, black: 7 } },
+  // Blue bonus
+  { tier: 3, bonus: 'blue', points: 3, cost: { white: 3, green: 3, red: 3, black: 5 } },
+  { tier: 3, bonus: 'blue', points: 4, cost: { white: 6, blue: 3, black: 3 } },
+  { tier: 3, bonus: 'blue', points: 4, cost: { white: 7 } },
+  { tier: 3, bonus: 'blue', points: 5, cost: { white: 7, blue: 3 } },
+  // Green bonus
+  { tier: 3, bonus: 'green', points: 3, cost: { white: 5, blue: 3, red: 3, black: 3 } },
+  { tier: 3, bonus: 'green', points: 4, cost: { white: 3, blue: 6, green: 3 } },
+  { tier: 3, bonus: 'green', points: 4, cost: { blue: 7 } },
+  { tier: 3, bonus: 'green', points: 5, cost: { blue: 7, green: 3 } },
+  // Red bonus
+  { tier: 3, bonus: 'red', points: 3, cost: { white: 3, blue: 5, green: 3, black: 3 } },
+  { tier: 3, bonus: 'red', points: 4, cost: { blue: 3, red: 3, green: 6 } },
+  { tier: 3, bonus: 'red', points: 4, cost: { green: 7 } },
+  { tier: 3, bonus: 'red', points: 5, cost: { green: 7, red: 3 } },
+  // Black bonus
+  { tier: 3, bonus: 'black', points: 3, cost: { white: 3, blue: 3, green: 5, red: 3 } },
+  { tier: 3, bonus: 'black', points: 4, cost: { green: 3, red: 6, black: 3 } },
+  { tier: 3, bonus: 'black', points: 4, cost: { red: 7 } },
+  { tier: 3, bonus: 'black', points: 5, cost: { red: 7, black: 3 } },
+];
+
+const NOBLES = [
+  { points: 3, requires: { white: 3, blue: 3, black: 3 } },
+  { points: 3, requires: { white: 3, green: 3, red: 3 } },
+  { points: 3, requires: { blue: 3, green: 3, red: 3 } },
+  { points: 3, requires: { white: 3, red: 3, black: 3 } },
+  { points: 3, requires: { blue: 3, green: 3, black: 3 } },
+  { points: 3, requires: { white: 4, red: 4 } },
+  { points: 3, requires: { blue: 4, green: 4 } },
+  { points: 3, requires: { white: 4, black: 4 } },
+  { points: 3, requires: { white: 4, blue: 4 } },
+  { points: 3, requires: { red: 4, black: 4 } },
+];
+
+// ============================================================
+// SplendorGame Class
+// ============================================================
+
+class SplendorGame {
+  constructor(playerCount, playerNames) {
+    if (playerCount < 2 || playerCount > 4) {
+      throw new Error('Splendor supports 2-4 players.');
+    }
+    if (playerNames && playerNames.length !== playerCount) {
+      throw new Error('Number of names must match player count.');
+    }
+
+    this.playerCount = playerCount;
+    this.playerNames = playerNames || Array.from({ length: playerCount }, (_, i) => `Player ${i + 1}`);
+    this.state = null;
+    this.initializeGame();
+  }
+
+  // ----------------------------------------------------------
+  // Initialization
+  // ----------------------------------------------------------
+
+  initializeGame() {
+    const tokenCount = this.getTokenCount(this.playerCount);
+
+    const bank = { gold: 5 };
+    for (const color of GEM_COLORS) {
+      bank[color] = tokenCount;
+    }
+
+    const players = [];
+    for (let i = 0; i < this.playerCount; i++) {
+      players.push({
+        id: i,
+        name: this.playerNames[i],
+        gems: { white: 0, blue: 0, green: 0, red: 0, black: 0, gold: 0 },
+        cards: [],
+        reserved: [],
+        nobles: [],
+        isCPU: false,
+        cpuDifficulty: null,
+      });
+    }
+
+    // Deep-copy and shuffle each tier
+    const tier1Deck = this.shuffleDeck(TIER1_CARDS.map(c => this._copyCard(c)));
+    const tier2Deck = this.shuffleDeck(TIER2_CARDS.map(c => this._copyCard(c)));
+    const tier3Deck = this.shuffleDeck(TIER3_CARDS.map(c => this._copyCard(c)));
+
+    const tiers = [
+      { deck: tier1Deck, visible: tier1Deck.splice(0, 4) },
+      { deck: tier2Deck, visible: tier2Deck.splice(0, 4) },
+      { deck: tier3Deck, visible: tier3Deck.splice(0, 4) },
+    ];
+
+    // Select nobles: playerCount + 1
+    const shuffledNobles = this.shuffleDeck(NOBLES.map(n => ({ ...n, requires: { ...n.requires } })));
+    const nobles = shuffledNobles.slice(0, this.playerCount + 1);
+
+    this.state = {
+      players,
+      bank,
+      tiers,
+      nobles,
+      currentPlayerIndex: 0,
+      finalRound: false,
+      finalRoundStartPlayer: null,
+      gameOver: false,
+      winner: null,
+      turnPhase: 'action',
+    };
+  }
+
+  getTokenCount(playerCount) {
+    switch (playerCount) {
+      case 2: return 4;
+      case 3: return 5;
+      case 4: return 7;
+      default: return 7;
+    }
+  }
+
+  shuffleDeck(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // ----------------------------------------------------------
+  // Helpers
+  // ----------------------------------------------------------
+
+  _copyCard(card) {
+    return { tier: card.tier, bonus: card.bonus, points: card.points, cost: { ...card.cost } };
+  }
+
+  _totalPlayerGems(player) {
+    let total = 0;
+    for (const color of GEM_COLORS) {
+      total += player.gems[color];
+    }
+    total += player.gems.gold;
+    return total;
+  }
+
+  _getPlayerPoints(player) {
+    let pts = 0;
+    for (const card of player.cards) {
+      pts += card.points;
+    }
+    for (const noble of player.nobles) {
+      pts += noble.points;
+    }
+    return pts;
+  }
+
+  _refillVisible(tierIndex) {
+    const tier = this.state.tiers[tierIndex];
+    while (tier.visible.length < 4 && tier.deck.length > 0) {
+      tier.visible.push(tier.deck.pop());
+    }
+  }
+
+  getCurrentPlayer() {
+    return this.state.players[this.state.currentPlayerIndex];
+  }
+
+  getPlayerBonuses(player) {
+    const bonuses = { white: 0, blue: 0, green: 0, red: 0, black: 0 };
+    for (const card of player.cards) {
+      bonuses[card.bonus] = (bonuses[card.bonus] || 0) + 1;
+    }
+    return bonuses;
+  }
+
+  canAfford(player, card) {
+    const result = this.calculateCost(player, card);
+    return result.goldNeeded >= 0; // goldNeeded >= 0 means affordable (we set it to -1 if not)
+  }
+
+  /**
+   * Returns { gemsToSpend: {color: N}, goldNeeded: N }
+   * goldNeeded is -1 if the player cannot afford the card at all.
+   */
+  calculateCost(player, card) {
+    const bonuses = this.getPlayerBonuses(player);
+    const gemsToSpend = {};
+    let goldNeeded = 0;
+
+    for (const color of GEM_COLORS) {
+      const required = card.cost[color] || 0;
+      const discount = bonuses[color] || 0;
+      const remaining = Math.max(0, required - discount);
+      const fromGems = Math.min(remaining, player.gems[color]);
+      const shortfall = remaining - fromGems;
+
+      if (fromGems > 0) {
+        gemsToSpend[color] = fromGems;
+      }
+      goldNeeded += shortfall;
+    }
+
+    if (goldNeeded > player.gems.gold) {
+      return { gemsToSpend, goldNeeded: -1 }; // cannot afford
+    }
+
+    return { gemsToSpend, goldNeeded };
+  }
+
+  // ----------------------------------------------------------
+  // Actions
+  // ----------------------------------------------------------
+
+  /**
+   * Take gems from the bank.
+   * @param {string[]} colors - Array of gem colors to take.
+   *   Length 3: take 3 different colors (1 each).
+   *   Length 2 with same color: take 2 of that color (must be 4+ in bank).
+   *   Length 1-2 (different): allowed if not enough distinct colors available.
+   * Returns { success, error?, needReturn? }
+   */
+  takeGems(colors) {
+    if (this.state.gameOver) return { success: false, error: 'Game is over.' };
+    if (this.state.turnPhase !== 'action') return { success: false, error: `Cannot take gems during '${this.state.turnPhase}' phase.` };
+
+    const player = this.getCurrentPlayer();
+
+    if (!colors || colors.length === 0) {
+      return { success: false, error: 'Must select at least one gem color.' };
+    }
+
+    // Validate all colors are valid gem colors (no gold)
+    for (const c of colors) {
+      if (!GEM_COLORS.includes(c)) {
+        return { success: false, error: `Invalid gem color: ${c}` };
+      }
+    }
+
+    // Determine if taking 2 of the same or 3 different
+    const uniqueColors = [...new Set(colors)];
+
+    if (colors.length === 2 && uniqueColors.length === 1) {
+      // Taking 2 of the same color
+      const color = colors[0];
+      if (this.state.bank[color] < 4) {
+        return { success: false, error: `Cannot take 2 ${color} gems: fewer than 4 available in the bank (${this.state.bank[color]}).` };
+      }
+      this.state.bank[color] -= 2;
+      player.gems[color] += 2;
+    } else if (uniqueColors.length === colors.length) {
+      // Taking different colors (1-3)
+      if (colors.length > 3) {
+        return { success: false, error: 'Cannot take more than 3 different gem colors.' };
+      }
+
+      // If taking fewer than 3, verify there aren't enough distinct colors available
+      if (colors.length < 3) {
+        const availableDistinct = GEM_COLORS.filter(c => this.state.bank[c] > 0);
+        if (availableDistinct.length >= 3 && colors.length < 3) {
+          return { success: false, error: 'Must take 3 different colors when at least 3 colors are available in the bank.' };
+        }
+        // If only N colors available and player is taking N or fewer, that's okay
+        if (colors.length > availableDistinct.length) {
+          return { success: false, error: `Only ${availableDistinct.length} gem color(s) available in the bank.` };
+        }
+      }
+
+      for (const color of colors) {
+        if (this.state.bank[color] <= 0) {
+          return { success: false, error: `No ${color} gems available in the bank.` };
+        }
+      }
+
+      for (const color of colors) {
+        this.state.bank[color] -= 1;
+        player.gems[color] += 1;
+      }
+    } else {
+      return { success: false, error: 'Invalid gem selection: must be 3 different colors or 2 of the same color.' };
+    }
+
+    // Check if player needs to return gems (>10 tokens)
+    const totalGems = this._totalPlayerGems(player);
+    if (totalGems > 10) {
+      this.state.turnPhase = 'return_gems';
+      return { success: true, needReturn: totalGems - 10 };
+    }
+
+    // Check nobles and advance turn
+    return this._postAction();
+  }
+
+  /**
+   * Buy a card from the board or from reserved cards.
+   * @param {object} cardLocation - { tier, index } for board card or { reserved: index } for reserved card.
+   */
+  buyCard(cardLocation) {
+    if (this.state.gameOver) return { success: false, error: 'Game is over.' };
+    if (this.state.turnPhase !== 'action') return { success: false, error: `Cannot buy cards during '${this.state.turnPhase}' phase.` };
+
+    const player = this.getCurrentPlayer();
+    let card;
+    let fromReserved = false;
+    let tierIndex, cardIndex;
+
+    if (cardLocation.reserved !== undefined) {
+      // Buying from reserved cards
+      cardIndex = cardLocation.reserved;
+      if (cardIndex < 0 || cardIndex >= player.reserved.length) {
+        return { success: false, error: 'Invalid reserved card index.' };
+      }
+      card = player.reserved[cardIndex];
+      fromReserved = true;
+    } else {
+      // Buying from board
+      tierIndex = cardLocation.tier - 1; // tier is 1-indexed
+      cardIndex = cardLocation.index;
+      if (tierIndex < 0 || tierIndex > 2) {
+        return { success: false, error: 'Invalid tier.' };
+      }
+      const visible = this.state.tiers[tierIndex].visible;
+      if (cardIndex < 0 || cardIndex >= visible.length || !visible[cardIndex]) {
+        return { success: false, error: 'Invalid card index or empty slot.' };
+      }
+      card = visible[cardIndex];
+    }
+
+    // Check affordability
+    const costResult = this.calculateCost(player, card);
+    if (costResult.goldNeeded < 0) {
+      return { success: false, error: 'Cannot afford this card.' };
+    }
+
+    // Pay the cost
+    for (const color of GEM_COLORS) {
+      const spend = costResult.gemsToSpend[color] || 0;
+      if (spend > 0) {
+        player.gems[color] -= spend;
+        this.state.bank[color] += spend;
+      }
+    }
+    if (costResult.goldNeeded > 0) {
+      player.gems.gold -= costResult.goldNeeded;
+      this.state.bank.gold += costResult.goldNeeded;
+    }
+
+    // Add card to player's collection
+    player.cards.push(card);
+
+    // Remove card from source
+    if (fromReserved) {
+      player.reserved.splice(cardIndex, 1);
+    } else {
+      this.state.tiers[tierIndex].visible[cardIndex] = null;
+      // Refill from deck
+      if (this.state.tiers[tierIndex].deck.length > 0) {
+        this.state.tiers[tierIndex].visible[cardIndex] = this.state.tiers[tierIndex].deck.pop();
+      } else {
+        // Remove the null slot and compact (or leave null for UI positioning)
+        // We leave nulls so card positions stay consistent for the UI
+      }
+    }
+
+    // Check nobles and advance turn
+    return this._postAction();
+  }
+
+  /**
+   * Reserve a card (face-up or top of deck).
+   * @param {number} tier - 1, 2, or 3
+   * @param {number|null} index - Index in visible array, or null to take from top of deck.
+   */
+  reserveCard(tier, index) {
+    if (this.state.gameOver) return { success: false, error: 'Game is over.' };
+    if (this.state.turnPhase !== 'action') return { success: false, error: `Cannot reserve cards during '${this.state.turnPhase}' phase.` };
+
+    const player = this.getCurrentPlayer();
+
+    if (player.reserved.length >= 3) {
+      return { success: false, error: 'Cannot reserve more than 3 cards.' };
+    }
+
+    const tierIndex = tier - 1;
+    if (tierIndex < 0 || tierIndex > 2) {
+      return { success: false, error: 'Invalid tier.' };
+    }
+
+    let card;
+
+    if (index === null || index === undefined) {
+      // Reserve from top of deck (blind reserve)
+      if (this.state.tiers[tierIndex].deck.length === 0) {
+        return { success: false, error: `Tier ${tier} deck is empty.` };
+      }
+      card = this.state.tiers[tierIndex].deck.pop();
+    } else {
+      // Reserve a visible card
+      const visible = this.state.tiers[tierIndex].visible;
+      if (index < 0 || index >= visible.length || !visible[index]) {
+        return { success: false, error: 'Invalid card index or empty slot.' };
+      }
+      card = visible[index];
+      visible[index] = null;
+      // Refill
+      if (this.state.tiers[tierIndex].deck.length > 0) {
+        visible[index] = this.state.tiers[tierIndex].deck.pop();
+      }
+    }
+
+    player.reserved.push(card);
+
+    // Gain a gold token if available
+    if (this.state.bank.gold > 0) {
+      this.state.bank.gold -= 1;
+      player.gems.gold += 1;
+    }
+
+    // Check if player needs to return gems (>10 tokens)
+    const totalGems = this._totalPlayerGems(player);
+    if (totalGems > 10) {
+      this.state.turnPhase = 'return_gems';
+      return { success: true, needReturn: totalGems - 10 };
+    }
+
+    // Check nobles and advance turn
+    return this._postAction();
+  }
+
+  /**
+   * Return gems when player has more than 10 tokens.
+   * @param {object} gemsToReturn - e.g. { white: 1, blue: 1 }
+   */
+  returnGems(gemsToReturn) {
+    if (this.state.turnPhase !== 'return_gems') {
+      return { success: false, error: 'Not in return_gems phase.' };
+    }
+
+    const player = this.getCurrentPlayer();
+    const totalGems = this._totalPlayerGems(player);
+    const excess = totalGems - 10;
+
+    // Count how many gems are being returned
+    let returnCount = 0;
+    for (const color of [...GEM_COLORS, 'gold']) {
+      const amount = gemsToReturn[color] || 0;
+      if (amount < 0) {
+        return { success: false, error: `Cannot return negative gems.` };
+      }
+      if (amount > player.gems[color]) {
+        return { success: false, error: `Cannot return ${amount} ${color} gems, player only has ${player.gems[color]}.` };
+      }
+      returnCount += amount;
+    }
+
+    if (returnCount !== excess) {
+      return { success: false, error: `Must return exactly ${excess} gem(s), but returning ${returnCount}.` };
+    }
+
+    // Perform the return
+    for (const color of [...GEM_COLORS, 'gold']) {
+      const amount = gemsToReturn[color] || 0;
+      if (amount > 0) {
+        player.gems[color] -= amount;
+        this.state.bank[color] += amount;
+      }
+    }
+
+    // Check nobles and advance turn
+    return this._postAction();
+  }
+
+  // ----------------------------------------------------------
+  // Post-action: noble check + turn advance
+  // ----------------------------------------------------------
+
+  _postAction() {
+    const player = this.getCurrentPlayer();
+    const eligibleNobles = this.checkNobles(player);
+
+    if (eligibleNobles.length === 1) {
+      // Auto-visit the single eligible noble
+      this._visitNoble(player, eligibleNobles[0]);
+      this.nextTurn();
+      return { success: true };
+    } else if (eligibleNobles.length > 1) {
+      // Player must choose
+      this.state.turnPhase = 'choose_noble';
+      return { success: true, chooseNoble: eligibleNobles };
+    } else {
+      this.nextTurn();
+      return { success: true };
+    }
+  }
+
+  /**
+   * Check which nobles the player qualifies for.
+   * Returns array of { noble, index } objects.
+   */
+  checkNobles(player) {
+    const bonuses = this.getPlayerBonuses(player);
+    const eligible = [];
+
+    for (let i = 0; i < this.state.nobles.length; i++) {
+      const noble = this.state.nobles[i];
+      let qualifies = true;
+      for (const color of GEM_COLORS) {
+        if ((noble.requires[color] || 0) > (bonuses[color] || 0)) {
+          qualifies = false;
+          break;
+        }
+      }
+      if (qualifies) {
+        eligible.push({ noble, index: i });
+      }
+    }
+
+    return eligible;
+  }
+
+  /**
+   * Choose a noble when multiple are eligible.
+   * @param {number} nobleIndex - Index in the state.nobles array.
+   */
+  chooseNoble(nobleIndex) {
+    if (this.state.turnPhase !== 'choose_noble') {
+      return { success: false, error: 'Not in choose_noble phase.' };
+    }
+
+    const player = this.getCurrentPlayer();
+    if (nobleIndex < 0 || nobleIndex >= this.state.nobles.length) {
+      return { success: false, error: 'Invalid noble index.' };
+    }
+
+    const noble = this.state.nobles[nobleIndex];
+
+    // Verify the player actually qualifies for this noble
+    const bonuses = this.getPlayerBonuses(player);
+    for (const color of GEM_COLORS) {
+      if ((noble.requires[color] || 0) > (bonuses[color] || 0)) {
+        return { success: false, error: 'Player does not qualify for this noble.' };
+      }
+    }
+
+    this._visitNoble(player, { noble, index: nobleIndex });
+    this.nextTurn();
+    return { success: true };
+  }
+
+  _visitNoble(player, { noble, index }) {
+    player.nobles.push(noble);
+    this.state.nobles.splice(index, 1);
+  }
+
+  // ----------------------------------------------------------
+  // Turn management
+  // ----------------------------------------------------------
+
+  nextTurn() {
+    this.state.turnPhase = 'action';
+
+    const player = this.getCurrentPlayer();
+
+    // Check if this player has triggered end game
+    if (!this.state.finalRound && this._getPlayerPoints(player) >= 15) {
+      this.state.finalRound = true;
+      this.state.finalRoundStartPlayer = this.state.currentPlayerIndex;
+    }
+
+    // Advance to next player
+    const nextIndex = (this.state.currentPlayerIndex + 1) % this.playerCount;
+
+    // Check if the final round is complete
+    // The final round ends when we've come back to the player who started the final round
+    // (i.e., everyone has had an equal number of turns)
+    if (this.state.finalRound && nextIndex === this.state.finalRoundStartPlayer) {
+      // End game: all players have completed the final round
+      this.state.gameOver = true;
+      this.state.turnPhase = 'game_over';
+      this.state.winner = this.getWinner();
+      this.state.currentPlayerIndex = nextIndex;
+      return;
+    }
+
+    this.state.currentPlayerIndex = nextIndex;
+  }
+
+  checkEndGame() {
+    return this.state.gameOver;
+  }
+
+  getWinner() {
+    let bestPlayer = null;
+    let bestPoints = -1;
+    let bestCards = Infinity;
+
+    for (const player of this.state.players) {
+      const pts = this._getPlayerPoints(player);
+      const cardCount = player.cards.length;
+
+      if (pts > bestPoints || (pts === bestPoints && cardCount < bestCards)) {
+        bestPlayer = player;
+        bestPoints = pts;
+        bestCards = cardCount;
+      }
+    }
+
+    return bestPlayer;
+  }
+
+  // ----------------------------------------------------------
+  // Valid actions
+  // ----------------------------------------------------------
+
+  getValidActions() {
+    if (this.state.gameOver) return [];
+    const player = this.getCurrentPlayer();
+    const actions = [];
+
+    if (this.state.turnPhase === 'return_gems') {
+      actions.push({ type: 'return_gems', excess: this._totalPlayerGems(player) - 10 });
+      return actions;
+    }
+
+    if (this.state.turnPhase === 'choose_noble') {
+      const eligible = this.checkNobles(player);
+      for (const e of eligible) {
+        actions.push({ type: 'choose_noble', nobleIndex: e.index });
+      }
+      return actions;
+    }
+
+    if (this.state.turnPhase !== 'action') return [];
+
+    // -- Take gems actions --
+    const availableColors = GEM_COLORS.filter(c => this.state.bank[c] > 0);
+
+    // Take 3 different
+    if (availableColors.length >= 3) {
+      const combos = this._combinations(availableColors, 3);
+      for (const combo of combos) {
+        actions.push({ type: 'take_gems', colors: combo });
+      }
+    } else if (availableColors.length > 0 && availableColors.length < 3) {
+      // Take as many different as available
+      const combos = this._combinations(availableColors, availableColors.length);
+      for (const combo of combos) {
+        actions.push({ type: 'take_gems', colors: combo });
+      }
+    }
+
+    // Take 2 of same
+    for (const color of GEM_COLORS) {
+      if (this.state.bank[color] >= 4) {
+        actions.push({ type: 'take_gems', colors: [color, color] });
+      }
+    }
+
+    // -- Buy card actions --
+    for (let t = 0; t < 3; t++) {
+      const visible = this.state.tiers[t].visible;
+      for (let i = 0; i < visible.length; i++) {
+        if (visible[i] && this.canAfford(player, visible[i])) {
+          actions.push({ type: 'buy_card', cardLocation: { tier: t + 1, index: i } });
+        }
+      }
+    }
+
+    // Buy from reserved
+    for (let i = 0; i < player.reserved.length; i++) {
+      if (this.canAfford(player, player.reserved[i])) {
+        actions.push({ type: 'buy_card', cardLocation: { reserved: i } });
+      }
+    }
+
+    // -- Reserve card actions --
+    if (player.reserved.length < 3) {
+      for (let t = 0; t < 3; t++) {
+        const visible = this.state.tiers[t].visible;
+        for (let i = 0; i < visible.length; i++) {
+          if (visible[i]) {
+            actions.push({ type: 'reserve_card', tier: t + 1, index: i });
+          }
+        }
+        // Blind reserve from deck
+        if (this.state.tiers[t].deck.length > 0) {
+          actions.push({ type: 'reserve_card', tier: t + 1, index: null });
+        }
+      }
+    }
+
+    return actions;
+  }
+
+  _combinations(arr, k) {
+    const results = [];
+    const combo = [];
+
+    function helper(start) {
+      if (combo.length === k) {
+        results.push([...combo]);
+        return;
+      }
+      for (let i = start; i < arr.length; i++) {
+        combo.push(arr[i]);
+        helper(i + 1);
+        combo.pop();
+      }
+    }
+
+    helper(0);
+    return results;
+  }
+
+  // ----------------------------------------------------------
+  // Serialization
+  // ----------------------------------------------------------
+
+  getState() {
+    return JSON.parse(JSON.stringify(this.state));
+  }
+
+  loadState(state) {
+    this.state = JSON.parse(JSON.stringify(state));
+    this.playerCount = this.state.players.length;
+    this.playerNames = this.state.players.map(p => p.name);
+  }
+}
+
+/**
+ * SplendorNetwork - WebRTC networking layer for Splendor board game
+ * Uses PeerJS for peer-to-peer connections.
+ * Load PeerJS from CDN: https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js
+ */
+
+class SplendorNetwork {
+  constructor() {
+    this.peer = null;
+    this.isHost = false;
+    this.roomCode = null;
+    this.peerId = null;
+    this.connections = new Map(); // peerId -> {conn, playerName}
+    this.hostConnection = null;   // client's connection to the host
+    this.playerName = null;
+
+    // Reconnection bookkeeping: maps peerId -> playerName for players
+    // that disconnected so they can reclaim their slot on rejoin.
+    this._disconnectedPlayers = new Map();
+
+    // Callback registries
+    this._onPlayerJoined = [];
+    this._onPlayerLeft = [];
+    this._onStateUpdate = [];
+    this._onActionReceived = [];
+    this._onError = [];
+    this._onConnected = [];
+    this._onChatReceived = [];
+  }
+
+  // ---------------------------------------------------------------------------
+  // Public API - Room management
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Host creates a new game room.
+   * Returns the 6-character room code other players use to join.
+   */
+  async createRoom(playerName) {
+    this.playerName = playerName;
+    this.isHost = true;
+    this.roomCode = this._generateRoomCode();
+
+    const hostPeerId = 'splendor-' + this.roomCode;
+
+    await this._initPeer(hostPeerId);
+
+    // Listen for incoming connections from clients
+    this.peer.on('connection', (conn) => {
+      this._handleIncomingConnection(conn);
+    });
+
+    return this.roomCode;
+  }
+
+  /**
+   * Client joins an existing room by code.
+   */
+  async joinRoom(roomCode, playerName) {
+    this.playerName = playerName;
+    this.isHost = false;
+    this.roomCode = roomCode.toUpperCase();
+
+    // Create peer with a random ID for the client
+    await this._initPeer(undefined);
+
+    const hostPeerId = 'splendor-' + this.roomCode;
+
+    return new Promise((resolve, reject) => {
+      const conn = this.peer.connect(hostPeerId, { reliable: true });
+
+      const timeout = setTimeout(() => {
+        conn.close();
+        const err = new Error('Connection to host timed out');
+        this._emitError(err);
+        reject(err);
+      }, 10000);
+
+      conn.on('open', () => {
+        clearTimeout(timeout);
+        this.hostConnection = conn;
+
+        // Introduce ourselves to the host
+        conn.send({ type: 'join', playerName: this.playerName });
+
+        this._setupClientMessageHandler(conn);
+
+        resolve();
+      });
+
+      conn.on('error', (err) => {
+        clearTimeout(timeout);
+        this._emitError(err);
+        reject(err);
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Public API - Messaging
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Host broadcasts the full game state to every connected client.
+   */
+  broadcastState(gameState) {
+    if (!this.isHost) return;
+
+    const msg = { type: 'state', state: gameState };
+    this._broadcast(msg);
+  }
+
+  /**
+   * Client sends a game action to the host for validation.
+   */
+  sendAction(action) {
+    if (this.isHost) return;
+    if (!this.hostConnection) {
+      this._emitError(new Error('Not connected to host'));
+      return;
+    }
+
+    this.hostConnection.send({
+      type: 'action',
+      action: action,
+      peerId: this.peerId,
+    });
+  }
+
+  /**
+   * Any peer sends a chat message. Host relays to all clients.
+   */
+  sendChat(message, playerName) {
+    const chatMsg = {
+      type: 'chat',
+      message: message,
+      playerName: playerName,
+      timestamp: Date.now(),
+    };
+
+    if (this.isHost) {
+      // Deliver locally and relay to every client
+      this._emit(this._onChatReceived, {
+        message: chatMsg.message,
+        playerName: chatMsg.playerName,
+        timestamp: chatMsg.timestamp,
+      });
+      this._broadcast(chatMsg);
+    } else if (this.hostConnection) {
+      this.hostConnection.send(chatMsg);
+    }
+  }
+
+  /**
+   * Host signals that the game is starting.
+   */
+  startGame() {
+    if (!this.isHost) return;
+    this._broadcast({ type: 'start_game' });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Public API - Callback registration
+  // ---------------------------------------------------------------------------
+
+  onPlayerJoined(callback) {
+    this._onPlayerJoined.push(callback);
+  }
+
+  onPlayerLeft(callback) {
+    this._onPlayerLeft.push(callback);
+  }
+
+  onStateUpdate(callback) {
+    this._onStateUpdate.push(callback);
+  }
+
+  onActionReceived(callback) {
+    this._onActionReceived.push(callback);
+  }
+
+  onError(callback) {
+    this._onError.push(callback);
+  }
+
+  onConnected(callback) {
+    this._onConnected.push(callback);
+  }
+
+  onChatReceived(callback) {
+    this._onChatReceived.push(callback);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Public API - Cleanup
+  // ---------------------------------------------------------------------------
+
+  destroy() {
+    if (this.hostConnection) {
+      this.hostConnection.close();
+      this.hostConnection = null;
+    }
+
+    for (const [, entry] of this.connections) {
+      if (entry.conn) {
+        entry.conn.close();
+      }
+    }
+    this.connections.clear();
+    this._disconnectedPlayers.clear();
+
+    if (this.peer) {
+      this.peer.destroy();
+      this.peer = null;
+    }
+
+    this.isHost = false;
+    this.roomCode = null;
+    this.peerId = null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private - Peer initialisation
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Create and open a PeerJS peer. Resolves once the peer is ready.
+   */
+  _initPeer(id) {
+    return new Promise((resolve, reject) => {
+      // Use default PeerJS cloud signaling server - no custom config needed.
+      this.peer = id !== undefined ? new Peer(id) : new Peer();
+
+      this.peer.on('open', (assignedId) => {
+        this.peerId = assignedId;
+        resolve();
+      });
+
+      this.peer.on('error', (err) => {
+        this._emitError(err);
+        reject(err);
+      });
+
+      this.peer.on('disconnected', () => {
+        // Try to reconnect to the signaling server (not to other peers).
+        if (this.peer && !this.peer.destroyed) {
+          this.peer.reconnect();
+        }
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private - Host-side connection handling
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Called on the host when a new client connects.
+   */
+  _handleIncomingConnection(conn) {
+    conn.on('open', () => {
+      // We don't register the player yet; wait for the 'join' message
+      // so we know their playerName.
+      this._setupHostMessageHandler(conn);
+    });
+
+    conn.on('error', (err) => {
+      this._emitError(err);
+    });
+  }
+
+  /**
+   * Host listens for messages from a single client connection.
+   */
+  _setupHostMessageHandler(conn) {
+    conn.on('data', (data) => {
+      if (!data || typeof data !== 'object') return;
+
+      switch (data.type) {
+        case 'join':
+          this._handleClientJoin(conn, data.playerName);
+          break;
+
+        case 'action':
+          this._emit(this._onActionReceived, data.action, conn.peer);
+          break;
+
+        case 'chat':
+          // Relay chat to all clients (including sender so everyone
+          // gets a consistent timestamp path) and deliver locally.
+          {
+            const chatPayload = {
+              type: 'chat',
+              message: data.message,
+              playerName: data.playerName,
+              timestamp: data.timestamp,
+            };
+            this._emit(this._onChatReceived, {
+              message: data.message,
+              playerName: data.playerName,
+              timestamp: data.timestamp,
+            });
+            this._broadcast(chatPayload);
+          }
+          break;
+
+        default:
+          break;
+      }
+    });
+
+    conn.on('close', () => {
+      this._handleClientDisconnect(conn.peer);
+    });
+  }
+
+  /**
+   * Register a newly joined client, handle reconnection, and notify everyone.
+   */
+  _handleClientJoin(conn, playerName) {
+    const clientPeerId = conn.peer;
+
+    // Check if this is a reconnecting player (same name, different peer id
+    // is also acceptable — the important thing is the room slot).
+    // If the exact peerId was previously disconnected, restore it directly.
+    if (this._disconnectedPlayers.has(clientPeerId)) {
+      this._disconnectedPlayers.delete(clientPeerId);
+    }
+
+    // Store the connection
+    this.connections.set(clientPeerId, { conn, playerName });
+
+    // Send welcome acknowledgement to the joining client
+    conn.send({ type: 'welcome', playerName: this.playerName });
+
+    // Notify all OTHER clients about the new player
+    for (const [peerId, entry] of this.connections) {
+      if (peerId !== clientPeerId) {
+        entry.conn.send({
+          type: 'player_joined',
+          playerName: playerName,
+          peerId: clientPeerId,
+        });
+      }
+    }
+
+    // Tell the joining client about every player already in the room
+    for (const [peerId, entry] of this.connections) {
+      if (peerId !== clientPeerId) {
+        conn.send({
+          type: 'player_joined',
+          playerName: entry.playerName,
+          peerId: peerId,
+        });
+      }
+    }
+
+    // Emit locally on the host
+    this._emit(this._onPlayerJoined, playerName, clientPeerId);
+  }
+
+  /**
+   * Handle a client disconnecting. Keep their slot for potential reconnection.
+   */
+  _handleClientDisconnect(clientPeerId) {
+    const entry = this.connections.get(clientPeerId);
+    if (!entry) return;
+
+    // Preserve the player name so a reconnection can reclaim the slot
+    this._disconnectedPlayers.set(clientPeerId, entry.playerName);
+    this.connections.delete(clientPeerId);
+
+    // Notify remaining clients
+    for (const [, other] of this.connections) {
+      other.conn.send({ type: 'player_left', peerId: clientPeerId });
+    }
+
+    // Emit locally on the host
+    this._emit(this._onPlayerLeft, clientPeerId);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private - Client-side message handling
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Client listens for messages from the host.
+   */
+  _setupClientMessageHandler(conn) {
+    conn.on('data', (data) => {
+      if (!data || typeof data !== 'object') return;
+
+      switch (data.type) {
+        case 'welcome':
+          this._emit(this._onConnected);
+          break;
+
+        case 'state':
+          this._emit(this._onStateUpdate, data.state);
+          break;
+
+        case 'player_joined':
+          this._emit(this._onPlayerJoined, data.playerName, data.peerId);
+          break;
+
+        case 'player_left':
+          this._emit(this._onPlayerLeft, data.peerId);
+          break;
+
+        case 'chat':
+          this._emit(this._onChatReceived, {
+            message: data.message,
+            playerName: data.playerName,
+            timestamp: data.timestamp,
+          });
+          break;
+
+        case 'start_game':
+          this._emit(this._onStateUpdate, { type: 'start_game' });
+          break;
+
+        case 'error':
+          this._emitError(new Error(data.message));
+          break;
+
+        default:
+          break;
+      }
+    });
+
+    conn.on('close', () => {
+      this.hostConnection = null;
+      this._emitError(new Error('Disconnected from host'));
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private - Broadcasting & event helpers
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Send a message to every connected client (host only).
+   */
+  _broadcast(msg) {
+    for (const [, entry] of this.connections) {
+      try {
+        entry.conn.send(msg);
+      } catch (err) {
+        this._emitError(err);
+      }
+    }
+  }
+
+  /**
+   * Fire all registered callbacks for a given event list.
+   */
+  _emit(callbackList, ...args) {
+    for (const cb of callbackList) {
+      try {
+        cb(...args);
+      } catch (err) {
+        console.error('SplendorNetwork callback error:', err);
+      }
+    }
+  }
+
+  /**
+   * Convenience wrapper for error events.
+   */
+  _emitError(error) {
+    if (this._onError.length === 0) {
+      console.error('SplendorNetwork error (unhandled):', error);
+      return;
+    }
+    this._emit(this._onError, error);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private - Utilities
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Generate a random 6-character uppercase alphanumeric room code.
+   */
+  _generateRoomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+}
+
+// ============================================================
+// Splendor UI Controller / Glue Code
+// ============================================================
+
+let game = null;
+let network = null;
+let isOnline = false;
+let isHost = false;
+let localPlayerIndex = 0;
+let myPlayerIndex = 0;
+let actionMode = null;
+let selectedGems = [];
+let selectedCard = null;
+let gemsToReturn = {};
+let peerPlayerMap = {};
+let playerNames = [];
+let expectedPlayers = 2;
+
+// ---- Lobby ----
+
+function updateLocalPlayerInputs() {
+  const count = parseInt(document.getElementById('local-player-count').value);
+  const container = document.getElementById('local-player-inputs');
+  container.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const row = document.createElement('div');
+    row.className = 'local-player-row';
+    row.innerHTML = `<input type="text" placeholder="Player ${i+1}" id="local-name-${i}" value="Player ${i+1}">`;
+    container.appendChild(row);
+  }
+}
+
+function startLocalGame() {
+  const count = parseInt(document.getElementById('local-player-count').value);
+  const names = [];
+  for (let i = 0; i < count; i++) {
+    const input = document.getElementById(`local-name-${i}`);
+    names.push(input ? input.value.trim() || `Player ${i+1}` : `Player ${i+1}`);
+  }
+  isOnline = false;
+  isHost = true;
+  myPlayerIndex = 0;
+  game = new SplendorGame(count, names);
+  showGameScreen();
+  renderGame();
+}
+
+async function createRoom() {
+  const name = document.getElementById('host-name').value.trim() || 'Host';
+  expectedPlayers = parseInt(document.getElementById('host-player-count').value);
+  network = new SplendorNetwork();
+  try {
+    const code = await network.createRoom(name);
+    isOnline = true;
+    isHost = true;
+    myPlayerIndex = 0;
+    playerNames = [name];
+    peerPlayerMap = {};
+
+    document.getElementById('room-info').style.display = 'block';
+    document.getElementById('room-host-info').style.display = 'block';
+    document.getElementById('room-client-info').style.display = 'none';
+    document.getElementById('room-code-display').textContent = code;
+    document.getElementById('chat-btn').style.display = 'inline-block';
+    updatePlayerList();
+
+    network.onPlayerJoined((pName, peerId) => {
+      if (playerNames.length < expectedPlayers) {
+        playerNames.push(pName);
+        peerPlayerMap[peerId] = playerNames.length - 1;
+        updatePlayerList();
+      }
+    });
+    network.onPlayerLeft((peerId) => {
+      logMsg(`A player disconnected`);
+    });
+    network.onActionReceived((action, peerId) => {
+      handleRemoteAction(action, peerId);
+    });
+    network.onChatReceived((msg) => addChatMessage(msg));
+    network.onError((err) => logMsg('Network error: ' + err.message));
+  } catch(e) {
+    alert('Failed to create room: ' + e.message);
+  }
+}
+
+async function joinRoom() {
+  const name = document.getElementById('join-name').value.trim() || 'Player';
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (!code || code.length < 4) { alert('Enter a valid room code'); return; }
+  network = new SplendorNetwork();
+  try {
+    await network.joinRoom(code, name);
+    isOnline = true;
+    isHost = false;
+    document.getElementById('room-info').style.display = 'block';
+    document.getElementById('room-host-info').style.display = 'none';
+    document.getElementById('room-client-info').style.display = 'block';
+    document.getElementById('room-code-display2').textContent = code;
+    document.getElementById('chat-btn').style.display = 'inline-block';
+
+    const clientList = document.getElementById('player-list-client');
+    network.onPlayerJoined((pName) => {
+      const li = document.createElement('li');
+      li.textContent = pName;
+      clientList.appendChild(li);
+    });
+    network.onStateUpdate((state) => {
+      if (state && state.type === 'start_game') return;
+      if (state && state.players) {
+        if (!game) {
+          game = new SplendorGame(state.players.length, state.players.map(p=>p.name));
+          // figure out which player I am
+          for (let i = 0; i < state.players.length; i++) {
+            if (state.players[i].name === name) { myPlayerIndex = i; break; }
+          }
+          showGameScreen();
+        }
+        game.loadState(state);
+        renderGame();
+      }
+    });
+    network.onChatReceived((msg) => addChatMessage(msg));
+    network.onError((err) => logMsg('Network error: ' + err.message));
+  } catch(e) {
+    alert('Failed to join room: ' + e.message);
+  }
+}
+
+function updatePlayerList() {
+  const ul = document.getElementById('player-list');
+  ul.innerHTML = '';
+  playerNames.forEach((n,i) => {
+    const li = document.createElement('li');
+    li.textContent = (i === 0 ? '👑 ' : '') + n;
+    ul.appendChild(li);
+  });
+  const btn = document.getElementById('start-game-btn');
+  btn.disabled = playerNames.length < 2;
+}
+
+function startOnlineGame() {
+  if (playerNames.length < 2) return;
+  game = new SplendorGame(playerNames.length, playerNames);
+  network.startGame();
+  network.broadcastState(game.getState());
+  showGameScreen();
+  renderGame();
+}
+
+function copyRoomCode() {
+  const code = document.getElementById('room-code-display').textContent;
+  navigator.clipboard.writeText(code).catch(()=>{});
+}
+
+function showGameScreen() {
+  document.getElementById('lobby-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'block';
+  if (isOnline && network) {
+    document.getElementById('game-room-code').textContent = 'Room: ' + (network.roomCode || '');
+  }
+}
+
+// ---- Rendering ----
+
+function renderGame() {
+  if (!game || !game.state) return;
+  const st = game.state;
+
+  // Turn info
+  const cp = st.players[st.currentPlayerIndex];
+  const isMyTurn = !isOnline || st.currentPlayerIndex === myPlayerIndex;
+  document.getElementById('turn-info').textContent =
+    st.gameOver ? 'Game Over!' :
+    (isMyTurn ? `Your turn (${cp.name})` : `${cp.name}'s turn`);
+
+  renderNobles(st);
+  renderBank(st);
+  renderTiers(st);
+  renderPlayers(st);
+  renderReserved(st);
+  renderActionBar(st, isMyTurn);
+
+  if (st.gameOver) showGameOver();
+}
+
+function renderNobles(st) {
+  const row = document.getElementById('nobles-row');
+  row.innerHTML = '<strong style="margin-right:8px;color:#FFD700;">Nobles</strong>';
+  st.nobles.forEach((noble, i) => {
+    const tile = document.createElement('div');
+    tile.className = 'noble-tile';
+    tile.innerHTML = `<span class="noble-pts">${noble.points}</span><div class="noble-reqs">${
+      GEM_COLORS.filter(c => noble.requires[c]).map(c =>
+        `<span class="noble-req"><span class="cost-gem gem-${c}"></span>${noble.requires[c]}</span>`
+      ).join('')
+    }</div>`;
+    row.appendChild(tile);
+  });
+}
+
+function renderBank(st) {
+  const bank = document.getElementById('token-bank');
+  bank.innerHTML = '';
+  [...GEM_COLORS, 'gold'].forEach(color => {
+    const tok = document.createElement('div');
+    tok.className = `bank-token gem-${color}`;
+    if (selectedGems.includes(color) || (selectedGems.length === 2 && selectedGems[0] === color && selectedGems[1] === color)) {
+      // count how many times selected
+      const selCount = selectedGems.filter(c => c === color).length;
+      if (selCount > 0) tok.classList.add('selected');
+    }
+    tok.innerHTML = `<span class="token-count">${st.bank[color]}</span><span class="token-label">${color}</span>`;
+    if (color !== 'gold') {
+      tok.onclick = () => onBankTokenClick(color, st);
+    }
+    bank.appendChild(tok);
+  });
+}
+
+function renderTiers(st) {
+  for (let t = 2; t >= 0; t--) {
+    const tier = st.tiers[t];
+    const container = document.getElementById(`tier-${t+1}`);
+    container.innerHTML = '';
+    // Deck indicator
+    const deck = document.createElement('div');
+    deck.className = 'deck-indicator';
+    deck.style.borderColor = t === 2 ? 'rgba(33,150,243,0.4)' : t === 1 ? 'rgba(255,215,0,0.4)' : 'rgba(76,175,80,0.4)';
+    deck.innerHTML = `<span class="deck-count">${tier.deck.length}</span><span>Tier ${t+1}</span>`;
+    deck.onclick = () => onDeckClick(t+1);
+    container.appendChild(deck);
+
+    const cardsDiv = document.createElement('div');
+    cardsDiv.className = 'tier-cards';
+    for (let i = 0; i < 4; i++) {
+      const card = tier.visible[i];
+      if (card) {
+        const cardEl = renderCard(card, () => onCardClick(t+1, i, card));
+        if (selectedCard && selectedCard.tier === t+1 && selectedCard.index === i) {
+          cardEl.classList.add('highlight');
+        }
+        cardsDiv.appendChild(cardEl);
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'game-card empty-slot';
+        cardsDiv.appendChild(empty);
+      }
+    }
+    container.appendChild(cardsDiv);
+  }
+}
+
+function renderCard(card, onClick) {
+  const div = document.createElement('div');
+  div.className = `game-card card-bg-${card.bonus}`;
+  const pts = card.points > 0 ? card.points : '';
+  const costHtml = GEM_COLORS.filter(c => card.cost[c]).map(c =>
+    `<div class="cost-item"><span class="cost-gem gem-${c}"></span>${card.cost[c]}</div>`
+  ).join('');
+  div.innerHTML = `
+    <div class="card-header">
+      <span class="card-points">${pts}</span>
+      <span class="card-bonus gem-${card.bonus}" style="background:${GEM_HEX[card.bonus]}"></span>
+    </div>
+    <div class="card-cost">${costHtml}</div>`;
+  if (onClick) div.onclick = onClick;
+  return div;
+}
+
+function renderPlayers(st) {
+  const panel = document.getElementById('players-panel');
+  panel.innerHTML = '';
+  st.players.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'player-card';
+    if (i === st.currentPlayerIndex) div.classList.add('active-player');
+    if (i === myPlayerIndex) div.classList.add('current-user');
+
+    const bonuses = game.getPlayerBonuses(p);
+    const pts = game._getPlayerPoints(p);
+
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="player-name">${i === myPlayerIndex ? '⭐ ' : ''}${p.name}</span>
+        <span class="player-points">${pts} pts</span>
+      </div>
+      <div class="player-gems">${
+        [...GEM_COLORS, 'gold'].map(c =>
+          `<span class="player-gem gem-${c}">${p.gems[c]}</span>`
+        ).join('')
+      }</div>
+      <div class="player-bonuses">${
+        GEM_COLORS.map(c =>
+          `<span class="player-bonus" style="background:${GEM_HEX[c]}33;color:${GEM_HEX[c]}">${bonuses[c] || 0}</span>`
+        ).join('')
+      }</div>
+      ${p.reserved.length > 0 ? `<div class="player-reserved-count">${p.reserved.length} reserved card(s)</div>` : ''}
+      ${p.nobles.length > 0 ? `<div style="font-size:0.8rem;color:#FFD700;margin-top:4px;">${p.nobles.length} noble(s)</div>` : ''}
+    `;
+    panel.appendChild(div);
+  });
+}
+
+function renderReserved(st) {
+  const me = st.players[myPlayerIndex];
+  const area = document.getElementById('reserved-area');
+  const container = document.getElementById('reserved-cards');
+  if (!me || me.reserved.length === 0) {
+    area.style.display = 'none';
+    return;
+  }
+  area.style.display = 'block';
+  container.innerHTML = '';
+  me.reserved.forEach((card, i) => {
+    const cardEl = renderCard(card, () => onReservedClick(i, card));
+    if (selectedCard && selectedCard.reserved === i) {
+      cardEl.classList.add('highlight');
+    }
+    container.appendChild(cardEl);
+  });
+}
+
+function renderActionBar(st, isMyTurn) {
+  const modeLabel = document.getElementById('action-mode');
+  const confirmBtn = document.getElementById('btn-confirm');
+  const cancelBtn = document.getElementById('btn-cancel');
+
+  if (st.gameOver) {
+    modeLabel.textContent = 'Game Over!';
+    confirmBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+    return;
+  }
+
+  if (st.turnPhase === 'return_gems') {
+    showGemReturnOverlay(game._totalPlayerGems(st.players[st.currentPlayerIndex]) - 10);
+    return;
+  }
+  if (st.turnPhase === 'choose_noble') {
+    const eligible = game.checkNobles(st.players[st.currentPlayerIndex]);
+    showNobleChoiceOverlay(eligible);
+    return;
+  }
+
+  if (!isMyTurn) {
+    modeLabel.textContent = `Waiting for ${st.players[st.currentPlayerIndex].name}...`;
+    confirmBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+    return;
+  }
+
+  if (actionMode === 'take_gems') {
+    modeLabel.textContent = `Taking gems: ${selectedGems.length}/3 selected`;
+    confirmBtn.style.display = 'inline-block';
+    confirmBtn.disabled = selectedGems.length === 0;
+    cancelBtn.style.display = 'inline-block';
+  } else if (selectedCard) {
+    const label = selectedCard.reserved !== undefined ? 'reserved card' : `Tier ${selectedCard.tier} card`;
+    modeLabel.textContent = `Selected: ${label}`;
+    confirmBtn.style.display = 'none';
+    cancelBtn.style.display = 'inline-block';
+  } else {
+    modeLabel.textContent = 'Click gems to take, or click a card to buy/reserve';
+    confirmBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+  }
+}
+
+// ---- Interactions ----
+
+function isMyTurn() {
+  if (!game) return false;
+  if (!isOnline) return true; // local hot-seat
+  return game.state.currentPlayerIndex === myPlayerIndex;
+}
+
+function onBankTokenClick(color, st) {
+  if (game.state.turnPhase !== 'action') return;
+  if (isOnline && game.state.currentPlayerIndex !== myPlayerIndex) return;
+
+  actionMode = 'take_gems';
+
+  // Check if trying to take 2 of same
+  if (selectedGems.length === 1 && selectedGems[0] === color && st.bank[color] >= 4) {
+    selectedGems.push(color);
+  } else if (selectedGems.length === 2 && selectedGems[0] === selectedGems[1]) {
+    // Already have 2 same, can't add more
+    return;
+  } else if (selectedGems.includes(color)) {
+    // Deselect
+    selectedGems = selectedGems.filter(c => c !== color);
+    if (selectedGems.length === 0) actionMode = null;
+  } else if (selectedGems.length < 3 && !(selectedGems.length > 0 && selectedGems[0] === selectedGems[selectedGems.length - 1] && selectedGems.length === 2)) {
+    // Don't allow mixing: if we have 2 of same already, stop
+    if (selectedGems.length === 2 && selectedGems[0] === selectedGems[1]) return;
+    selectedGems.push(color);
+  }
+
+  renderGame();
+}
+
+function onCardClick(tier, index, card) {
+  if (game.state.turnPhase !== 'action') return;
+  if (isOnline && game.state.currentPlayerIndex !== myPlayerIndex) return;
+  cancelAction();
+
+  const me = game.state.players[isOnline ? myPlayerIndex : game.state.currentPlayerIndex];
+  const affordable = game.canAfford(me, card);
+
+  selectedCard = { tier, index };
+
+  // Show buy/reserve options
+  const bar = document.getElementById('action-bar');
+  const modeLabel = document.getElementById('action-mode');
+  modeLabel.textContent = `Tier ${tier} card selected`;
+
+  // Clear existing dynamic buttons
+  document.querySelectorAll('.dynamic-action-btn').forEach(b => b.remove());
+
+  if (affordable) {
+    const buyBtn = document.createElement('button');
+    buyBtn.className = 'primary dynamic-action-btn';
+    buyBtn.textContent = 'Buy Card';
+    buyBtn.onclick = () => executeAction({ type: 'buy_card', cardLocation: { tier, index } });
+    bar.appendChild(buyBtn);
+  }
+
+  if (me.reserved.length < 3) {
+    const resBtn = document.createElement('button');
+    resBtn.className = 'dynamic-action-btn';
+    resBtn.textContent = 'Reserve Card';
+    resBtn.onclick = () => executeAction({ type: 'reserve_card', tier, index });
+    bar.appendChild(resBtn);
+  }
+
+  const cancelBtnEl = document.getElementById('btn-cancel');
+  cancelBtnEl.style.display = 'inline-block';
+
+  renderGame();
+}
+
+function onReservedClick(index, card) {
+  if (game.state.turnPhase !== 'action') return;
+  if (isOnline && game.state.currentPlayerIndex !== myPlayerIndex) return;
+  cancelAction();
+
+  const me = game.state.players[isOnline ? myPlayerIndex : game.state.currentPlayerIndex];
+  const affordable = game.canAfford(me, card);
+
+  selectedCard = { reserved: index };
+
+  const bar = document.getElementById('action-bar');
+  document.querySelectorAll('.dynamic-action-btn').forEach(b => b.remove());
+
+  if (affordable) {
+    const buyBtn = document.createElement('button');
+    buyBtn.className = 'primary dynamic-action-btn';
+    buyBtn.textContent = 'Buy Reserved';
+    buyBtn.onclick = () => executeAction({ type: 'buy_card', cardLocation: { reserved: index } });
+    bar.appendChild(buyBtn);
+  }
+
+  document.getElementById('btn-cancel').style.display = 'inline-block';
+  renderGame();
+}
+
+function onDeckClick(tier) {
+  if (game.state.turnPhase !== 'action') return;
+  if (isOnline && game.state.currentPlayerIndex !== myPlayerIndex) return;
+  const me = game.state.players[isOnline ? myPlayerIndex : game.state.currentPlayerIndex];
+  if (me.reserved.length >= 3) { logMsg('Cannot reserve: already have 3 reserved cards'); return; }
+  if (game.state.tiers[tier-1].deck.length === 0) { logMsg('Deck is empty'); return; }
+  executeAction({ type: 'reserve_card', tier, index: null });
+}
+
+function confirmAction() {
+  if (actionMode === 'take_gems' && selectedGems.length > 0) {
+    executeAction({ type: 'take_gems', colors: [...selectedGems] });
+  }
+}
+
+function cancelAction() {
+  actionMode = null;
+  selectedGems = [];
+  selectedCard = null;
+  document.querySelectorAll('.dynamic-action-btn').forEach(b => b.remove());
+  renderGame();
+}
+
+// ---- Action Execution ----
+
+function executeAction(action) {
+  if (isOnline && !isHost) {
+    network.sendAction(action);
+    cancelAction();
+    return;
+  }
+
+  let result;
+  switch(action.type) {
+    case 'take_gems':
+      result = game.takeGems(action.colors);
+      break;
+    case 'buy_card':
+      result = game.buyCard(action.cardLocation);
+      break;
+    case 'reserve_card':
+      result = game.reserveCard(action.tier, action.index);
+      break;
+    default:
+      logMsg('Unknown action: ' + action.type);
+      return;
+  }
+
+  if (!result.success) {
+    logMsg(result.error);
+  } else {
+    const cp = game.state.players[game.state.currentPlayerIndex];
+    if (action.type === 'take_gems') logMsg(`Took gems: ${action.colors.join(', ')}`);
+    else if (action.type === 'buy_card') logMsg(`Bought a card`);
+    else if (action.type === 'reserve_card') logMsg(`Reserved a card`);
+
+    if (result.needReturn) {
+      // Don't advance yet, render will show return overlay
+    }
+    if (result.chooseNoble) {
+      // Don't advance yet, render will show noble overlay
+    }
+  }
+
+  actionMode = null;
+  selectedGems = [];
+  selectedCard = null;
+  document.querySelectorAll('.dynamic-action-btn').forEach(b => b.remove());
+
+  if (isOnline && isHost) {
+    network.broadcastState(game.getState());
+  }
+  renderGame();
+}
+
+function handleRemoteAction(action, peerId) {
+  if (!isHost || !game) return;
+  const playerIdx = peerPlayerMap[peerId];
+  if (playerIdx === undefined) return;
+  if (playerIdx !== game.state.currentPlayerIndex) {
+    logMsg('Not your turn!');
+    return;
+  }
+  executeAction(action);
+}
+
+// ---- Overlays ----
+
+function showGemReturnOverlay(count) {
+  if (isOnline && game.state.currentPlayerIndex !== myPlayerIndex) return;
+  const overlay = document.getElementById('gem-return-overlay');
+  overlay.classList.add('active');
+  document.getElementById('gem-return-msg').textContent = `You have too many gems. Return ${count} gem(s).`;
+  gemsToReturn = {};
+
+  const selector = document.getElementById('gem-return-selector');
+  selector.innerHTML = '';
+  const me = game.state.players[game.state.currentPlayerIndex];
+
+  [...GEM_COLORS, 'gold'].forEach(color => {
+    if (me.gems[color] <= 0) return;
+    const btn = document.createElement('div');
+    btn.className = `gem-select-btn gem-${color}`;
+    btn.innerHTML = `<span>${me.gems[color]}</span><span style="font-size:0.6rem">${color}</span>`;
+    btn.dataset.color = color;
+    btn.dataset.count = 0;
+    btn.onclick = () => {
+      let current = parseInt(btn.dataset.count);
+      if (current < me.gems[color]) {
+        const totalReturning = Object.values(gemsToReturn).reduce((a,b)=>a+b, 0);
+        if (totalReturning < count) {
+          current++;
+          btn.dataset.count = current;
+          gemsToReturn[color] = current;
+          if (current > 0) btn.classList.add('selected');
+          btn.innerHTML = `<span>${current}/${me.gems[color]}</span><span style="font-size:0.6rem">${color}</span>`;
+        }
+      } else {
+        // Reset this color
+        current = 0;
+        btn.dataset.count = 0;
+        delete gemsToReturn[color];
+        btn.classList.remove('selected');
+        btn.innerHTML = `<span>${me.gems[color]}</span><span style="font-size:0.6rem">${color}</span>`;
+      }
+    };
+    selector.appendChild(btn);
+  });
+}
+
+function confirmGemReturn() {
+  const result = game.returnGems(gemsToReturn);
+  if (!result.success) {
+    logMsg(result.error);
+    return;
+  }
+  document.getElementById('gem-return-overlay').classList.remove('active');
+  gemsToReturn = {};
+  if (isOnline && isHost) network.broadcastState(game.getState());
+  renderGame();
+}
+
+function showNobleChoiceOverlay(eligibleNobles) {
+  if (isOnline && game.state.currentPlayerIndex !== myPlayerIndex) return;
+  const overlay = document.getElementById('noble-choice-overlay');
+  overlay.classList.add('active');
+  const selector = document.getElementById('noble-selector');
+  selector.innerHTML = '';
+  eligibleNobles.forEach(({ noble, index }) => {
+    const tile = document.createElement('div');
+    tile.className = 'noble-tile';
+    tile.style.cursor = 'pointer';
+    tile.innerHTML = `<span class="noble-pts">${noble.points}</span><div class="noble-reqs">${
+      GEM_COLORS.filter(c => noble.requires[c]).map(c =>
+        `<span class="noble-req"><span class="cost-gem gem-${c}"></span>${noble.requires[c]}</span>`
+      ).join('')
+    }</div>`;
+    tile.onclick = () => {
+      const res = game.chooseNoble(index);
+      if (res.success) {
+        overlay.classList.remove('active');
+        if (isOnline && isHost) network.broadcastState(game.getState());
+        renderGame();
+      }
+    };
+    selector.appendChild(tile);
+  });
+}
+
+function showGameOver() {
+  const overlay = document.getElementById('game-over-overlay');
+  overlay.classList.add('active');
+  const winner = game.state.winner || game.getWinner();
+  document.getElementById('winner-name').textContent = `${winner.name} wins!`;
+  const scoresDiv = document.getElementById('final-scores');
+  scoresDiv.innerHTML = '';
+  game.state.players.forEach(p => {
+    const pts = game._getPlayerPoints(p);
+    const row = document.createElement('div');
+    row.className = 'final-score-row';
+    row.innerHTML = `<span>${p.name}</span><span>${pts} points (${p.cards.length} cards)</span>`;
+    scoresDiv.appendChild(row);
+  });
+}
+
+// ---- Chat ----
+function showChat() { document.getElementById('chat-panel').classList.add('open'); }
+function hideChat() { document.getElementById('chat-panel').classList.remove('open'); }
+function sendChatMsg() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg || !network) return;
+  network.sendChat(msg, network.playerName);
+  addChatMessage({ message: msg, playerName: network.playerName, timestamp: Date.now() });
+  input.value = '';
+}
+function addChatMessage(data) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg';
+  div.innerHTML = `<span class="chat-author">${data.playerName}:</span> <span class="chat-text">${data.message}</span>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ---- Logging ----
+function logMsg(msg) {
+  const log = document.getElementById('game-log');
+  log.textContent = msg;
+  log.style.maxHeight = '48px';
+  setTimeout(() => { log.style.maxHeight = '24px'; }, 3000);
+}
+
+// ---- Init ----
+updateLocalPlayerInputs();
+
+</script>
+</body>
+</html>
