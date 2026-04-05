@@ -1,0 +1,12 @@
+{
+  "name": "@ai-arcade/tic-tac-toe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tic Tac Toe game for AI Games Arcade",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}

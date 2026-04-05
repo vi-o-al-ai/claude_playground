@@ -1,9 +1,15 @@
 {
   "name": "ai-games-arcade",
   "version": "1.0.0",
+  "private": true,
   "description": "A browser-based collection of interactive games built with HTML5, CSS, and JavaScript",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
+    "dev": "npm run dev --workspace",
+    "build": "npm run build --workspaces",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -28,6 +34,7 @@
     "eslint": "^10.2.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-html": "^8.1.4",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "vite": "^8.0.3"
   }
 }

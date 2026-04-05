@@ -84,7 +84,7 @@ export default [
     },
   },
   {
-    files: ["ai_games/**/*.js"],
+    files: ["packages/**/*.js"],
     languageOptions: {
       sourceType: "script",
     },
@@ -93,7 +93,7 @@ export default [
     },
   },
   {
-    files: ["ai_games/sudoku/game.js"],
+    files: ["packages/sudoku/game.js"],
     languageOptions: {
       globals: {
         Sudoku: "readonly",
@@ -101,6 +101,6 @@ export default [
     },
   },
   {
-    ignores: ["node_modules/", "dist/", "*.config.js"],
+    ignores: ["node_modules/", "**/node_modules/", "**/dist/", "**/*.config.js"],
   },
 ];
