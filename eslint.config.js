@@ -95,20 +95,18 @@ export default [
     },
   },
   {
-    files: ["packages/**/*.js"],
+    // Legacy non-module game scripts (not in src/)
+    files: ["packages/sudoku/sudoku.js", "packages/sudoku/game.js"],
     languageOptions: {
       sourceType: "script",
+      globals: {
+        Sudoku: "writable",
+        Game: "writable",
+      },
     },
     rules: {
-      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^Sudoku$" }],
-    },
-  },
-  {
-    files: ["packages/sudoku/game.js"],
-    languageOptions: {
-      globals: {
-        Sudoku: "readonly",
-      },
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^(Sudoku|Game)$" }],
+      "no-redeclare": "off",
     },
   },
 ];
