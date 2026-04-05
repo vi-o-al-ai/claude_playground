@@ -1,407 +1,471 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Timeline Tracker</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Timeline Tracker</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-  body {
-    background: #0d1117;
-    color: #e6edf3;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-    min-height: 100vh;
-  }
+      body {
+        background: #0d1117;
+        color: #e6edf3;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        min-height: 100vh;
+      }
 
-  #app {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px 16px 120px;
-  }
+      #app {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px 16px 120px;
+      }
 
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #21262d;
-  }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #21262d;
+      }
 
-  header h1 {
-    font-size: 1.3rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
+      header h1 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
 
-  .elapsed {
-    font-size: 0.85rem;
-    color: #8b949e;
-    font-variant-numeric: tabular-nums;
-  }
+      .elapsed {
+        font-size: 0.85rem;
+        color: #8b949e;
+        font-variant-numeric: tabular-nums;
+      }
 
-  .elapsed span { color: #58a6ff; font-weight: 600; }
+      .elapsed span {
+        color: #58a6ff;
+        font-weight: 600;
+      }
 
-  .btn {
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-    font-weight: 500;
-  }
-  .btn:active { transform: scale(0.97); }
+      .btn {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        font-weight: 500;
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
 
-  .btn-primary {
-    background: #238636;
-    color: #fff;
-  }
-  .btn-primary:hover { background: #2ea043; }
+      .btn-primary {
+        background: #238636;
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #2ea043;
+      }
 
-  .btn-danger {
-    background: transparent;
-    color: #f85149;
-    border: 1px solid #f8514933;
-    font-size: 0.75rem;
-    padding: 6px 12px;
-  }
-  .btn-danger:hover { background: #f8514916; }
+      .btn-danger {
+        background: transparent;
+        color: #f85149;
+        border: 1px solid #f8514933;
+        font-size: 0.75rem;
+        padding: 6px 12px;
+      }
+      .btn-danger:hover {
+        background: #f8514916;
+      }
 
-  .btn-secondary {
-    background: transparent;
-    color: #58a6ff;
-    border: 1px solid #58a6ff33;
-    font-size: 0.75rem;
-    padding: 6px 12px;
-  }
-  .btn-secondary:hover { background: #58a6ff16; }
+      .btn-secondary {
+        background: transparent;
+        color: #58a6ff;
+        border: 1px solid #58a6ff33;
+        font-size: 0.75rem;
+        padding: 6px 12px;
+      }
+      .btn-secondary:hover {
+        background: #58a6ff16;
+      }
 
-  .header-actions { display: flex; gap: 8px; align-items: center; }
+      .header-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
 
-  #import-input { display: none; }
+      #import-input {
+        display: none;
+      }
 
-  /* Timeline */
-  #timeline {
-    position: relative;
-    padding-left: 40px;
-    min-height: 200px;
-  }
+      /* Timeline */
+      #timeline {
+        position: relative;
+        padding-left: 40px;
+        min-height: 200px;
+      }
 
-  /* The vertical line */
-  #timeline::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(to bottom, #30363d, #30363d calc(100% - 40px), transparent);
-  }
+      /* The vertical line */
+      #timeline::before {
+        content: "";
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, #30363d, #30363d calc(100% - 40px), transparent);
+      }
 
-  /* Entry */
-  .entry {
-    position: relative;
-    padding: 12px 0 24px;
-    animation: fadeIn 0.4s ease-out;
-  }
+      /* Entry */
+      .entry {
+        position: relative;
+        padding: 12px 0 24px;
+        animation: fadeIn 0.4s ease-out;
+      }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-  .entry .dot {
-    position: absolute;
-    left: -33px;
-    top: 14px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #58a6ff;
-    border: 2px solid #0d1117;
-    z-index: 1;
-  }
+      .entry .dot {
+        position: absolute;
+        left: -33px;
+        top: 14px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #58a6ff;
+        border: 2px solid #0d1117;
+        z-index: 1;
+      }
 
-  .entry .time-info {
-    display: flex;
-    gap: 12px;
-    align-items: baseline;
-    margin-bottom: 4px;
-  }
+      .entry .time-info {
+        display: flex;
+        gap: 12px;
+        align-items: baseline;
+        margin-bottom: 4px;
+      }
 
-  .entry .relative-time {
-    font-size: 0.75rem;
-    color: #58a6ff;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    min-width: 70px;
-  }
+      .entry .relative-time {
+        font-size: 0.75rem;
+        color: #58a6ff;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        min-width: 70px;
+      }
 
-  .entry .absolute-time {
-    font-size: 0.7rem;
-    color: #484f58;
-  }
+      .entry .absolute-time {
+        font-size: 0.7rem;
+        color: #484f58;
+      }
 
-  .entry .description {
-    font-size: 0.9rem;
-    color: #c9d1d9;
-    line-height: 1.45;
-    padding: 8px 12px;
-    background: #161b22;
-    border: 1px solid #21262d;
-    border-radius: 6px;
-  }
+      .entry .description {
+        font-size: 0.9rem;
+        color: #c9d1d9;
+        line-height: 1.45;
+        padding: 8px 12px;
+        background: #161b22;
+        border: 1px solid #21262d;
+        border-radius: 6px;
+      }
 
-  /* Now marker */
-  #now-marker {
-    position: relative;
-    padding: 8px 0;
-  }
+      /* Now marker */
+      #now-marker {
+        position: relative;
+        padding: 8px 0;
+      }
 
-  #now-marker .dot {
-    position: absolute;
-    left: -33px;
-    top: 10px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #3fb950;
-    border: 2px solid #0d1117;
-    z-index: 1;
-    animation: pulse 2s ease-in-out infinite;
-  }
+      #now-marker .dot {
+        position: absolute;
+        left: -33px;
+        top: 10px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #3fb950;
+        border: 2px solid #0d1117;
+        z-index: 1;
+        animation: pulse 2s ease-in-out infinite;
+      }
 
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.5); }
-    50% { box-shadow: 0 0 0 8px rgba(63, 185, 80, 0); }
-  }
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.5);
+        }
+        50% {
+          box-shadow: 0 0 0 8px rgba(63, 185, 80, 0);
+        }
+      }
 
-  #now-marker .label {
-    font-size: 0.75rem;
-    color: #3fb950;
-    font-weight: 600;
-  }
+      #now-marker .label {
+        font-size: 0.75rem;
+        color: #3fb950;
+        font-weight: 600;
+      }
 
-  /* Start marker */
-  .start-marker {
-    position: relative;
-    padding: 6px 0 20px;
-  }
+      /* Start marker */
+      .start-marker {
+        position: relative;
+        padding: 6px 0 20px;
+      }
 
-  .start-marker .dot {
-    position: absolute;
-    left: -33px;
-    top: 8px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #8b949e;
-    border: 2px solid #0d1117;
-    z-index: 1;
-  }
+      .start-marker .dot {
+        position: absolute;
+        left: -33px;
+        top: 8px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #8b949e;
+        border: 2px solid #0d1117;
+        z-index: 1;
+      }
 
-  .start-marker .label {
-    font-size: 0.75rem;
-    color: #8b949e;
-  }
+      .start-marker .label {
+        font-size: 0.75rem;
+        color: #8b949e;
+      }
 
-  /* Input area */
-  #input-area {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #161b22;
-    border-top: 1px solid #21262d;
-    padding: 12px 16px;
-    z-index: 10;
-  }
+      /* Input area */
+      #input-area {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #161b22;
+        border-top: 1px solid #21262d;
+        padding: 12px 16px;
+        z-index: 10;
+      }
 
-  #input-area .inner {
-    max-width: 600px;
-    margin: 0 auto;
-    display: flex;
-    gap: 8px;
-  }
+      #input-area .inner {
+        max-width: 600px;
+        margin: 0 auto;
+        display: flex;
+        gap: 8px;
+      }
 
-  #entry-input {
-    flex: 1;
-    background: #0d1117;
-    border: 1px solid #30363d;
-    border-radius: 6px;
-    padding: 10px 12px;
-    color: #e6edf3;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.15s;
-    font-family: inherit;
-  }
+      #entry-input {
+        flex: 1;
+        background: #0d1117;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        padding: 10px 12px;
+        color: #e6edf3;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.15s;
+        font-family: inherit;
+      }
 
-  #entry-input:focus { border-color: #58a6ff; }
-  #entry-input::placeholder { color: #484f58; }
+      #entry-input:focus {
+        border-color: #58a6ff;
+      }
+      #entry-input::placeholder {
+        color: #484f58;
+      }
 
-  /* Empty state */
-  .empty-state {
-    text-align: center;
-    padding: 40px 0;
-    color: #484f58;
-    font-size: 0.9rem;
-    line-height: 1.6;
-  }
+      /* Empty state */
+      .empty-state {
+        text-align: center;
+        padding: 40px 0;
+        color: #484f58;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
 
-  /* Spacer between entries based on time (visual proportional gap) */
-  .time-spacer {
-    position: relative;
-    min-height: 4px;
-  }
+      /* Spacer between entries based on time (visual proportional gap) */
+      .time-spacer {
+        position: relative;
+        min-height: 4px;
+      }
 
-  @media (max-width: 480px) {
-    #app { padding: 12px 12px 110px; }
-    #timeline { padding-left: 32px; }
-    #timeline::before { left: 11px; }
-    .entry .dot, #now-marker .dot, .start-marker .dot { left: -27px; }
-  }
-</style>
-</head>
-<body>
-<div id="app">
-  <header>
-    <div>
-      <h1>Timeline Tracker</h1>
-      <div class="elapsed">Running: <span id="elapsed">0:00:00</span></div>
+      @media (max-width: 480px) {
+        #app {
+          padding: 12px 12px 110px;
+        }
+        #timeline {
+          padding-left: 32px;
+        }
+        #timeline::before {
+          left: 11px;
+        }
+        .entry .dot,
+        #now-marker .dot,
+        .start-marker .dot {
+          left: -27px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <div>
+          <h1>Timeline Tracker</h1>
+          <div class="elapsed">
+            Running:
+            <span id="elapsed">0:00:00</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-secondary" onclick="exportData()">Export</button>
+          <button
+            class="btn btn-secondary"
+            onclick="document.getElementById('import-input').click()"
+          >
+            Import
+          </button>
+          <input type="file" id="import-input" accept=".json" onchange="importData(event)" />
+          <button class="btn btn-danger" onclick="resetTimeline()">Reset</button>
+        </div>
+      </header>
+      <div id="timeline"></div>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-secondary" onclick="exportData()">Export</button>
-      <button class="btn btn-secondary" onclick="document.getElementById('import-input').click()">Import</button>
-      <input type="file" id="import-input" accept=".json" onchange="importData(event)">
-      <button class="btn btn-danger" onclick="resetTimeline()">Reset</button>
+
+    <div id="input-area">
+      <div class="inner">
+        <input
+          type="text"
+          id="entry-input"
+          placeholder="What's happening now?"
+          maxlength="280"
+          autocomplete="off"
+        />
+        <button class="btn btn-primary" id="add-btn" onclick="addEntry()">Add</button>
+      </div>
     </div>
-  </header>
-  <div id="timeline"></div>
-</div>
 
-<div id="input-area">
-  <div class="inner">
-    <input type="text" id="entry-input" placeholder="What's happening now?" maxlength="280" autocomplete="off">
-    <button class="btn btn-primary" id="add-btn" onclick="addEntry()">Add</button>
-  </div>
-</div>
+    <script>
+      const STORAGE_KEY = "timeline_tracker";
 
-<script>
-const STORAGE_KEY = 'timeline_tracker';
+      let sessionData = loadSession();
+      let elapsedInterval = null;
 
-let sessionData = loadSession();
-let elapsedInterval = null;
+      function loadSession() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          try {
+            const data = JSON.parse(saved);
+            if (data.startTime && data.entries) return data;
+          } catch {
+            // Invalid JSON in storage, fall through to create new session
+          }
+        }
+        return createSession();
+      }
 
-function loadSession() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const data = JSON.parse(saved);
-      if (data.startTime && data.entries) return data;
-    } catch {}
-  }
-  return createSession();
-}
+      function createSession() {
+        return { startTime: Date.now(), entries: [] };
+      }
 
-function createSession() {
-  return { startTime: Date.now(), entries: [] };
-}
+      function save() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
+      }
 
-function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
-}
+      function resetTimeline() {
+        if (sessionData.entries.length === 0 || confirm("Clear the timeline and start fresh?")) {
+          localStorage.removeItem(STORAGE_KEY);
+          sessionData = createSession();
+          save();
+          render();
+        }
+      }
 
-function resetTimeline() {
-  if (sessionData.entries.length === 0 || confirm('Clear the timeline and start fresh?')) {
-    localStorage.removeItem(STORAGE_KEY);
-    sessionData = createSession();
-    save();
-    render();
-  }
-}
+      function addEntry() {
+        const input = document.getElementById("entry-input");
+        const text = input.value.trim();
+        if (!text) return;
 
-function addEntry() {
-  const input = document.getElementById('entry-input');
-  const text = input.value.trim();
-  if (!text) return;
+        sessionData.entries.push({
+          timestamp: Date.now(),
+          description: text,
+        });
 
-  sessionData.entries.push({
-    timestamp: Date.now(),
-    description: text
-  });
+        input.value = "";
+        save();
+        render();
 
-  input.value = '';
-  save();
-  render();
+        // Auto-scroll to now marker
+        setTimeout(() => {
+          const nowMarker = document.getElementById("now-marker");
+          if (nowMarker) nowMarker.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 50);
+      }
 
-  // Auto-scroll to now marker
-  setTimeout(() => {
-    const nowMarker = document.getElementById('now-marker');
-    if (nowMarker) nowMarker.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 50);
-}
+      function formatRelativeTime(ms) {
+        const totalSec = Math.floor(ms / 1000);
+        if (totalSec < 60) return `+${totalSec}s`;
+        const m = Math.floor(totalSec / 60);
+        const s = totalSec % 60;
+        if (m < 60) return `+${m}m ${s.toString().padStart(2, "0")}s`;
+        const h = Math.floor(m / 60);
+        const rm = m % 60;
+        return `+${h}h ${rm.toString().padStart(2, "0")}m`;
+      }
 
-function formatRelativeTime(ms) {
-  const totalSec = Math.floor(ms / 1000);
-  if (totalSec < 60) return `+${totalSec}s`;
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  if (m < 60) return `+${m}m ${s.toString().padStart(2, '0')}s`;
-  const h = Math.floor(m / 60);
-  const rm = m % 60;
-  return `+${h}h ${rm.toString().padStart(2, '0')}m`;
-}
+      function formatAbsoluteTime(ts) {
+        const d = new Date(ts);
+        return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      }
 
-function formatAbsoluteTime(ts) {
-  const d = new Date(ts);
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
+      function formatElapsed(ms) {
+        const totalSec = Math.floor(ms / 1000);
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+      }
 
-function formatElapsed(ms) {
-  const totalSec = Math.floor(ms / 1000);
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-  return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
+      function computeSpacerHeight(timeDiffMs) {
+        // Proportional spacing: 1 minute = 40px, capped at 120px
+        const minutes = timeDiffMs / 60000;
+        return Math.max(4, Math.min(120, minutes * 40));
+      }
 
-function computeSpacerHeight(timeDiffMs) {
-  // Proportional spacing: 1 minute = 40px, capped at 120px
-  const minutes = timeDiffMs / 60000;
-  return Math.max(4, Math.min(120, minutes * 40));
-}
+      function render() {
+        const timeline = document.getElementById("timeline");
+        timeline.innerHTML = "";
 
-function render() {
-  const timeline = document.getElementById('timeline');
-  timeline.innerHTML = '';
-
-  // Start marker
-  const startEl = document.createElement('div');
-  startEl.className = 'start-marker';
-  startEl.innerHTML = `
+        // Start marker
+        const startEl = document.createElement("div");
+        startEl.className = "start-marker";
+        startEl.innerHTML = `
     <div class="dot"></div>
     <div class="label">Started ${formatAbsoluteTime(sessionData.startTime)}</div>
   `;
-  timeline.appendChild(startEl);
+        timeline.appendChild(startEl);
 
-  let prevTime = sessionData.startTime;
+        let prevTime = sessionData.startTime;
 
-  // Entries
-  sessionData.entries.forEach((entry, i) => {
-    // Spacer
-    const gap = entry.timestamp - prevTime;
-    const spacer = document.createElement('div');
-    spacer.className = 'time-spacer';
-    spacer.style.height = computeSpacerHeight(gap) + 'px';
-    timeline.appendChild(spacer);
+        // Entries
+        sessionData.entries.forEach((entry, _i) => {
+          // Spacer
+          const gap = entry.timestamp - prevTime;
+          const spacer = document.createElement("div");
+          spacer.className = "time-spacer";
+          spacer.style.height = computeSpacerHeight(gap) + "px";
+          timeline.appendChild(spacer);
 
-    const el = document.createElement('div');
-    el.className = 'entry';
-    const relTime = entry.timestamp - sessionData.startTime;
-    el.innerHTML = `
+          const el = document.createElement("div");
+          el.className = "entry";
+          const relTime = entry.timestamp - sessionData.startTime;
+          el.innerHTML = `
       <div class="dot"></div>
       <div class="time-info">
         <span class="relative-time">${formatRelativeTime(relTime)}</span>
@@ -409,100 +473,101 @@ function render() {
       </div>
       <div class="description">${escapeHtml(entry.description)}</div>
     `;
-    timeline.appendChild(el);
-    prevTime = entry.timestamp;
-  });
+          timeline.appendChild(el);
+          prevTime = entry.timestamp;
+        });
 
-  // Spacer to now
-  const nowGap = Date.now() - prevTime;
-  const nowSpacer = document.createElement('div');
-  nowSpacer.className = 'time-spacer';
-  nowSpacer.style.height = computeSpacerHeight(nowGap) + 'px';
-  timeline.appendChild(nowSpacer);
+        // Spacer to now
+        const nowGap = Date.now() - prevTime;
+        const nowSpacer = document.createElement("div");
+        nowSpacer.className = "time-spacer";
+        nowSpacer.style.height = computeSpacerHeight(nowGap) + "px";
+        timeline.appendChild(nowSpacer);
 
-  // Now marker
-  const nowEl = document.createElement('div');
-  nowEl.id = 'now-marker';
-  nowEl.innerHTML = `
+        // Now marker
+        const nowEl = document.createElement("div");
+        nowEl.id = "now-marker";
+        nowEl.innerHTML = `
     <div class="dot"></div>
     <div class="label">Now ${formatRelativeTime(Date.now() - sessionData.startTime)}</div>
   `;
-  timeline.appendChild(nowEl);
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function updateElapsed() {
-  const el = document.getElementById('elapsed');
-  el.textContent = formatElapsed(Date.now() - sessionData.startTime);
-
-  // Update the now marker's relative time
-  const nowMarker = document.getElementById('now-marker');
-  if (nowMarker) {
-    const label = nowMarker.querySelector('.label');
-    label.textContent = `Now ${formatRelativeTime(Date.now() - sessionData.startTime)}`;
-  }
-
-  // Update the now spacer proportionally
-  const spacers = document.querySelectorAll('.time-spacer');
-  if (spacers.length > 0) {
-    const lastSpacer = spacers[spacers.length - 1];
-    const lastEntry = sessionData.entries.length > 0
-      ? sessionData.entries[sessionData.entries.length - 1].timestamp
-      : sessionData.startTime;
-    lastSpacer.style.height = computeSpacerHeight(Date.now() - lastEntry) + 'px';
-  }
-}
-
-function exportData() {
-  const blob = new Blob([JSON.stringify(sessionData, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  const date = new Date().toISOString().slice(0, 10);
-  a.download = `timeline-${date}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importData(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data.startTime || !Array.isArray(data.entries)) {
-        alert('Invalid timeline file.');
-        return;
+        timeline.appendChild(nowEl);
       }
-      if (!confirm('This will replace your current timeline. Continue?')) return;
-      sessionData = data;
-      save();
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function updateElapsed() {
+        const el = document.getElementById("elapsed");
+        el.textContent = formatElapsed(Date.now() - sessionData.startTime);
+
+        // Update the now marker's relative time
+        const nowMarker = document.getElementById("now-marker");
+        if (nowMarker) {
+          const label = nowMarker.querySelector(".label");
+          label.textContent = `Now ${formatRelativeTime(Date.now() - sessionData.startTime)}`;
+        }
+
+        // Update the now spacer proportionally
+        const spacers = document.querySelectorAll(".time-spacer");
+        if (spacers.length > 0) {
+          const lastSpacer = spacers[spacers.length - 1];
+          const lastEntry =
+            sessionData.entries.length > 0
+              ? sessionData.entries[sessionData.entries.length - 1].timestamp
+              : sessionData.startTime;
+          lastSpacer.style.height = computeSpacerHeight(Date.now() - lastEntry) + "px";
+        }
+      }
+
+      function exportData() {
+        const blob = new Blob([JSON.stringify(sessionData, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const date = new Date().toISOString().slice(0, 10);
+        a.download = `timeline-${date}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!data.startTime || !Array.isArray(data.entries)) {
+              alert("Invalid timeline file.");
+              return;
+            }
+            if (!confirm("This will replace your current timeline. Continue?")) return;
+            sessionData = data;
+            save();
+            render();
+            updateElapsed();
+          } catch {
+            alert("Could not parse the file. Make sure it is a valid timeline JSON export.");
+          }
+        };
+        reader.readAsText(file);
+        event.target.value = "";
+      }
+
+      // Key handler
+      document.getElementById("entry-input").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") addEntry();
+      });
+
+      // Start
       render();
       updateElapsed();
-    } catch {
-      alert('Could not parse the file. Make sure it is a valid timeline JSON export.');
-    }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
-
-// Key handler
-document.getElementById('entry-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addEntry();
-});
-
-// Start
-render();
-updateElapsed();
-elapsedInterval = setInterval(updateElapsed, 1000);
-</script>
-</body>
+      elapsedInterval = setInterval(updateElapsed, 1000);
+    </script>
+  </body>
 </html>

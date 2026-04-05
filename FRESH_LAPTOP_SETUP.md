@@ -28,11 +28,11 @@ brew install node python nmap
 brew install --cask visual-studio-code google-chrome docker
 ```
 
-| App | Notes |
-|-----|-------|
-| **VS Code** | Primary editor |
-| **Google Chrome** | Secondary browser |
-| **Docker Desktop** | Container runtime |
+| App                | Notes                                                          |
+| ------------------ | -------------------------------------------------------------- |
+| **VS Code**        | Primary editor                                                 |
+| **Google Chrome**  | Secondary browser                                              |
+| **Docker Desktop** | Container runtime                                              |
 | **Claude Desktop** | Download from [claude.ai/download](https://claude.ai/download) |
 
 ### Claude Code (CLI)
@@ -63,13 +63,13 @@ All credentials are stored in the **Apple Passwords** app (synced via iCloud).
 
 ### Accounts to sign into on a fresh install:
 
-| Account | Where to sign in | Credential location |
-|---------|-----------------|---------------------|
-| **Apple ID / iCloud** | System Settings > Apple ID | Apple Passwords app (on phone or another device first) |
-| **GitHub** | `gh auth login` or browser | Apple Passwords |
-| **Google (Chrome)** | Chrome browser sign-in | Apple Passwords |
-| **Docker Hub** | Docker Desktop or `docker login` | Apple Passwords |
-| **Anthropic (Claude)** | Claude Desktop app + claude.ai | Apple Passwords |
+| Account                | Where to sign in                 | Credential location                                    |
+| ---------------------- | -------------------------------- | ------------------------------------------------------ |
+| **Apple ID / iCloud**  | System Settings > Apple ID       | Apple Passwords app (on phone or another device first) |
+| **GitHub**             | `gh auth login` or browser       | Apple Passwords                                        |
+| **Google (Chrome)**    | Chrome browser sign-in           | Apple Passwords                                        |
+| **Docker Hub**         | Docker Desktop or `docker login` | Apple Passwords                                        |
+| **Anthropic (Claude)** | Claude Desktop app + claude.ai   | Apple Passwords                                        |
 
 ### SSH Keys
 

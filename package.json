@@ -14,7 +14,13 @@
     "type": "git",
     "url": "https://github.com/vi-o-al-ai/claude_playground"
   },
-  "keywords": ["games", "arcade", "html5", "canvas", "browser-games"],
+  "keywords": [
+    "games",
+    "arcade",
+    "html5",
+    "canvas",
+    "browser-games"
+  ],
   "author": "vi-o-al-ai",
   "license": "MIT",
   "devDependencies": {

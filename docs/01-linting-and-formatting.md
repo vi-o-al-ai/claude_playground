@@ -19,13 +19,13 @@ This step introduces automated code quality tooling to the AI Games Arcade proje
 
 ### Key ESLint Rules
 
-| Rule | Setting | Why |
-|------|---------|-----|
-| `no-unused-vars` | warn | Catches dead code without blocking development |
-| `eqeqeq` | error | Prevents subtle type coercion bugs (`==` vs `===`) |
-| `no-var` | error | Enforces `let`/`const` over `var` for proper scoping |
-| `prefer-const` | warn | Encourages immutability where possible |
-| `curly` | error (multi-line) | Prevents ambiguous control flow |
+| Rule             | Setting            | Why                                                  |
+| ---------------- | ------------------ | ---------------------------------------------------- |
+| `no-unused-vars` | warn               | Catches dead code without blocking development       |
+| `eqeqeq`         | error              | Prevents subtle type coercion bugs (`==` vs `===`)   |
+| `no-var`         | error              | Enforces `let`/`const` over `var` for proper scoping |
+| `prefer-const`   | warn               | Encourages immutability where possible               |
+| `curly`          | error (multi-line) | Prevents ambiguous control flow                      |
 
 ### Prettier (`.prettierrc`)
 
@@ -45,13 +45,13 @@ This step introduces automated code quality tooling to the AI Games Arcade proje
 
 ### npm Scripts
 
-| Script | Command | Description |
-|--------|---------|-------------|
-| `npm run lint` | `eslint .` | Check for linting errors |
-| `npm run lint:fix` | `eslint . --fix` | Auto-fix linting issues |
-| `npm run format` | `prettier --write .` | Format all files |
-| `npm run format:check` | `prettier --check .` | Check formatting without changes |
-| `npm run check` | `lint + format:check` | Run both checks (used in CI) |
+| Script                 | Command               | Description                      |
+| ---------------------- | --------------------- | -------------------------------- |
+| `npm run lint`         | `eslint .`            | Check for linting errors         |
+| `npm run lint:fix`     | `eslint . --fix`      | Auto-fix linting issues          |
+| `npm run format`       | `prettier --write .`  | Format all files                 |
+| `npm run format:check` | `prettier --check .`  | Check formatting without changes |
+| `npm run check`        | `lint + format:check` | Run both checks (used in CI)     |
 
 ## Files Added/Modified
 

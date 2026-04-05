@@ -1,512 +1,539 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bowling</title>
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #1a1a2e;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    font-family: 'Segoe UI', sans-serif;
-    overflow: hidden;
-    user-select: none;
-  }
-  canvas { border-radius: 12px; cursor: grab; }
-  canvas:active { cursor: grabbing; }
-  #ui {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #fff;
-    font-size: 22px;
-    font-weight: bold;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    z-index: 10;
-    pointer-events: none;
-    text-align: center;
-  }
-  #score { font-size: 36px; color: #ffd700; }
-  #message { font-size: 18px; margin-top: 6px; color: #aac; }
-  #reset-btn {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #e94560;
-    color: #fff;
-    border: none;
-    padding: 12px 32px;
-    font-size: 18px;
-    border-radius: 30px;
-    cursor: pointer;
-    z-index: 10;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(233,69,96,0.4);
-    transition: transform 0.15s;
-  }
-  #reset-btn:hover { transform: translateX(-50%) scale(1.05); }
-</style>
-</head>
-<body>
-<div id="ui">
-  <div id="score">Score: 0</div>
-  <div id="message">Drag the ball and release to bowl!</div>
-</div>
-<canvas id="game"></canvas>
-<button id="reset-btn">Reset Pins</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bowling</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #1a1a2e;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: "Segoe UI", sans-serif;
+        overflow: hidden;
+        user-select: none;
+      }
+      canvas {
+        border-radius: 12px;
+        cursor: grab;
+      }
+      canvas:active {
+        cursor: grabbing;
+      }
+      #ui {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #fff;
+        font-size: 22px;
+        font-weight: bold;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        z-index: 10;
+        pointer-events: none;
+        text-align: center;
+      }
+      #score {
+        font-size: 36px;
+        color: #ffd700;
+      }
+      #message {
+        font-size: 18px;
+        margin-top: 6px;
+        color: #aac;
+      }
+      #reset-btn {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #e94560;
+        color: #fff;
+        border: none;
+        padding: 12px 32px;
+        font-size: 18px;
+        border-radius: 30px;
+        cursor: pointer;
+        z-index: 10;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        transition: transform 0.15s;
+      }
+      #reset-btn:hover {
+        transform: translateX(-50%) scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui">
+      <div id="score">Score: 0</div>
+      <div id="message">Drag the ball and release to bowl!</div>
+    </div>
+    <canvas id="game"></canvas>
+    <button id="reset-btn">Reset Pins</button>
 
-<script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
-const scoreEl = document.getElementById('score');
-const msgEl = document.getElementById('message');
-const resetBtn = document.getElementById('reset-btn');
+    <script>
+      const canvas = document.getElementById("game");
+      const ctx = canvas.getContext("2d");
+      const scoreEl = document.getElementById("score");
+      const msgEl = document.getElementById("message");
+      const resetBtn = document.getElementById("reset-btn");
 
-const W = 500, H = 750;
-canvas.width = W;
-canvas.height = H;
+      const W = 500,
+        H = 750;
+      canvas.width = W;
+      canvas.height = H;
 
-const BALL_RADIUS = 24;
-const PIN_RADIUS = 12;
-const FRICTION = 0.985;
-const PIN_FRICTION = 0.96;
-const GUTTER_X = 60;
-const LANE_TOP = 40;
-const LANE_BOTTOM = H - 40;
+      const BALL_RADIUS = 24;
+      const PIN_RADIUS = 12;
+      const FRICTION = 0.985;
+      const PIN_FRICTION = 0.96;
+      const GUTTER_X = 60;
+      const LANE_TOP = 40;
+      const LANE_BOTTOM = H - 40;
 
-let ball, pins, dragging, dragStart, totalScore, rollActive, settled;
+      let ball, pins, dragging, dragStart, totalScore, rollActive, settled;
 
-function createPins() {
-  const pins = [];
-  const startX = W / 2;
-  const startY = 140;
-  const spacing = 36;
-  const rows = 4;
-  for (let row = 0; row < rows; row++) {
-    const count = row + 1;
-    const offsetX = -row * spacing / 2;
-    for (let i = 0; i < count; i++) {
-      pins.push({
-        x: startX + offsetX + i * spacing,
-        y: startY - row * spacing * 0.85,
-        vx: 0, vy: 0,
-        alive: true,
-        radius: PIN_RADIUS,
-        rotation: 0,
-        opacity: 1
-      });
-    }
-  }
-  return pins;
-}
+      function createPins() {
+        const pins = [];
+        const startX = W / 2;
+        const startY = 140;
+        const spacing = 36;
+        const rows = 4;
+        for (let row = 0; row < rows; row++) {
+          const count = row + 1;
+          const offsetX = (-row * spacing) / 2;
+          for (let i = 0; i < count; i++) {
+            pins.push({
+              x: startX + offsetX + i * spacing,
+              y: startY - row * spacing * 0.85,
+              vx: 0,
+              vy: 0,
+              alive: true,
+              radius: PIN_RADIUS,
+              rotation: 0,
+              opacity: 1,
+            });
+          }
+        }
+        return pins;
+      }
 
-function resetBall() {
-  ball = {
-    x: W / 2,
-    y: H - 80,
-    vx: 0, vy: 0,
-    radius: BALL_RADIUS,
-    rotation: 0
-  };
-  rollActive = false;
-  settled = false;
-}
+      function resetBall() {
+        ball = {
+          x: W / 2,
+          y: H - 80,
+          vx: 0,
+          vy: 0,
+          radius: BALL_RADIUS,
+          rotation: 0,
+        };
+        rollActive = false;
+        settled = false;
+      }
 
-function init() {
-  totalScore = 0;
-  pins = createPins();
-  resetBall();
-  updateUI();
-}
-
-function updateUI() {
-  scoreEl.textContent = `Score: ${totalScore}`;
-}
-
-// Drawing
-function drawLane() {
-  // Lane background
-  const grad = ctx.createLinearGradient(GUTTER_X, 0, W - GUTTER_X, 0);
-  grad.addColorStop(0, '#c4956a');
-  grad.addColorStop(0.15, '#dbb896');
-  grad.addColorStop(0.5, '#e8cba8');
-  grad.addColorStop(0.85, '#dbb896');
-  grad.addColorStop(1, '#c4956a');
-  ctx.fillStyle = grad;
-  roundRect(GUTTER_X, LANE_TOP, W - GUTTER_X * 2, LANE_BOTTOM - LANE_TOP, 8);
-  ctx.fill();
-
-  // Lane lines
-  ctx.strokeStyle = 'rgba(180,140,100,0.3)';
-  ctx.lineWidth = 1;
-  for (let i = 1; i < 5; i++) {
-    const x = GUTTER_X + (W - GUTTER_X * 2) * i / 5;
-    ctx.beginPath();
-    ctx.moveTo(x, LANE_TOP);
-    ctx.lineTo(x, LANE_BOTTOM);
-    ctx.stroke();
-  }
-
-  // Foul line
-  ctx.strokeStyle = 'rgba(200,50,50,0.5)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([8, 6]);
-  ctx.beginPath();
-  ctx.moveTo(GUTTER_X, H - 200);
-  ctx.lineTo(W - GUTTER_X, H - 200);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Gutters
-  ctx.fillStyle = '#2a2a3e';
-  ctx.fillRect(0, LANE_TOP, GUTTER_X, LANE_BOTTOM - LANE_TOP);
-  ctx.fillRect(W - GUTTER_X, LANE_TOP, GUTTER_X, LANE_BOTTOM - LANE_TOP);
-
-  // Approach dots
-  for (let i = 0; i < 5; i++) {
-    const x = GUTTER_X + 30 + i * ((W - GUTTER_X * 2 - 60) / 4);
-    ctx.fillStyle = 'rgba(120,90,60,0.4)';
-    ctx.beginPath();
-    ctx.arc(x, H - 130, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-function drawBall() {
-  ctx.save();
-  ctx.translate(ball.x, ball.y);
-  ctx.rotate(ball.rotation);
-
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.25)';
-  ctx.beginPath();
-  ctx.ellipse(4, 4, ball.radius, ball.radius * 0.85, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Ball body
-  const grad = ctx.createRadialGradient(-6, -6, 2, 0, 0, ball.radius);
-  grad.addColorStop(0, '#4a4a8a');
-  grad.addColorStop(0.6, '#1a1a4e');
-  grad.addColorStop(1, '#0a0a2e');
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Finger holes
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.beginPath(); ctx.arc(-5, -8, 4, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(5, -8, 4, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(0, -1, 3.5, 0, Math.PI * 2); ctx.fill();
-
-  ctx.restore();
-}
-
-function drawPin(pin) {
-  if (!pin.alive) {
-    if (pin.opacity <= 0) return;
-    pin.opacity -= 0.02;
-  }
-  ctx.save();
-  ctx.globalAlpha = pin.opacity;
-  ctx.translate(pin.x, pin.y);
-  ctx.rotate(pin.rotation);
-
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath();
-  ctx.ellipse(2, 2, pin.radius, pin.radius * 0.7, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Pin body (white)
-  const grad = ctx.createRadialGradient(-3, -3, 1, 0, 0, pin.radius);
-  grad.addColorStop(0, '#ffffff');
-  grad.addColorStop(0.7, '#e8e8e8');
-  grad.addColorStop(1, '#cccccc');
-  ctx.fillStyle = grad;
-  ctx.beginPath();
-  ctx.arc(0, 0, pin.radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Red stripe
-  ctx.strokeStyle = '#cc2222';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.arc(0, 0, pin.radius * 0.65, -0.5, 0.5);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-function drawArrow() {
-  if (!dragging || rollActive) return;
-  const dx = dragStart.x - ball.x;
-  const dy = dragStart.y - ball.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  if (dist < 5) return;
-
-  const power = Math.min(dist / 3, 60);
-  const nx = dx / dist;
-  const ny = dy / dist;
-
-  ctx.save();
-  ctx.strokeStyle = `rgba(255, 200, 50, ${Math.min(power / 30, 0.8)})`;
-  ctx.lineWidth = 3;
-  ctx.setLineDash([6, 4]);
-  ctx.beginPath();
-  ctx.moveTo(ball.x, ball.y);
-  ctx.lineTo(ball.x + nx * power * 2, ball.y + ny * power * 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Arrowhead
-  const ax = ball.x + nx * power * 2;
-  const ay = ball.y + ny * power * 2;
-  ctx.fillStyle = `rgba(255, 200, 50, ${Math.min(power / 30, 0.8)})`;
-  ctx.beginPath();
-  ctx.moveTo(ax + nx * 10, ay + ny * 10);
-  ctx.lineTo(ax + ny * 6, ay - nx * 6);
-  ctx.lineTo(ax - ny * 6, ay + nx * 6);
-  ctx.closePath();
-  ctx.fill();
-
-  // Power indicator
-  ctx.fillStyle = '#ffd700';
-  ctx.font = '14px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(`Power: ${Math.round(power)}`, ball.x, ball.y + ball.radius + 20);
-  ctx.restore();
-}
-
-function roundRect(x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-// Physics
-function circleCollision(a, b) {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  const minDist = a.radius + b.radius;
-  if (dist < minDist && dist > 0) {
-    const nx = dx / dist;
-    const ny = dy / dist;
-    const overlap = minDist - dist;
-
-    // Separate
-    a.x -= nx * overlap * 0.5;
-    a.y -= ny * overlap * 0.5;
-    b.x += nx * overlap * 0.5;
-    b.y += ny * overlap * 0.5;
-
-    // Relative velocity
-    const dvx = a.vx - b.vx;
-    const dvy = a.vy - b.vy;
-    const dot = dvx * nx + dvy * ny;
-
-    if (dot > 0) {
-      const massA = a.radius * a.radius;
-      const massB = b.radius * b.radius;
-      const totalMass = massA + massB;
-      const impulseA = 2 * massB / totalMass * dot;
-      const impulseB = 2 * massA / totalMass * dot;
-
-      a.vx -= impulseA * nx * 0.9;
-      a.vy -= impulseA * ny * 0.9;
-      b.vx += impulseB * nx * 0.9;
-      b.vy += impulseB * ny * 0.9;
-    }
-    return true;
-  }
-  return false;
-}
-
-function update() {
-  if (!rollActive) return;
-
-  // Ball physics
-  ball.x += ball.vx;
-  ball.y += ball.vy;
-  ball.vx *= FRICTION;
-  ball.vy *= FRICTION;
-  ball.rotation += ball.vx * 0.05;
-
-  // Wall bounces for ball
-  if (ball.x - ball.radius < GUTTER_X) {
-    ball.x = GUTTER_X + ball.radius;
-    ball.vx *= -0.3;
-    ball.vy *= 0.7;
-  }
-  if (ball.x + ball.radius > W - GUTTER_X) {
-    ball.x = W - GUTTER_X - ball.radius;
-    ball.vx *= -0.3;
-    ball.vy *= 0.7;
-  }
-
-  // Ball vs pins
-  for (const pin of pins) {
-    if (!pin.alive) continue;
-    if (circleCollision(ball, pin)) {
-      const speed = Math.sqrt(pin.vx * pin.vx + pin.vy * pin.vy);
-      if (speed > 2) {
-        pin.alive = false;
-        totalScore += 1;
+      function init() {
+        totalScore = 0;
+        pins = createPins();
+        resetBall();
         updateUI();
       }
-    }
-  }
 
-  // Pin vs pin
-  for (let i = 0; i < pins.length; i++) {
-    for (let j = i + 1; j < pins.length; j++) {
-      if (!pins[i].alive && !pins[j].alive) continue;
-      if (circleCollision(pins[i], pins[j])) {
-        const speedI = Math.sqrt(pins[i].vx * pins[i].vx + pins[i].vy * pins[i].vy);
-        const speedJ = Math.sqrt(pins[j].vx * pins[j].vx + pins[j].vy * pins[j].vy);
-        if (speedI > 2.5 && pins[i].alive) {
-          pins[i].alive = false;
-          totalScore += 1;
-          updateUI();
+      function updateUI() {
+        scoreEl.textContent = `Score: ${totalScore}`;
+      }
+
+      // Drawing
+      function drawLane() {
+        // Lane background
+        const grad = ctx.createLinearGradient(GUTTER_X, 0, W - GUTTER_X, 0);
+        grad.addColorStop(0, "#c4956a");
+        grad.addColorStop(0.15, "#dbb896");
+        grad.addColorStop(0.5, "#e8cba8");
+        grad.addColorStop(0.85, "#dbb896");
+        grad.addColorStop(1, "#c4956a");
+        ctx.fillStyle = grad;
+        roundRect(GUTTER_X, LANE_TOP, W - GUTTER_X * 2, LANE_BOTTOM - LANE_TOP, 8);
+        ctx.fill();
+
+        // Lane lines
+        ctx.strokeStyle = "rgba(180,140,100,0.3)";
+        ctx.lineWidth = 1;
+        for (let i = 1; i < 5; i++) {
+          const x = GUTTER_X + ((W - GUTTER_X * 2) * i) / 5;
+          ctx.beginPath();
+          ctx.moveTo(x, LANE_TOP);
+          ctx.lineTo(x, LANE_BOTTOM);
+          ctx.stroke();
         }
-        if (speedJ > 2.5 && pins[j].alive) {
-          pins[j].alive = false;
-          totalScore += 1;
-          updateUI();
+
+        // Foul line
+        ctx.strokeStyle = "rgba(200,50,50,0.5)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath();
+        ctx.moveTo(GUTTER_X, H - 200);
+        ctx.lineTo(W - GUTTER_X, H - 200);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Gutters
+        ctx.fillStyle = "#2a2a3e";
+        ctx.fillRect(0, LANE_TOP, GUTTER_X, LANE_BOTTOM - LANE_TOP);
+        ctx.fillRect(W - GUTTER_X, LANE_TOP, GUTTER_X, LANE_BOTTOM - LANE_TOP);
+
+        // Approach dots
+        for (let i = 0; i < 5; i++) {
+          const x = GUTTER_X + 30 + i * ((W - GUTTER_X * 2 - 60) / 4);
+          ctx.fillStyle = "rgba(120,90,60,0.4)";
+          ctx.beginPath();
+          ctx.arc(x, H - 130, 4, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
-    }
-  }
 
-  // Pin physics
-  for (const pin of pins) {
-    pin.x += pin.vx;
-    pin.y += pin.vy;
-    pin.vx *= PIN_FRICTION;
-    pin.vy *= PIN_FRICTION;
-    if (!pin.alive) {
-      pin.rotation += pin.vx * 0.1;
-    }
-  }
+      function drawBall() {
+        ctx.save();
+        ctx.translate(ball.x, ball.y);
+        ctx.rotate(ball.rotation);
 
-  // Check if everything settled
-  const ballSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
-  const ballOffScreen = ball.y < -50 || ball.y > H + 50;
-  if (ballSpeed < 0.3 || ballOffScreen) {
-    const pinsMoving = pins.some(p => {
-      const s = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-      return s > 0.3;
-    });
-    if (!pinsMoving && !settled) {
-      settled = true;
-      const knocked = pins.filter(p => !p.alive).length;
-      if (knocked === 10) {
-        msgEl.textContent = "STRIKE! Perfect!";
-      } else if (knocked > 0) {
-        msgEl.textContent = `Knocked down ${knocked} pin${knocked > 1 ? 's' : ''}! Drag to bowl again.`;
-      } else {
-        msgEl.textContent = "Gutter ball! Try again.";
+        // Shadow
+        ctx.fillStyle = "rgba(0,0,0,0.25)";
+        ctx.beginPath();
+        ctx.ellipse(4, 4, ball.radius, ball.radius * 0.85, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ball body
+        const grad = ctx.createRadialGradient(-6, -6, 2, 0, 0, ball.radius);
+        grad.addColorStop(0, "#4a4a8a");
+        grad.addColorStop(0.6, "#1a1a4e");
+        grad.addColorStop(1, "#0a0a2e");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Finger holes
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.beginPath();
+        ctx.arc(-5, -8, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(5, -8, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(0, -1, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
       }
-      setTimeout(() => {
+
+      function drawPin(pin) {
+        if (!pin.alive) {
+          if (pin.opacity <= 0) return;
+          pin.opacity -= 0.02;
+        }
+        ctx.save();
+        ctx.globalAlpha = pin.opacity;
+        ctx.translate(pin.x, pin.y);
+        ctx.rotate(pin.rotation);
+
+        // Shadow
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.beginPath();
+        ctx.ellipse(2, 2, pin.radius, pin.radius * 0.7, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pin body (white)
+        const grad = ctx.createRadialGradient(-3, -3, 1, 0, 0, pin.radius);
+        grad.addColorStop(0, "#ffffff");
+        grad.addColorStop(0.7, "#e8e8e8");
+        grad.addColorStop(1, "#cccccc");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(0, 0, pin.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Red stripe
+        ctx.strokeStyle = "#cc2222";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, pin.radius * 0.65, -0.5, 0.5);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawArrow() {
+        if (!dragging || rollActive) return;
+        const dx = dragStart.x - ball.x;
+        const dy = dragStart.y - ball.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 5) return;
+
+        const power = Math.min(dist / 3, 60);
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        ctx.save();
+        ctx.strokeStyle = `rgba(255, 200, 50, ${Math.min(power / 30, 0.8)})`;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(ball.x, ball.y);
+        ctx.lineTo(ball.x + nx * power * 2, ball.y + ny * power * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Arrowhead
+        const ax = ball.x + nx * power * 2;
+        const ay = ball.y + ny * power * 2;
+        ctx.fillStyle = `rgba(255, 200, 50, ${Math.min(power / 30, 0.8)})`;
+        ctx.beginPath();
+        ctx.moveTo(ax + nx * 10, ay + ny * 10);
+        ctx.lineTo(ax + ny * 6, ay - nx * 6);
+        ctx.lineTo(ax - ny * 6, ay + nx * 6);
+        ctx.closePath();
+        ctx.fill();
+
+        // Power indicator
+        ctx.fillStyle = "#ffd700";
+        ctx.font = "14px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(`Power: ${Math.round(power)}`, ball.x, ball.y + ball.radius + 20);
+        ctx.restore();
+      }
+
+      function roundRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
+
+      // Physics
+      function circleCollision(a, b) {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const minDist = a.radius + b.radius;
+        if (dist < minDist && dist > 0) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const overlap = minDist - dist;
+
+          // Separate
+          a.x -= nx * overlap * 0.5;
+          a.y -= ny * overlap * 0.5;
+          b.x += nx * overlap * 0.5;
+          b.y += ny * overlap * 0.5;
+
+          // Relative velocity
+          const dvx = a.vx - b.vx;
+          const dvy = a.vy - b.vy;
+          const dot = dvx * nx + dvy * ny;
+
+          if (dot > 0) {
+            const massA = a.radius * a.radius;
+            const massB = b.radius * b.radius;
+            const totalMass = massA + massB;
+            const impulseA = ((2 * massB) / totalMass) * dot;
+            const impulseB = ((2 * massA) / totalMass) * dot;
+
+            a.vx -= impulseA * nx * 0.9;
+            a.vy -= impulseA * ny * 0.9;
+            b.vx += impulseB * nx * 0.9;
+            b.vy += impulseB * ny * 0.9;
+          }
+          return true;
+        }
+        return false;
+      }
+
+      function update() {
+        if (!rollActive) return;
+
+        // Ball physics
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+        ball.vx *= FRICTION;
+        ball.vy *= FRICTION;
+        ball.rotation += ball.vx * 0.05;
+
+        // Wall bounces for ball
+        if (ball.x - ball.radius < GUTTER_X) {
+          ball.x = GUTTER_X + ball.radius;
+          ball.vx *= -0.3;
+          ball.vy *= 0.7;
+        }
+        if (ball.x + ball.radius > W - GUTTER_X) {
+          ball.x = W - GUTTER_X - ball.radius;
+          ball.vx *= -0.3;
+          ball.vy *= 0.7;
+        }
+
+        // Ball vs pins
+        for (const pin of pins) {
+          if (!pin.alive) continue;
+          if (circleCollision(ball, pin)) {
+            const speed = Math.sqrt(pin.vx * pin.vx + pin.vy * pin.vy);
+            if (speed > 2) {
+              pin.alive = false;
+              totalScore += 1;
+              updateUI();
+            }
+          }
+        }
+
+        // Pin vs pin
+        for (let i = 0; i < pins.length; i++) {
+          for (let j = i + 1; j < pins.length; j++) {
+            if (!pins[i].alive && !pins[j].alive) continue;
+            if (circleCollision(pins[i], pins[j])) {
+              const speedI = Math.sqrt(pins[i].vx * pins[i].vx + pins[i].vy * pins[i].vy);
+              const speedJ = Math.sqrt(pins[j].vx * pins[j].vx + pins[j].vy * pins[j].vy);
+              if (speedI > 2.5 && pins[i].alive) {
+                pins[i].alive = false;
+                totalScore += 1;
+                updateUI();
+              }
+              if (speedJ > 2.5 && pins[j].alive) {
+                pins[j].alive = false;
+                totalScore += 1;
+                updateUI();
+              }
+            }
+          }
+        }
+
+        // Pin physics
+        for (const pin of pins) {
+          pin.x += pin.vx;
+          pin.y += pin.vy;
+          pin.vx *= PIN_FRICTION;
+          pin.vy *= PIN_FRICTION;
+          if (!pin.alive) {
+            pin.rotation += pin.vx * 0.1;
+          }
+        }
+
+        // Check if everything settled
+        const ballSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+        const ballOffScreen = ball.y < -50 || ball.y > H + 50;
+        if (ballSpeed < 0.3 || ballOffScreen) {
+          const pinsMoving = pins.some((p) => {
+            const s = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+            return s > 0.3;
+          });
+          if (!pinsMoving && !settled) {
+            settled = true;
+            const knocked = pins.filter((p) => !p.alive).length;
+            if (knocked === 10) {
+              msgEl.textContent = "STRIKE! Perfect!";
+            } else if (knocked > 0) {
+              msgEl.textContent = `Knocked down ${knocked} pin${knocked > 1 ? "s" : ""}! Drag to bowl again.`;
+            } else {
+              msgEl.textContent = "Gutter ball! Try again.";
+            }
+            setTimeout(() => {
+              resetBall();
+              msgEl.textContent = "Drag the ball and release to bowl!";
+            }, 1500);
+          }
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        drawLane();
+        pins.forEach(drawPin);
+        drawBall();
+        drawArrow();
+      }
+
+      function loop() {
+        update();
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      // Input
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = W / rect.width;
+        const scaleY = H / rect.height;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY,
+        };
+      }
+
+      function onDown(e) {
+        if (rollActive) return;
+        const pos = getPos(e);
+        const dx = pos.x - ball.x;
+        const dy = pos.y - ball.y;
+        if (dx * dx + dy * dy < (ball.radius + 20) * (ball.radius + 20)) {
+          dragging = true;
+          dragStart = pos;
+        }
+      }
+
+      function onMove(e) {
+        if (!dragging) return;
+        e.preventDefault();
+        dragStart = getPos(e);
+      }
+
+      function onUp() {
+        if (!dragging) return;
+        dragging = false;
+        const dx = dragStart.x - ball.x;
+        const dy = dragStart.y - ball.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 10) return;
+
+        const power = Math.min(dist / 3, 60);
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        ball.vx = nx * power * 0.35;
+        ball.vy = ny * power * 0.35;
+        rollActive = true;
+        msgEl.textContent = "Rolling...";
+      }
+
+      canvas.addEventListener("mousedown", onDown);
+      canvas.addEventListener("mousemove", onMove);
+      canvas.addEventListener("mouseup", onUp);
+      canvas.addEventListener("touchstart", onDown, { passive: false });
+      canvas.addEventListener("touchmove", onMove, { passive: false });
+      canvas.addEventListener("touchend", onUp);
+
+      resetBtn.addEventListener("click", () => {
+        pins = createPins();
         resetBall();
-        msgEl.textContent = "Drag the ball and release to bowl!";
-      }, 1500);
-    }
-  }
-}
+        msgEl.textContent = "Pins reset! Drag the ball to bowl.";
+      });
 
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-  drawLane();
-  pins.forEach(drawPin);
-  drawBall();
-  drawArrow();
-}
-
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-
-// Input
-function getPos(e) {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = W / rect.width;
-  const scaleY = H / rect.height;
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  return {
-    x: (clientX - rect.left) * scaleX,
-    y: (clientY - rect.top) * scaleY
-  };
-}
-
-function onDown(e) {
-  if (rollActive) return;
-  const pos = getPos(e);
-  const dx = pos.x - ball.x;
-  const dy = pos.y - ball.y;
-  if (dx * dx + dy * dy < (ball.radius + 20) * (ball.radius + 20)) {
-    dragging = true;
-    dragStart = pos;
-  }
-}
-
-function onMove(e) {
-  if (!dragging) return;
-  e.preventDefault();
-  dragStart = getPos(e);
-}
-
-function onUp() {
-  if (!dragging) return;
-  dragging = false;
-  const dx = dragStart.x - ball.x;
-  const dy = dragStart.y - ball.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  if (dist < 10) return;
-
-  const power = Math.min(dist / 3, 60);
-  const nx = dx / dist;
-  const ny = dy / dist;
-
-  ball.vx = nx * power * 0.35;
-  ball.vy = ny * power * 0.35;
-  rollActive = true;
-  msgEl.textContent = "Rolling...";
-}
-
-canvas.addEventListener('mousedown', onDown);
-canvas.addEventListener('mousemove', onMove);
-canvas.addEventListener('mouseup', onUp);
-canvas.addEventListener('touchstart', onDown, { passive: false });
-canvas.addEventListener('touchmove', onMove, { passive: false });
-canvas.addEventListener('touchend', onUp);
-
-resetBtn.addEventListener('click', () => {
-  pins = createPins();
-  resetBall();
-  msgEl.textContent = "Pins reset! Drag the ball to bowl.";
-});
-
-init();
-loop();
-</script>
-</body>
+      init();
+      loop();
+    </script>
+  </body>
 </html>
