@@ -2,14 +2,14 @@
   "name": "ai-games-arcade",
   "version": "1.0.0",
   "private": true,
-  "description": "A browser-based collection of interactive games built with HTML5, CSS, and JavaScript",
+  "description": "A browser-based collection of interactive games built with diverse tech stacks",
   "type": "module",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
+    "build": "npm run build --workspaces --if-present",
     "dev": "npm run dev --workspace",
-    "build": "npm run build --workspaces",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

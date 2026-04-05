@@ -52,6 +52,17 @@ const sharedRules = {
 };
 
 export default [
+  {
+    // Global ignores — non-JS packages, build output, configs
+    ignores: [
+      "node_modules/",
+      "**/node_modules/",
+      "**/dist/",
+      "**/*.config.js",
+      // Non-JS game packages should be listed here to skip linting.
+      // Example: "packages/my-godot-game/",
+    ],
+  },
   js.configs.recommended,
   eslintConfigPrettier,
   {
@@ -99,8 +110,5 @@ export default [
         Sudoku: "readonly",
       },
     },
-  },
-  {
-    ignores: ["node_modules/", "**/node_modules/", "**/dist/", "**/*.config.js"],
   },
 ];
