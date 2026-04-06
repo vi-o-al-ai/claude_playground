@@ -8,15 +8,12 @@
   </head>
   <body>
     <div id="app">
-      <header>
-        <h1>Sudoku</h1>
-        <div id="difficulty-selector">
-          <button class="diff-btn active" data-difficulty="easy">Easy</button>
-          <button class="diff-btn" data-difficulty="medium">Medium</button>
-          <button class="diff-btn" data-difficulty="hard">Hard</button>
-          <button class="diff-btn" data-difficulty="expert">Expert</button>
-        </div>
-      </header>
+      <div id="difficulty-selector">
+        <button class="diff-btn active" data-difficulty="easy">Easy</button>
+        <button class="diff-btn" data-difficulty="medium">Medium</button>
+        <button class="diff-btn" data-difficulty="hard">Hard</button>
+        <button class="diff-btn" data-difficulty="expert">Expert</button>
+      </div>
 
       <div id="game-area">
         <div id="game-info">
@@ -109,13 +106,6 @@
           <button id="btn-save">Save</button>
           <button id="btn-load">Resume</button>
           <button id="btn-share">Share</button>
-        </div>
-      </div>
-
-      <div id="modal-overlay" class="hidden">
-        <div id="modal">
-          <div id="modal-content"></div>
-          <div id="modal-actions"></div>
         </div>
       </div>
     </div>

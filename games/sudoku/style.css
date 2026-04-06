@@ -44,23 +44,11 @@ body {
   max-width: 500px;
 }
 
-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-header h1 {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--primary-dark);
-  margin-bottom: 12px;
-  letter-spacing: -0.5px;
-}
-
 #difficulty-selector {
   display: flex;
   gap: 8px;
   justify-content: center;
+  margin-bottom: 16px;
 }
 
 .diff-btn {
@@ -377,125 +365,6 @@ header h1 {
 
 #btn-share:hover {
   opacity: 0.9;
-}
-
-/* Modal */
-#modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-  backdrop-filter: blur(4px);
-}
-
-#modal-overlay.hidden {
-  display: none;
-}
-
-#modal {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 32px;
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  animation: modalIn 0.3s ease;
-}
-
-@keyframes modalIn {
-  from {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-#modal h2 {
-  font-size: 24px;
-  margin-bottom: 12px;
-}
-
-#modal p {
-  color: var(--text-light);
-  margin-bottom: 8px;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-#modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-#modal-actions button {
-  padding: 10px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.modal-btn-primary {
-  background: var(--primary);
-  color: white;
-}
-
-.modal-btn-primary:hover {
-  background: var(--primary-dark);
-}
-
-.modal-btn-secondary {
-  background: var(--bg);
-  color: var(--text);
-}
-
-.modal-btn-secondary:hover {
-  background: var(--border);
-}
-
-#share-link-box {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-#share-link-box input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--text);
-  outline: none;
-}
-
-#share-link-box input:focus {
-  border-color: var(--primary);
-}
-
-#share-link-box button {
-  padding: 8px 16px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 12px;
 }
 
 /* Win animation */
