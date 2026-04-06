@@ -1,0 +1,132 @@
+/*
+ * Shared theme system for AI Games Arcade
+ *
+ * Import this stylesheet in any game to get consistent theming.
+ * Override any variable in your game's own stylesheet to customize.
+ *
+ * Usage:
+ *   <link rel="stylesheet" href="@arcade/shared-ui/theme">
+ *   — or —
+ *   import '@arcade/shared-ui/theme';
+ */
+
+:root {
+  /* ─── Core palette ──────────────────────────────────── */
+  --arcade-primary: #4a90d9;
+  --arcade-primary-light: #e8f0fe;
+  --arcade-primary-dark: #2c5f9e;
+
+  --arcade-success: #27ae60;
+  --arcade-success-light: #e8f8ef;
+
+  --arcade-error: #e74c3c;
+  --arcade-error-light: #fde8e8;
+
+  --arcade-warning: #f39c12;
+  --arcade-warning-light: #fef5e7;
+
+  /* ─── Surfaces & text ───────────────────────────────── */
+  --arcade-bg: #f5f7fa;
+  --arcade-surface: #ffffff;
+  --arcade-text: #2c3e50;
+  --arcade-text-muted: #7f8c8d;
+  --arcade-border: #dce1e8;
+
+  /* ─── Typography ────────────────────────────────────── */
+  --arcade-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, sans-serif;
+  --arcade-font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
+  --arcade-font-size-sm: 0.85rem;
+  --arcade-font-size-base: 1rem;
+  --arcade-font-size-lg: 1.25rem;
+  --arcade-font-size-xl: 1.5rem;
+
+  /* ─── Spacing ───────────────────────────────────────── */
+  --arcade-space-xs: 4px;
+  --arcade-space-sm: 8px;
+  --arcade-space-md: 16px;
+  --arcade-space-lg: 24px;
+  --arcade-space-xl: 32px;
+
+  /* ─── Radii & shadows ───────────────────────────────── */
+  --arcade-radius-sm: 4px;
+  --arcade-radius-md: 8px;
+  --arcade-radius-lg: 12px;
+  --arcade-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --arcade-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --arcade-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  /* ─── Transitions ───────────────────────────────────── */
+  --arcade-transition-fast: 150ms ease;
+  --arcade-transition-base: 250ms ease;
+}
+
+/* ─── Dark-mode overrides ───────────────────────────────── */
+:root[data-theme="dark"],
+.arcade-dark {
+  --arcade-bg: #1a1a2e;
+  --arcade-surface: #16213e;
+  --arcade-text: #e0e0e0;
+  --arcade-text-muted: #8a8a9a;
+  --arcade-border: #2a2a4a;
+
+  --arcade-primary: #5a9fe6;
+  --arcade-primary-light: #1e3a5f;
+  --arcade-primary-dark: #7ab8f5;
+
+  --arcade-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --arcade-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --arcade-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Shared button base ────────────────────────────────── */
+.arcade-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--arcade-space-xs);
+  padding: var(--arcade-space-sm) var(--arcade-space-md);
+  font-family: var(--arcade-font-family);
+  font-size: var(--arcade-font-size-base);
+  font-weight: 500;
+  border: none;
+  border-radius: var(--arcade-radius-md);
+  cursor: pointer;
+  transition:
+    background var(--arcade-transition-fast),
+    transform var(--arcade-transition-fast),
+    box-shadow var(--arcade-transition-fast);
+  user-select: none;
+}
+
+.arcade-btn:active {
+  transform: scale(0.97);
+}
+
+.arcade-btn--primary {
+  background: var(--arcade-primary);
+  color: #fff;
+}
+
+.arcade-btn--primary:hover {
+  background: var(--arcade-primary-dark);
+  box-shadow: var(--arcade-shadow-sm);
+}
+
+.arcade-btn--secondary {
+  background: var(--arcade-surface);
+  color: var(--arcade-text);
+  border: 1px solid var(--arcade-border);
+}
+
+.arcade-btn--secondary:hover {
+  background: var(--arcade-primary-light);
+}
+
+.arcade-btn--danger {
+  background: var(--arcade-error);
+  color: #fff;
+}
+
+.arcade-btn--danger:hover {
+  background: #c0392b;
+}

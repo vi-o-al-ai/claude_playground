@@ -1,0 +1,21 @@
+{
+  "name": "@arcade/shared-ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shared UI component library for AI Games Arcade",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./theme": "./src/theme.css",
+    "./modal": "./src/modal.js",
+    "./game-header": "./src/game-header.js",
+    "./game-over": "./src/game-over.js"
+  },
+  "keywords": [
+    "ui",
+    "components",
+    "arcade",
+    "games"
+  ]
+}

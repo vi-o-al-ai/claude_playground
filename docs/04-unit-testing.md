@@ -49,6 +49,22 @@ Unit tests have been added for the Sudoku and Tic-Tac-Toe game engines using **V
 - **`computeComputerMove`** — win priority, blocking, center/corner/any fallback strategy
 - **`restart`** — board reset with score preservation
 
+### Shared UI (`packages/shared-ui/src/__tests__/`) — 35 tests
+
+- **`modal.test.js`** (13 tests) — DOM creation, show/hide lifecycle, button rendering with variants, backdrop and Escape dismiss, auto-close behavior, HTML message support, style deduplication, destroy cleanup
+- **`game-header.test.js`** (9 tests) — Title display, arcade back link, custom URL, toggle settings with onChange, initial checked state, multiple settings, container mounting, setTitle update
+- **`game-over.test.js`** (13 tests) — Overlay visibility, stats display, restart callback with auto-hide, default/custom restart label, extra buttons, re-show clears previous state, no-op hide, destroy cleanup
+
+## TDD Workflow
+
+All new features and components **must** follow test-driven development:
+
+1. **Write failing tests first** — commit them so the test expectations are reviewable on their own
+2. **Implement the code** — commit the implementation that makes the tests pass
+3. **Refactor if needed** — clean up while keeping tests green
+
+This ensures tests define the intended behavior before implementation influences them, and the git history clearly separates test design from implementation.
+
 ## Fixture-Based Testing
 
 Sudoku tests use a **pre-built puzzle fixture** (`fixtures.js`) instead of calling the puzzle generator at runtime. This avoids the expensive backtracking solver, keeping the entire test suite under 300ms.
