@@ -31,7 +31,7 @@ jobs:
       - name: Assemble site
         run: |
           mkdir _site
-          for pkg in packages/*/; do
+          for pkg in games/*/ apps/*/; do
             name=$(basename "$pkg")
             if [ -d "$pkg/dist" ]; then
               cp -r "$pkg/dist" "_site/$name"

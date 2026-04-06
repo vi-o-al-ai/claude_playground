@@ -5,7 +5,8 @@
   "description": "A browser-based collection of interactive games built with diverse tech stacks",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "games/*",
+    "apps/*"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
