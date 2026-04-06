@@ -10,8 +10,14 @@ import { resolve } from "path";
  * @param {number} [options.port] - Dev server port (optional)
  */
 export function createGameConfig({ root, port }) {
+  const packageName = root.split("/").pop();
+  // eslint-disable-next-line no-undef
+  const pagesBase = process.env.PAGES_BASE;
+  const base = pagesBase ? `${pagesBase}/${packageName}/` : "/";
+
   return defineConfig({
     root,
+    base,
     build: {
       outDir: resolve(root, "dist"),
       emptyOutDir: true,
