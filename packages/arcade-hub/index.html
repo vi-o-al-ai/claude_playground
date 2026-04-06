@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Games Arcade</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#7b2ff7" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #0f0f23;
+        color: #e0e0e0;
+        min-height: 100vh;
+      }
+
+      header {
+        text-align: center;
+        padding: 3rem 1rem 2rem;
+        background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%);
+        border-bottom: 2px solid #333;
+      }
+
+      header h1 {
+        font-size: 2.5rem;
+        letter-spacing: 0.1em;
+        background: linear-gradient(90deg, #00d4ff, #7b2ff7, #ff2d95);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      header p {
+        margin-top: 0.75rem;
+        color: #888;
+        font-size: 1.1rem;
+      }
+
+      .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        max-width: 1100px;
+        margin: 2.5rem auto;
+        padding: 0 1.5rem;
+      }
+
+      .game-card {
+        background: #1a1a2e;
+        border: 1px solid #2a2a4a;
+        border-radius: 12px;
+        padding: 2rem 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        transition:
+          transform 0.2s,
+          border-color 0.2s,
+          box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .game-card:hover {
+        transform: translateY(-4px);
+        border-color: #7b2ff7;
+        box-shadow: 0 8px 24px rgba(123, 47, 247, 0.2);
+      }
+
+      .game-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+
+      .game-card h2 {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+        color: #fff;
+      }
+
+      .game-card p {
+        font-size: 0.9rem;
+        color: #888;
+        line-height: 1.4;
+      }
+
+      footer {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #555;
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>AI Games Arcade</h1>
+      <p>A collection of browser games built with AI</p>
+    </header>
+
+    <main class="games-grid">
+      <a class="game-card" href="../bowling/index.html">
+        <div class="game-icon">&#127923;</div>
+        <h2>Bowling</h2>
+        <p>Roll strikes and spares in this classic bowling game.</p>
+      </a>
+
+      <a class="game-card" href="../space-invaders/index.html">
+        <div class="game-icon">&#128126;</div>
+        <h2>Space Invaders</h2>
+        <p>Defend Earth from waves of alien invaders.</p>
+      </a>
+
+      <a class="game-card" href="../fighting/index.html">
+        <div class="game-icon">&#129354;</div>
+        <h2>Punch Out!</h2>
+        <p>A 2-player fighting game &mdash; challenge a friend!</p>
+      </a>
+
+      <a class="game-card" href="../splendor/index.html">
+        <div class="game-icon">&#128142;</div>
+        <h2>Splendor</h2>
+        <p>Collect gems and build your trade empire.</p>
+      </a>
+
+      <a class="game-card" href="../sudoku/index.html">
+        <div class="game-icon">&#129529;</div>
+        <h2>Sudoku</h2>
+        <p>Fill the grid with logic in this number puzzle.</p>
+      </a>
+
+      <a class="game-card" href="../solitaire/index.html">
+        <div class="game-icon">&#127183;</div>
+        <h2>Solitaire</h2>
+        <p>The timeless single-player card game.</p>
+      </a>
+
+      <a class="game-card" href="../tic-tac-toe/index.html">
+        <div class="game-icon">&#10060;</div>
+        <h2>Tic Tac Toe</h2>
+        <p>Classic X's and O's &mdash; simple but strategic.</p>
+      </a>
+    </main>
+
+    <footer>
+      Built with AI &bull;
+      <a href="https://github.com/vi-o-al-ai/claude_playground" style="color: #7b2ff7">
+        Source on GitHub
+      </a>
+    </footer>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js").catch(() => {
+          // Service worker registration failed — app works fine without it
+        });
+      }
+    </script>
+  </body>
+</html>
