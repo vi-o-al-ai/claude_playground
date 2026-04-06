@@ -95,6 +95,17 @@ export default [
     },
   },
   {
+    // Service worker files — use service worker globals
+    files: ["**/sw.js"],
+    languageOptions: {
+      globals: {
+        self: "readonly",
+        caches: "readonly",
+        clients: "readonly",
+      },
+    },
+  },
+  {
     // Legacy non-module game scripts (not in src/)
     files: ["packages/sudoku/sudoku.js", "packages/sudoku/game.js"],
     languageOptions: {
