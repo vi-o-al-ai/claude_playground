@@ -34,8 +34,15 @@
   "author": "vi-o-al-ai",
   "license": "MIT",
   "lint-staged": {
-    "*.js": "eslint",
-    "*.html": "eslint"
+    "*.js": [
+      "eslint",
+      "prettier --write"
+    ],
+    "*.html": [
+      "eslint",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": "prettier --write"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
