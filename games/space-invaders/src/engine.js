@@ -193,10 +193,12 @@ export function update(state, keys, W, H) {
 
   // Player movement
   const speed = 5;
-  if (keys["ArrowLeft"] || keys["a"])
+  if (keys["ArrowLeft"] || keys["a"]) {
     state.player.x = Math.max(10, state.player.x - speed);
-  if (keys["ArrowRight"] || keys["d"])
+  }
+  if (keys["ArrowRight"] || keys["d"]) {
     state.player.x = Math.min(W - state.player.w - 10, state.player.x + speed);
+  }
 
   // Player shooting
   if (state.shootCooldown > 0) state.shootCooldown--;

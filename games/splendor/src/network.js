@@ -194,7 +194,7 @@ export class SplendorNetwork {
   _initPeer(id) {
     return new Promise((resolve, reject) => {
       // Peer is a global provided by PeerJS CDN script.
-      this.peer = id !== undefined ? new Peer(id) : new Peer(); // eslint-disable-line no-undef
+      this.peer = id !== undefined ? new Peer(id) : new Peer(); // Peer is a PeerJS CDN global
 
       this.peer.on("open", (assignedId) => {
         this.peerId = assignedId;

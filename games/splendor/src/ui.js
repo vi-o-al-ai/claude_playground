@@ -503,13 +503,14 @@ window.confirmAction = function () {
   }
 };
 
-window.cancelAction = function () {
+function cancelAction() {
   actionMode = null;
   selectedGems = [];
   selectedCard = null;
   document.querySelectorAll(".dynamic-action-btn").forEach((b) => b.remove());
   renderGame();
-};
+}
+window.cancelAction = cancelAction;
 
 // ---- Action Execution ----
 
