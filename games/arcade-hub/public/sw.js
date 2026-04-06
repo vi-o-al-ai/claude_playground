@@ -11,7 +11,7 @@
  * may not be deployed alongside the hub.
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `ai-arcade-${CACHE_VERSION}`;
 
 // Shell files to pre-cache on install (arcade hub only)
