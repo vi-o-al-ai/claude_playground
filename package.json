@@ -6,7 +6,8 @@
   "type": "module",
   "workspaces": [
     "games/*",
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
