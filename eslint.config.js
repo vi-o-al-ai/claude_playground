@@ -107,7 +107,7 @@ export default [
   },
   {
     // Legacy non-module game scripts (not in src/)
-    files: ["packages/sudoku/sudoku.js", "packages/sudoku/game.js"],
+    files: ["games/sudoku/sudoku.js", "games/sudoku/game.js"],
     languageOptions: {
       sourceType: "script",
       globals: {
