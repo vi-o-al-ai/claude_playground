@@ -80,3 +80,7 @@ Run the same checks locally before pushing:
 npm run check   # lint + format:check + test
 npm run build   # build all packages
 ```
+
+### Pre-commit Hook
+
+A Husky pre-commit hook runs ESLint and Prettier on staged files automatically at commit time, catching most lint and formatting issues before they ever reach CI. See [Step 1: Linting & Formatting](./01-linting-and-formatting.md#pre-commit-hook-husky--lint-staged) for details.

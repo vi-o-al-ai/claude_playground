@@ -74,6 +74,30 @@ npm run check
 npm run lint:fix && npm run format
 ```
 
+## Pre-commit Hook (Husky + lint-staged)
+
+A Git pre-commit hook runs ESLint and Prettier automatically on every commit, so lint and formatting errors are caught locally before reaching CI.
+
+### How It Works
+
+- **[Husky](https://typicode.github.io/husky/)** installs the Git hook via the `prepare` script (runs automatically after `npm install`)
+- **[lint-staged](https://github.com/lint-staged/lint-staged)** runs tools only on staged files, keeping commits fast
+
+### What Runs on Commit
+
+| Staged files        | Tools run                |
+| ------------------- | ------------------------ |
+| `*.js`              | ESLint, Prettier (write) |
+| `*.html`            | ESLint, Prettier (write) |
+| `*.json, .css, .md` | Prettier (write)         |
+
+Prettier runs with `--write`, so formatting fixes are applied automatically and included in the commit. ESLint errors will block the commit until fixed.
+
+### Files
+
+- `.husky/pre-commit` — hook script that runs `npx lint-staged`
+- `package.json` — `lint-staged` configuration and `"prepare": "husky"` script
+
 ## Design Decisions
 
 1. **ESLint v10 flat config** — Modern standard; avoids deprecated `.eslintrc` patterns.
