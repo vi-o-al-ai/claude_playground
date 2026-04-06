@@ -11,9 +11,9 @@ import { resolve } from "path";
  */
 export function createGameConfig({ root, port }) {
   const packageName = root.split("/").pop();
-  const base = process.env.PAGES_BASE
-    ? `${process.env.PAGES_BASE}/${packageName}/`
-    : "/";
+  // eslint-disable-next-line no-undef
+  const pagesBase = process.env.PAGES_BASE;
+  const base = pagesBase ? `${pagesBase}/${packageName}/` : "/";
 
   return defineConfig({
     root,
