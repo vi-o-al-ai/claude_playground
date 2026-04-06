@@ -242,11 +242,7 @@ function renderTiers(st) {
     const deck = document.createElement("div");
     deck.className = "deck-indicator";
     deck.style.borderColor =
-      t === 2
-        ? "rgba(33,150,243,0.4)"
-        : t === 1
-          ? "rgba(255,215,0,0.4)"
-          : "rgba(76,175,80,0.4)";
+      t === 2 ? "rgba(33,150,243,0.4)" : t === 1 ? "rgba(255,215,0,0.4)" : "rgba(76,175,80,0.4)";
     deck.innerHTML = `<span class="deck-count">${tier.deck.length}</span><span>Tier ${t + 1}</span>`;
     deck.onclick = () => onDeckClick(t + 1);
     container.appendChild(deck);
@@ -277,8 +273,7 @@ function renderCard(card, onClick) {
   const pts = card.points > 0 ? card.points : "";
   const costHtml = GEM_COLORS.filter((c) => card.cost[c])
     .map(
-      (c) =>
-        `<div class="cost-item"><span class="cost-gem gem-${c}"></span>${card.cost[c]}</div>`,
+      (c) => `<div class="cost-item"><span class="cost-gem gem-${c}"></span>${card.cost[c]}</div>`,
     )
     .join("");
   div.innerHTML = `
@@ -377,9 +372,7 @@ function renderActionBar(st, isMyTurn) {
     cancelBtn.style.display = "inline-block";
   } else if (selectedCard) {
     const label =
-      selectedCard.reserved !== undefined
-        ? "reserved card"
-        : `Tier ${selectedCard.tier} card`;
+      selectedCard.reserved !== undefined ? "reserved card" : `Tier ${selectedCard.tier} card`;
     modeLabel.textContent = `Selected: ${label}`;
     confirmBtn.style.display = "none";
     cancelBtn.style.display = "inline-block";
@@ -473,8 +466,7 @@ function onReservedClick(index, card) {
     const buyBtn = document.createElement("button");
     buyBtn.className = "primary dynamic-action-btn";
     buyBtn.textContent = "Buy Reserved";
-    buyBtn.onclick = () =>
-      executeAction({ type: "buy_card", cardLocation: { reserved: index } });
+    buyBtn.onclick = () => executeAction({ type: "buy_card", cardLocation: { reserved: index } });
     bar.appendChild(buyBtn);
   }
 

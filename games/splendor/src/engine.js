@@ -375,8 +375,7 @@ export class SplendorGame {
         if (availableDistinct.length >= 3 && colors.length < 3) {
           return {
             success: false,
-            error:
-              "Must take 3 different colors when at least 3 colors are available in the bank.",
+            error: "Must take 3 different colors when at least 3 colors are available in the bank.",
           };
         }
         if (colors.length > availableDistinct.length) {

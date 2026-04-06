@@ -379,9 +379,7 @@ export function update(state, keys, W, H) {
     }
     if (state.ufo) {
       if (Math.abs(state.ufo.x + 15 - beamX) < state.laserWidth / 2 + 18) {
-        state.particles.push(
-          ...createParticles(state.ufo.x + 15, state.ufo.y + 7, "#f0f", 20),
-        );
+        state.particles.push(...createParticles(state.ufo.x + 15, state.ufo.y + 7, "#f0f", 20));
         state.score += 100;
         state.ufo = null;
       }
