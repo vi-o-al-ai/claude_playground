@@ -12,6 +12,7 @@ import {
   createLevelState,
   update,
 } from "./engine.js";
+import { GameHeader, GameOver } from "@arcade/shared-ui";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -27,6 +28,14 @@ canvas.height = H;
 
 const keys = {};
 let state = null;
+
+const gameOverOverlay = new GameOver();
+
+// Add shared GameHeader
+new GameHeader({
+  title: "Space Invaders",
+  container: document.body,
+});
 
 // ---- Input ----
 
@@ -49,6 +58,7 @@ function showOverlay(title, sub, btn) {
 
 window.startGame = function () {
   overlay.style.display = "none";
+  gameOverOverlay.hide();
   state = createGameState(W, H);
 };
 
@@ -214,7 +224,15 @@ function loop() {
     const events = update(state, keys, W, H);
     for (const ev of events) {
       if (ev === "game_over") {
-        showOverlay("GAME OVER", `Final Score: ${state.score}`, "RETRY");
+        gameOverOverlay.show({
+          title: "GAME OVER",
+          stats: [
+            { label: "Score", value: String(state.score) },
+            { label: "Level", value: String(state.level) },
+          ],
+          onRestart: () => window.startGame(),
+          restartLabel: "RETRY",
+        });
       } else if (ev === "level_clear") {
         state.level++;
         const levelState = createLevelState(state.level, W, H);
