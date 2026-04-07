@@ -20,6 +20,7 @@ import {
   deserializeState,
   shareUrl,
 } from "./game-state.js";
+import { Modal, GameHeader, GameOver } from "@arcade/shared-ui";
 
 let state = createGameState("easy");
 let timerInterval = null;
@@ -29,8 +30,16 @@ const timerEl = document.getElementById("timer");
 const mistakesEl = document.getElementById("mistakes-counter");
 const hintCountEl = document.getElementById("hint-count");
 
+const modal = new Modal();
+const gameOverOverlay = new GameOver();
+
 // --- Initialize ---
 function init() {
+  new GameHeader({
+    title: "Sudoku",
+    container: document.getElementById("app"),
+  });
+
   checkSharedPuzzle();
   setupEventListeners();
   startNewGame();
@@ -283,71 +292,27 @@ function handleWin() {
   boardEl.classList.add("board-win");
   setTimeout(() => boardEl.classList.remove("board-win"), 1000);
 
-  showModal(
-    "Congratulations!",
-    `You solved the ${state.difficulty} puzzle in ${formatTime(state.timerSeconds)} with ${state.mistakes} mistake${state.mistakes !== 1 ? "s" : ""}.`,
-    [
-      {
-        text: "New Game",
-        class: "modal-btn-primary",
-        action: () => {
-          hideModal();
-          startNewGame();
-        },
-      },
-      {
-        text: "Share",
-        class: "modal-btn-secondary",
-        action: () => {
-          hideModal();
-          handleShare();
-        },
-      },
+  gameOverOverlay.show({
+    title: "Congratulations!",
+    stats: [
+      { label: "Time", value: formatTime(state.timerSeconds) },
+      { label: "Mistakes", value: String(state.mistakes) },
+      { label: "Difficulty", value: state.difficulty },
     ],
-  );
+    onRestart: () => startNewGame(),
+    restartLabel: "New Game",
+    extraButtons: [{ label: "Share", onClick: () => handleShare(), variant: "secondary" }],
+  });
 }
 
 function handleGameOver() {
   stopTimer();
-  showModal("Game Over", `You made ${state.maxMistakes} mistakes. Better luck next time!`, [
-    {
-      text: "Try Again",
-      class: "modal-btn-primary",
-      action: () => {
-        hideModal();
-        startNewGame();
-      },
-    },
-    { text: "Close", class: "modal-btn-secondary", action: hideModal },
-  ]);
-}
-
-// --- Modal ---
-
-function showModal(title, message, buttons) {
-  const overlay = document.getElementById("modal-overlay");
-  const content = document.getElementById("modal-content");
-  const actions = document.getElementById("modal-actions");
-
-  content.innerHTML = `<h2>${title}</h2><p>${message}</p>`;
-  actions.innerHTML = "";
-
-  buttons.forEach((b) => {
-    const btn = document.createElement("button");
-    btn.textContent = b.text;
-    btn.className = b.class;
-    btn.addEventListener("click", b.action);
-    actions.appendChild(btn);
+  gameOverOverlay.show({
+    title: "Game Over",
+    stats: [{ label: "Mistakes", value: `${state.maxMistakes} / ${state.maxMistakes}` }],
+    onRestart: () => startNewGame(),
+    restartLabel: "Try Again",
   });
-
-  overlay.classList.remove("hidden");
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) hideModal();
-  });
-}
-
-function hideModal() {
-  document.getElementById("modal-overlay").classList.add("hidden");
 }
 
 // --- Save / Load ---
@@ -355,17 +320,21 @@ function hideModal() {
 function handleSave() {
   const data = serializeState(state);
   localStorage.setItem("sudoku_save", JSON.stringify(data));
-  showModal("Game Saved", "Your progress has been saved. You can resume anytime.", [
-    { text: "OK", class: "modal-btn-primary", action: hideModal },
-  ]);
+  modal.show({
+    title: "Game Saved",
+    message: "Your progress has been saved. You can resume anytime.",
+    buttons: [{ label: "OK", variant: "primary" }],
+  });
 }
 
 function handleLoad() {
   const raw = localStorage.getItem("sudoku_save");
   if (!raw) {
-    showModal("No Saved Game", "There is no saved game to resume.", [
-      { text: "OK", class: "modal-btn-primary", action: hideModal },
-    ]);
+    modal.show({
+      title: "No Saved Game",
+      message: "There is no saved game to resume.",
+      buttons: [{ label: "OK", variant: "primary" }],
+    });
     return;
   }
 
@@ -380,13 +349,17 @@ function handleLoad() {
     } else {
       timerEl.textContent = formatTime(state.timerSeconds);
     }
-    showModal("Game Resumed", `Your ${state.difficulty} game has been loaded.`, [
-      { text: "OK", class: "modal-btn-primary", action: hideModal },
-    ]);
+    modal.show({
+      title: "Game Resumed",
+      message: `Your ${state.difficulty} game has been loaded.`,
+      buttons: [{ label: "OK", variant: "primary" }],
+    });
   } catch {
-    showModal("Error", "Could not load saved game. The save data may be corrupted.", [
-      { text: "OK", class: "modal-btn-primary", action: hideModal },
-    ]);
+    modal.show({
+      title: "Error",
+      message: "Could not load saved game. The save data may be corrupted.",
+      buttons: [{ label: "OK", variant: "primary" }],
+    });
   }
 }
 
@@ -394,43 +367,38 @@ function handleLoad() {
 
 function handleShare() {
   const url = shareUrl(state, `${window.location.origin}${window.location.pathname}`);
-  const overlay = document.getElementById("modal-overlay");
-  const content = document.getElementById("modal-content");
-  const actions = document.getElementById("modal-actions");
+  modal.show({
+    title: "Share Puzzle",
+    message: `<p>Share this ${state.difficulty} puzzle with friends:</p>
+      <div id="share-link-box">
+        <input type="text" id="share-url" value="${url}" readonly>
+        <button id="copy-btn">Copy</button>
+      </div>`,
+    buttons: [{ label: "Close", variant: "secondary" }],
+  });
 
-  content.innerHTML = `
-    <h2>Share Puzzle</h2>
-    <p>Share this ${state.difficulty} puzzle with friends:</p>
-    <div id="share-link-box">
-      <input type="text" id="share-url" value="${url}" readonly>
-      <button id="copy-btn">Copy</button>
-    </div>
-  `;
-  actions.innerHTML = `<button class="modal-btn-secondary" id="share-close">Close</button>`;
-  overlay.classList.remove("hidden");
-
-  document.getElementById("copy-btn").addEventListener("click", () => {
-    const input = document.getElementById("share-url");
-    input.select();
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        document.getElementById("copy-btn").textContent = "Copied!";
-        setTimeout(() => {
-          const btn = document.getElementById("copy-btn");
-          if (btn) btn.textContent = "Copy";
-        }, 2000);
-      })
-      .catch(() => {
-        document.execCommand("copy");
-        document.getElementById("copy-btn").textContent = "Copied!";
+  setTimeout(() => {
+    const copyBtn = document.getElementById("copy-btn");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", () => {
+        const input = document.getElementById("share-url");
+        input.select();
+        navigator.clipboard
+          .writeText(url)
+          .then(() => {
+            document.getElementById("copy-btn").textContent = "Copied!";
+            setTimeout(() => {
+              const btn = document.getElementById("copy-btn");
+              if (btn) btn.textContent = "Copy";
+            }, 2000);
+          })
+          .catch(() => {
+            document.execCommand("copy");
+            document.getElementById("copy-btn").textContent = "Copied!";
+          });
       });
-  });
-
-  document.getElementById("share-close").addEventListener("click", hideModal);
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) hideModal();
-  });
+    }
+  }, 0);
 }
 
 // --- Start ---
