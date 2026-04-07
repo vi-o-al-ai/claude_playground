@@ -4,6 +4,9 @@
  */
 import { GEM_COLORS, GEM_HEX, SplendorGame } from "./engine.js";
 import { SplendorNetwork } from "./network.js";
+import { GameHeader, GameOver } from "@arcade/shared-ui";
+
+const gameOverOverlay = new GameOver();
 
 let game = null;
 let network = null;
@@ -166,6 +169,12 @@ window.copyRoomCode = function () {
 function showGameScreen() {
   document.getElementById("lobby-screen").style.display = "none";
   document.getElementById("game-screen").style.display = "block";
+
+  new GameHeader({
+    title: "Splendor",
+    container: document.getElementById("game-screen"),
+  });
+
   if (isOnline && network) {
     document.getElementById("game-room-code").textContent = "Room: " + (network.roomCode || "");
   }
@@ -645,18 +654,17 @@ function showNobleChoiceOverlay(eligibleNobles) {
 }
 
 function showGameOver() {
-  const overlay = document.getElementById("game-over-overlay");
-  overlay.classList.add("active");
   const winner = game.state.winner || game.getWinner();
-  document.getElementById("winner-name").textContent = `${winner.name} wins!`;
-  const scoresDiv = document.getElementById("final-scores");
-  scoresDiv.innerHTML = "";
-  game.state.players.forEach((p) => {
-    const pts = game._getPlayerPoints(p);
-    const row = document.createElement("div");
-    row.className = "final-score-row";
-    row.innerHTML = `<span>${p.name}</span><span>${pts} points (${p.cards.length} cards)</span>`;
-    scoresDiv.appendChild(row);
+  const stats = game.state.players.map((p) => ({
+    label: p.name,
+    value: `${game._getPlayerPoints(p)} pts`,
+  }));
+
+  gameOverOverlay.show({
+    title: `${winner.name} Wins!`,
+    stats,
+    onRestart: () => location.reload(),
+    restartLabel: "Play Again",
   });
 }
 
