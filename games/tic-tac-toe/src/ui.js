@@ -3,8 +3,27 @@
  * Wires DOM events to engine functions.
  */
 import { createGameState, makeMove, computeComputerMove, restart } from "./engine.js";
+import { GameHeader, GameOver } from "@arcade/shared-ui";
 
 const state = createGameState();
+const gameOverOverlay = new GameOver();
+
+// Add shared GameHeader with mode toggle
+new GameHeader({
+  title: "Tic Tac Toe",
+  settings: [
+    {
+      label: "vs Computer",
+      type: "toggle",
+      checked: false,
+      onChange: (on) => {
+        state.vsComputer = on;
+        window.restart();
+      },
+    },
+  ],
+  container: document.querySelector(".container"),
+});
 
 function renderBoard() {
   const el = document.getElementById("board");
@@ -40,6 +59,16 @@ function handleMove(i) {
     renderBoard();
     highlightWin(result.winLine);
     document.getElementById("status").textContent = result.winner + " wins!";
+    gameOverOverlay.show({
+      title: result.winner + " Wins!",
+      stats: [
+        { label: "X", value: String(state.scores.X) },
+        { label: "Draw", value: String(state.scores.D) },
+        { label: "O", value: String(state.scores.O) },
+      ],
+      onRestart: () => window.restart(),
+      restartLabel: "New Game",
+    });
     return;
   }
 
@@ -47,6 +76,16 @@ function handleMove(i) {
     updateScores();
     renderBoard();
     document.getElementById("status").textContent = "It's a draw!";
+    gameOverOverlay.show({
+      title: "It's a Draw!",
+      stats: [
+        { label: "X", value: String(state.scores.X) },
+        { label: "Draw", value: String(state.scores.D) },
+        { label: "O", value: String(state.scores.O) },
+      ],
+      onRestart: () => window.restart(),
+      restartLabel: "New Game",
+    });
     return;
   }
 
