@@ -634,32 +634,6 @@
         margin: 20px 0;
       }
 
-      /* Game over */
-      .game-over-content {
-        padding: 40px;
-      }
-      .game-over-content h1 {
-        font-size: 2.5rem;
-        color: #ffd700;
-        margin-bottom: 10px;
-      }
-      .game-over-content .winner-name {
-        font-size: 1.8rem;
-        color: #a8e6cf;
-        margin-bottom: 20px;
-      }
-      .final-scores {
-        margin: 20px 0;
-      }
-      .final-score-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 16px;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 8px;
-        margin: 4px 0;
-      }
-
       /* Chat */
       #chat-toggle {
         position: fixed;
@@ -950,21 +924,6 @@
         <h2>Choose a Noble</h2>
         <p>Multiple nobles wish to visit you!</p>
         <div class="noble-selector" id="noble-selector"></div>
-      </div>
-    </div>
-
-    <div class="overlay" id="game-over-overlay">
-      <div class="overlay-content game-over-content">
-        <h1>Game Over!</h1>
-        <div class="winner-name" id="winner-name"></div>
-        <div class="final-scores" id="final-scores"></div>
-        <button
-          class="primary"
-          onclick="location.reload()"
-          style="margin-top: 20px; font-size: 1.1rem; padding: 12px 30px"
-        >
-          Play Again
-        </button>
       </div>
     </div>
 
