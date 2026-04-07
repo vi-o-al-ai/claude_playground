@@ -11,12 +11,21 @@ import {
   clickStock,
   checkWin,
 } from "./engine.js";
+import { GameHeader, GameOver } from "@arcade/shared-ui";
 
 let state = {};
 let moveCount = 0;
 let timerStart = null;
 let timerInterval = null;
 let dragInfo = null;
+
+const gameOverOverlay = new GameOver();
+
+// Add shared GameHeader
+new GameHeader({
+  title: "Solitaire",
+  container: document.getElementById("app"),
+});
 
 // ---- Game lifecycle ----
 
@@ -25,7 +34,7 @@ window.newGame = function () {
   moveCount = 0;
   document.getElementById("move-count").textContent = "0";
   document.getElementById("timer").textContent = "0:00";
-  document.getElementById("win-overlay").classList.remove("show");
+  gameOverOverlay.hide();
 
   state = createInitialState();
 
@@ -52,9 +61,21 @@ function handleWin() {
   const elapsed = Math.floor((Date.now() - timerStart) / 1000);
   const m = Math.floor(elapsed / 60);
   const s = elapsed % 60;
-  document.getElementById("win-stats").textContent =
-    `${moveCount} moves in ${m}:${s.toString().padStart(2, "0")}`;
-  setTimeout(() => document.getElementById("win-overlay").classList.add("show"), 400);
+  const timeStr = `${m}:${s.toString().padStart(2, "0")}`;
+
+  setTimeout(
+    () =>
+      gameOverOverlay.show({
+        title: "You Win!",
+        stats: [
+          { label: "Moves", value: String(moveCount) },
+          { label: "Time", value: timeStr },
+        ],
+        onRestart: () => window.newGame(),
+        restartLabel: "Play Again",
+      }),
+    400,
+  );
 }
 
 // ---- Render ----
