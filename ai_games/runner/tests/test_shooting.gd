@@ -73,9 +73,9 @@ func test_bullet_despawns_after_timeout() -> void:
 			break
 		bullet._process(step)
 		elapsed += step
-	# Bullet should have been removed by now
+	# queue_free is deferred, so check the expired flag instead
 	assert_true(
-		not is_instance_valid(bullet) or not bullet.is_inside_tree(),
+		bullet.expired,
 		"Bullet should be removed after lifetime expires"
 	)
 
