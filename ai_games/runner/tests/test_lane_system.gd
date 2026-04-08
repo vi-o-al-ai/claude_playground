@@ -33,7 +33,14 @@ func test_road_segment_exists() -> void:
 	add_child(main_scene)
 	var road = main_scene.get_node("Road")
 	assert_not_null(road, "Road node should exist")
-	var segment = road.get_node("RoadSegment")
+	# Road segments are now Node3D containers with a RoadMesh child
+	var segment: MeshInstance3D = null
+	for child in road.get_children():
+		if child.name.begins_with("RoadSegment"):
+			var mesh = child.get_node_or_null("RoadMesh")
+			if mesh is MeshInstance3D:
+				segment = mesh
+				break
 	assert_not_null(segment, "RoadSegment should exist under Road")
 	assert_true(segment is MeshInstance3D, "RoadSegment should be a MeshInstance3D")
 	assert_true(segment.visible, "RoadSegment should be visible")

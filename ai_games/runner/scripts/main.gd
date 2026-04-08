@@ -9,6 +9,7 @@ var zombie_scene: PackedScene = preload("res://scenes/zombie.tscn")
 
 var score: int = 0
 var game_over: bool = false
+var road_speed: float = 15.0
 
 var spawn_interval: float = GameConstants.ZOMBIE_INITIAL_SPAWN_INTERVAL
 var zombie_speed: float = GameConstants.ZOMBIE_INITIAL_SPEED
@@ -16,7 +17,12 @@ var zombie_speed: float = GameConstants.ZOMBIE_INITIAL_SPEED
 var spawn_timer: Timer
 var difficulty_timer: Timer
 
+# Road segment containers (Node3D holding mesh + dashes)
+var road_containers: Array[Node3D] = []
+
 func _ready() -> void:
+	_build_road()
+
 	spawn_timer = Timer.new()
 	spawn_timer.wait_time = spawn_interval
 	spawn_timer.autostart = true
@@ -29,7 +35,57 @@ func _ready() -> void:
 	difficulty_timer.timeout.connect(_on_difficulty_timer_timeout)
 	add_child(difficulty_timer)
 
-func _process(_delta: float) -> void:
+func _build_road() -> void:
+	# Remove existing road children placed in the scene
+	for child in road.get_children():
+		child.queue_free()
+
+	var road_mat := StandardMaterial3D.new()
+	road_mat.albedo_color = Color(0.2, 0.2, 0.22, 1)
+
+	var road_mesh := BoxMesh.new()
+	road_mesh.size = Vector3(10, 0.1, GameConstants.ROAD_SEGMENT_LENGTH)
+	road_mesh.material = road_mat
+
+	var dash_mat := StandardMaterial3D.new()
+	dash_mat.albedo_color = Color(1, 1, 1, 0.7)
+
+	var dash_mesh := BoxMesh.new()
+	dash_mesh.size = Vector3(0.1, 0.12, 2.0)
+	dash_mesh.material = dash_mat
+
+	var seg_count := 6
+	var dash_spacing := 5.0
+	var dashes_per_segment := int(GameConstants.ROAD_SEGMENT_LENGTH / dash_spacing)
+
+	for i in range(seg_count):
+		var container := Node3D.new()
+		container.name = "RoadSegment%d" % i
+		container.position.z = 25.0 - i * GameConstants.ROAD_SEGMENT_LENGTH
+		road.add_child(container)
+
+		# Road surface mesh
+		var mesh_inst := MeshInstance3D.new()
+		mesh_inst.name = "RoadMesh"
+		mesh_inst.mesh = road_mesh
+		mesh_inst.position.y = -0.05
+		container.add_child(mesh_inst)
+
+		# Dashed lane lines at x = -1.5 and 1.5
+		for x in [-1.5, 1.5]:
+			for d in range(dashes_per_segment):
+				var dash := MeshInstance3D.new()
+				dash.mesh = dash_mesh
+				var local_z = (GameConstants.ROAD_SEGMENT_LENGTH / 2.0) - d * dash_spacing - dash_spacing / 2.0
+				dash.position = Vector3(x, 0.06, local_z)
+				container.add_child(dash)
+
+		road_containers.append(container)
+
+func _process(delta: float) -> void:
+	if not game_over:
+		scroll_road(delta)
+		recycle_road_segments()
 	if game_over:
 		return
 	for child in get_children():
@@ -41,6 +97,31 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if game_over and event.is_action_pressed("restart"):
 		restart_game()
+
+func _get_road_segments() -> Array[MeshInstance3D]:
+	# For test compatibility: return the RoadMesh children
+	var segments: Array[MeshInstance3D] = []
+	for container in road_containers:
+		var mesh = container.get_node_or_null("RoadMesh")
+		if mesh:
+			segments.append(mesh)
+	return segments
+
+func scroll_road(delta: float) -> void:
+	var offset := road_speed * delta
+	for container in road_containers:
+		container.position.z += offset
+
+func recycle_road_segments() -> void:
+	if road_containers.is_empty():
+		return
+	var min_z := INF
+	for c in road_containers:
+		if c.position.z < min_z:
+			min_z = c.position.z
+	for c in road_containers:
+		if c.position.z > 50.0:
+			c.position.z = min_z - GameConstants.ROAD_SEGMENT_LENGTH
 
 func _on_spawn_timer_timeout() -> void:
 	if game_over:
