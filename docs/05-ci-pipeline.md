@@ -6,16 +6,16 @@ A CI pipeline runs automatically on every push to `main` and on every pull reque
 
 ## Pipeline Structure
 
-The pipeline runs **three parallel jobs**:
+The pipeline runs **four parallel jobs**:
 
 ```
-┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-│ Lint & Format│  │ Unit Tests  │  │ Build All   │
-│             │  │             │  │ Packages    │
-│ eslint .    │  │ vitest run  │  │ vite build  │
-│ prettier    │  │             │  │ (×9 pkgs)   │
-│  --check .  │  │             │  │             │
-└─────────────┘  └─────────────┘  └─────────────┘
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│ Lint & Format│  │ Unit Tests  │  │ Build All   │  │ Godot Tests │
+│             │  │             │  │ Packages    │  │             │
+│ eslint .    │  │ vitest run  │  │ vite build  │  │ GUT runner  │
+│ prettier    │  │             │  │ (×9 pkgs)   │  │ (69 tests)  │
+│  --check .  │  │             │  │             │  │             │
+└─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘
 ```
 
 ### Job: Lint & Format
@@ -35,6 +35,12 @@ The pipeline runs **three parallel jobs**:
 - Runs `npm run build` which builds all 9 packages via Vite
 - Verifies no broken imports, missing files, or build errors
 - Uses `--if-present` so non-Vite packages are skipped
+
+### Job: Godot Tests
+
+- Runs in a `barichello/godot-ci:4.6` Docker container
+- Imports the Godot project, then runs the GUT test suite (69 tests)
+- Covers lane switching, shooting, zombies, collisions, game flow, and polish
 
 ## Configuration
 
