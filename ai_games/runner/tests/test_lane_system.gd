@@ -1,6 +1,13 @@
 extends GutTest
 ## Stage 1: Lane system constants + road/camera setup
-## Stage 2: Player lane switching (added later)
+## Stage 2: Player lane switching
+
+var player: Node = null
+
+func _create_player() -> Node:
+	var p = load("res://scenes/player.tscn").instantiate()
+	add_child_autofree(p)
+	return p
 
 # --- Stage 1: Happy path ---
 
@@ -72,3 +79,89 @@ func test_lane_positions_sorted() -> void:
 				i, positions[i], i + 1, positions[i + 1]
 			]
 		)
+
+# =============================================================================
+# Stage 2: Player lane switching
+# =============================================================================
+
+# --- Happy path ---
+
+func test_player_starts_center_lane() -> void:
+	player = _create_player()
+	assert_eq(player.current_lane, 1, "Player should start in center lane (index 1)")
+	assert_eq(player.position.x, 0.0, "Player X should be 0 (center lane)")
+
+func test_move_left_decrements_lane() -> void:
+	player = _create_player()
+	player.move_left()
+	assert_eq(player.current_lane, 0, "After move_left from center, lane should be 0")
+
+func test_move_right_increments_lane() -> void:
+	player = _create_player()
+	player.move_right()
+	assert_eq(player.current_lane, 2, "After move_right from center, lane should be 2")
+
+func test_target_x_matches_lane_position() -> void:
+	player = _create_player()
+	assert_eq(player.target_x, GameConstants.LANE_POSITIONS[1], "Initial target_x should match center lane")
+	player.move_left()
+	assert_eq(player.target_x, GameConstants.LANE_POSITIONS[0], "After move_left, target_x should match left lane")
+	player.move_right()
+	player.move_right()
+	assert_eq(player.target_x, GameConstants.LANE_POSITIONS[2], "After move to right, target_x should match right lane")
+
+func test_move_left_then_right_returns_center() -> void:
+	player = _create_player()
+	player.move_left()
+	assert_eq(player.current_lane, 0, "Should be in left lane")
+	player.move_right()
+	assert_eq(player.current_lane, 1, "Should return to center lane")
+
+# --- Edge cases ---
+
+func test_cannot_move_left_past_lane_0() -> void:
+	player = _create_player()
+	player.move_left()  # lane 0
+	player.move_left()  # should stay at 0
+	assert_eq(player.current_lane, 0, "Should not go below lane 0")
+	assert_eq(player.target_x, GameConstants.LANE_POSITIONS[0], "target_x should stay at left lane")
+
+func test_cannot_move_right_past_lane_2() -> void:
+	player = _create_player()
+	player.move_right()  # lane 2
+	player.move_right()  # should stay at 2
+	assert_eq(player.current_lane, 2, "Should not go above lane 2")
+	assert_eq(player.target_x, GameConstants.LANE_POSITIONS[2], "target_x should stay at right lane")
+
+func test_rapid_left_right_input() -> void:
+	player = _create_player()
+	# Rapidly alternate: should end up back at center without glitching
+	player.move_left()
+	player.move_right()
+	player.move_left()
+	player.move_right()
+	assert_eq(player.current_lane, 1, "Rapid L-R-L-R should end at center")
+	assert_eq(player.target_x, GameConstants.LANE_POSITIONS[1], "target_x should be center after rapid input")
+
+func test_lane_switch_during_transition() -> void:
+	player = _create_player()
+	player.move_left()
+	# Simulate a partial frame — position hasn't caught up yet
+	# Input during transition should update target, not snap
+	player.move_right()
+	assert_eq(player.current_lane, 1, "Lane index should update immediately on second input")
+	assert_eq(player.target_x, GameConstants.LANE_POSITIONS[1], "target_x should update to new lane")
+
+# --- Bad path ---
+
+func test_lane_index_never_negative() -> void:
+	player = _create_player()
+	for i in range(10):
+		player.move_left()
+	assert_gte(player.current_lane, 0, "Lane index should never go negative after 10x move_left")
+
+func test_lane_index_never_exceeds_max() -> void:
+	player = _create_player()
+	for i in range(10):
+		player.move_right()
+	assert_lte(player.current_lane, 2, "Lane index should never exceed 2 after 10x move_right")
