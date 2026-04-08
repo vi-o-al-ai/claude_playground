@@ -55,3 +55,20 @@ func _on_difficulty_timer_timeout() -> void:
 		GameConstants.ZOMBIE_MAX_SPEED
 	)
 	spawn_timer.wait_time = spawn_interval
+
+func _process(_delta: float) -> void:
+	if game_over:
+		return
+	for child in get_children():
+		if child is Area3D and child.get("dead") != null and not child.dead:
+			if child.position.z >= player.position.z:
+				_on_zombie_reached_player(child)
+				return
+
+func _on_zombie_reached_player(_zombie: Node) -> void:
+	if game_over:
+		return
+	game_over = true
+	spawn_timer.stop()
+	difficulty_timer.stop()
+	player.shoot_timer.stop()
