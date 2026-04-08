@@ -22,7 +22,10 @@ func _on_hit_by_bullet(bullet: Node) -> void:
 	bullet.on_hit()
 	var main = _get_main()
 	if main and not main.game_over:
-		main.score += 1
+		if main.has_method("add_score"):
+			main.add_score()
+		else:
+			main.score += 1
 	queue_free()
 
 func _get_main() -> Node:

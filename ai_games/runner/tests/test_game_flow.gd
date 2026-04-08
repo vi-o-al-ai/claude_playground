@@ -76,9 +76,10 @@ func test_restart_clears_zombies() -> void:
 	var zombie = _create_zombie()
 	main_scene.add_child(zombie)
 	main_scene.restart_game()
+	# queue_free is deferred, so check that zombie is queued for deletion
 	var zombie_count := 0
 	for child in main_scene.get_children():
-		if child.get("dead") != null:
+		if child.get("dead") != null and not child.is_queued_for_deletion():
 			zombie_count += 1
 	assert_eq(zombie_count, 0, "No zombies should remain after restart")
 
