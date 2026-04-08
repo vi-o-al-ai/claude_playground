@@ -44,6 +44,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup export templates
+        run: |
+          TEMPLATE_DIR="/github/home/.local/share/godot/export_templates/4.6.stable"
+          mkdir -p "$TEMPLATE_DIR"
+          wget -q https://github.com/godotengine/godot/releases/download/4.6-stable/Godot_v4.6-stable_export_templates.tpz -O /tmp/templates.zip
+          unzip -q /tmp/templates.zip -d /tmp/templates
+          mv /tmp/templates/templates/* "$TEMPLATE_DIR/"
+
       - name: Import Godot project
         run: |
           cd games/runner
