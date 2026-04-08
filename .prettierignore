@@ -3,5 +3,5 @@ dist/
 *.min.js
 package-lock.json
 
-# Non-JS game packages (add directories here to skip formatting)
-# Example: packages/my-godot-game/
+# Non-JS game packages
+games/runner/

@@ -1,0 +1,197 @@
+extends Node3D
+
+@onready var camera: Camera3D = $Camera3D
+@onready var road: Node3D = $Road
+@onready var player: CharacterBody3D = $Player
+@onready var hud: CanvasLayer = $HUD
+
+var zombie_scene: PackedScene = preload("res://scenes/zombie.tscn")
+
+var score: int = 0
+var game_over: bool = false
+var road_speed: float = 15.0
+
+var spawn_interval: float = GameConstants.ZOMBIE_INITIAL_SPAWN_INTERVAL
+var zombie_speed: float = GameConstants.ZOMBIE_INITIAL_SPEED
+
+var spawn_timer: Timer
+var difficulty_timer: Timer
+
+# Road segment containers (Node3D holding mesh + dashes)
+var road_containers: Array[Node3D] = []
+
+func _ready() -> void:
+	_build_road()
+
+	spawn_timer = Timer.new()
+	spawn_timer.wait_time = spawn_interval
+	spawn_timer.autostart = true
+	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
+	add_child(spawn_timer)
+
+	difficulty_timer = Timer.new()
+	difficulty_timer.wait_time = GameConstants.DIFFICULTY_INCREASE_INTERVAL
+	difficulty_timer.autostart = true
+	difficulty_timer.timeout.connect(_on_difficulty_timer_timeout)
+	add_child(difficulty_timer)
+
+func _build_road() -> void:
+	# Remove existing road children placed in the scene
+	for child in road.get_children():
+		child.queue_free()
+
+	var road_mat := StandardMaterial3D.new()
+	road_mat.albedo_color = Color(0.2, 0.2, 0.22, 1)
+
+	var road_mesh := BoxMesh.new()
+	road_mesh.size = Vector3(10, 0.1, GameConstants.ROAD_SEGMENT_LENGTH)
+	road_mesh.material = road_mat
+
+	var dash_mat := StandardMaterial3D.new()
+	dash_mat.albedo_color = Color(1, 1, 1, 0.7)
+
+	var dash_mesh := BoxMesh.new()
+	dash_mesh.size = Vector3(0.1, 0.12, 2.0)
+	dash_mesh.material = dash_mat
+
+	var seg_count := 6
+	var dash_spacing := 5.0
+	var dashes_per_segment := int(GameConstants.ROAD_SEGMENT_LENGTH / dash_spacing)
+
+	for i in range(seg_count):
+		var container := Node3D.new()
+		container.name = "RoadSegment%d" % i
+		container.position.z = 25.0 - i * GameConstants.ROAD_SEGMENT_LENGTH
+		road.add_child(container)
+
+		# Road surface mesh
+		var mesh_inst := MeshInstance3D.new()
+		mesh_inst.name = "RoadMesh"
+		mesh_inst.mesh = road_mesh
+		mesh_inst.position.y = -0.05
+		container.add_child(mesh_inst)
+
+		# Dashed lane lines at x = -1.5 and 1.5
+		for x in [-1.5, 1.5]:
+			for d in range(dashes_per_segment):
+				var dash := MeshInstance3D.new()
+				dash.mesh = dash_mesh
+				var local_z = (GameConstants.ROAD_SEGMENT_LENGTH / 2.0) - d * dash_spacing - dash_spacing / 2.0
+				dash.position = Vector3(x, 0.06, local_z)
+				container.add_child(dash)
+
+		road_containers.append(container)
+
+func _process(delta: float) -> void:
+	if not game_over:
+		scroll_road(delta)
+		recycle_road_segments()
+	if game_over:
+		return
+	for child in get_children():
+		if child is Area3D and child.get("dead") != null and not child.dead:
+			if child.position.z >= player.position.z:
+				_on_zombie_reached_player(child)
+				return
+
+func _unhandled_input(event: InputEvent) -> void:
+	if game_over and event.is_action_pressed("restart"):
+		restart_game()
+
+func _get_road_segments() -> Array[MeshInstance3D]:
+	# For test compatibility: return the RoadMesh children
+	var segments: Array[MeshInstance3D] = []
+	for container in road_containers:
+		var mesh = container.get_node_or_null("RoadMesh")
+		if mesh:
+			segments.append(mesh)
+	return segments
+
+func scroll_road(delta: float) -> void:
+	var offset := road_speed * delta
+	for container in road_containers:
+		container.position.z += offset
+
+func recycle_road_segments() -> void:
+	if road_containers.is_empty():
+		return
+	var min_z := INF
+	for c in road_containers:
+		if c.position.z < min_z:
+			min_z = c.position.z
+	for c in road_containers:
+		if c.position.z > 50.0:
+			c.position.z = min_z - GameConstants.ROAD_SEGMENT_LENGTH
+
+func _on_spawn_timer_timeout() -> void:
+	if game_over:
+		return
+	var zombie = zombie_scene.instantiate()
+	var lane = randi() % GameConstants.LANE_COUNT
+	zombie.position = Vector3(
+		GameConstants.LANE_POSITIONS[lane],
+		0,
+		player.position.z - GameConstants.ZOMBIE_SPAWN_DISTANCE
+	)
+	zombie.speed = zombie_speed
+	add_child(zombie)
+
+func _on_difficulty_timer_timeout() -> void:
+	if game_over:
+		return
+	spawn_interval = max(
+		spawn_interval * GameConstants.DIFFICULTY_MULTIPLIER,
+		GameConstants.ZOMBIE_MIN_SPAWN_INTERVAL
+	)
+	zombie_speed = min(
+		zombie_speed * (1.0 + GameConstants.SPEED_INCREASE),
+		GameConstants.ZOMBIE_MAX_SPEED
+	)
+	spawn_timer.wait_time = spawn_interval
+
+func _on_zombie_reached_player(_zombie: Node) -> void:
+	if game_over:
+		return
+	game_over = true
+	spawn_timer.stop()
+	difficulty_timer.stop()
+	player.shoot_timer.stop()
+	if hud:
+		hud.show_game_over(score)
+
+func add_score() -> void:
+	score += 1
+	if hud:
+		hud.update_score(score)
+
+func restart_game() -> void:
+	# Clear zombies
+	for child in get_children():
+		if child is Area3D and child.get("dead") != null:
+			child.queue_free()
+	# Clear bullets from root
+	for child in get_tree().root.get_children():
+		if child.is_in_group("bullets"):
+			child.queue_free()
+
+	# Reset state
+	score = 0
+	game_over = false
+	spawn_interval = GameConstants.ZOMBIE_INITIAL_SPAWN_INTERVAL
+	zombie_speed = GameConstants.ZOMBIE_INITIAL_SPEED
+
+	# Reset player
+	player.current_lane = GameConstants.DEFAULT_LANE
+	player.target_x = GameConstants.LANE_POSITIONS[GameConstants.DEFAULT_LANE]
+	player.position.x = player.target_x
+
+	# Restart timers
+	spawn_timer.wait_time = spawn_interval
+	spawn_timer.start()
+	difficulty_timer.start()
+	player.shoot_timer.start()
+
+	# Reset HUD
+	if hud:
+		hud.hide_game_over()
+		hud.update_score(0)
