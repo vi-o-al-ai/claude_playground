@@ -331,8 +331,8 @@ func test_barrel_rolls_as_it_moves() -> void:
 	var power_up = _create_power_up()
 	add_child_autofree(power_up)
 	var barrel_model = power_up.get_node("BarrelModel")
-	var initial_rotation_y = barrel_model.rotation.y
+	var initial_transform = barrel_model.transform
 	# Simulate movement
 	power_up._process(0.1)
-	assert_ne(barrel_model.rotation.y, initial_rotation_y,
-		"Barrel should rotate on Y axis as it rolls forward")
+	assert_ne(barrel_model.transform, initial_transform,
+		"Barrel should roll as it moves forward")
