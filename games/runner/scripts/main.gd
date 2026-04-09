@@ -6,6 +6,7 @@ extends Node3D
 @onready var hud: CanvasLayer = $HUD
 
 var zombie_scene: PackedScene = preload("res://scenes/zombie.tscn")
+var power_up_scene: PackedScene = preload("res://scenes/power_up.tscn")
 
 var score: int = 0
 var game_over: bool = false
@@ -16,6 +17,11 @@ var zombie_speed: float = GameConstants.ZOMBIE_INITIAL_SPEED
 
 var spawn_timer: Timer
 var difficulty_timer: Timer
+var power_up_spawn_timer: Timer
+
+# Power-up state
+var active_power_up_type: int = -1
+var power_up_time_remaining: float = 0.0
 
 # Road segment containers (Node3D holding mesh + dashes)
 var road_containers: Array[Node3D] = []
@@ -34,6 +40,16 @@ func _ready() -> void:
 	difficulty_timer.autostart = true
 	difficulty_timer.timeout.connect(_on_difficulty_timer_timeout)
 	add_child(difficulty_timer)
+
+	power_up_spawn_timer = Timer.new()
+	power_up_spawn_timer.wait_time = randf_range(
+		GameConstants.POWER_UP_SPAWN_MIN_INTERVAL,
+		GameConstants.POWER_UP_SPAWN_MAX_INTERVAL
+	)
+	power_up_spawn_timer.autostart = true
+	power_up_spawn_timer.one_shot = true
+	power_up_spawn_timer.timeout.connect(_on_power_up_spawn_timer_timeout)
+	add_child(power_up_spawn_timer)
 
 func _build_road() -> void:
 	# Remove existing road children placed in the scene
@@ -86,6 +102,7 @@ func _process(delta: float) -> void:
 	if not game_over:
 		scroll_road(delta)
 		recycle_road_segments()
+		_process_power_up_timer(delta)
 	if game_over:
 		return
 	for child in get_children():
@@ -158,6 +175,7 @@ func _on_zombie_reached_player(_zombie: Node) -> void:
 	game_over = true
 	spawn_timer.stop()
 	difficulty_timer.stop()
+	power_up_spawn_timer.stop()
 	player.shoot_timer.stop()
 	if hud:
 		hud.show_game_over(score)
@@ -172,6 +190,10 @@ func restart_game() -> void:
 	for child in get_children():
 		if child is Area3D and child.get("dead") != null:
 			child.queue_free()
+	# Clear power-up barrels
+	for child in get_children():
+		if child.is_in_group("power_ups"):
+			child.queue_free()
 	# Clear bullets from root
 	for child in get_tree().root.get_children():
 		if child.is_in_group("bullets"):
@@ -183,6 +205,11 @@ func restart_game() -> void:
 	spawn_interval = GameConstants.ZOMBIE_INITIAL_SPAWN_INTERVAL
 	zombie_speed = GameConstants.ZOMBIE_INITIAL_SPEED
 
+	# Reset power-up state
+	active_power_up_type = -1
+	power_up_time_remaining = 0.0
+	player.deactivate_power_up()
+
 	# Reset player
 	player.current_lane = GameConstants.DEFAULT_LANE
 	player.target_x = GameConstants.LANE_POSITIONS[GameConstants.DEFAULT_LANE]
@@ -193,8 +220,66 @@ func restart_game() -> void:
 	spawn_timer.start()
 	difficulty_timer.start()
 	player.shoot_timer.start()
+	power_up_spawn_timer.wait_time = randf_range(
+		GameConstants.POWER_UP_SPAWN_MIN_INTERVAL,
+		GameConstants.POWER_UP_SPAWN_MAX_INTERVAL
+	)
+	power_up_spawn_timer.start()
 
 	# Reset HUD
 	if hud:
 		hud.hide_game_over()
 		hud.update_score(0)
+		hud.hide_power_up()
+
+func _on_power_up_spawn_timer_timeout() -> void:
+	if game_over:
+		return
+	var power_up = power_up_scene.instantiate()
+	var lane = randi() % GameConstants.LANE_COUNT
+	power_up.position = Vector3(
+		GameConstants.LANE_POSITIONS[lane],
+		0,
+		player.position.z - GameConstants.ZOMBIE_SPAWN_DISTANCE
+	)
+	# Randomly pick a power-up type
+	power_up.power_up_type = randi() % 2
+	add_child(power_up)
+	# Schedule next power-up spawn
+	power_up_spawn_timer.wait_time = randf_range(
+		GameConstants.POWER_UP_SPAWN_MIN_INTERVAL,
+		GameConstants.POWER_UP_SPAWN_MAX_INTERVAL
+	)
+	power_up_spawn_timer.start()
+
+func activate_power_up(type: int) -> void:
+	# Deactivate current power-up if any
+	if active_power_up_type != -1:
+		player.deactivate_power_up()
+	active_power_up_type = type
+	power_up_time_remaining = GameConstants.POWER_UP_DURATION
+	match type:
+		GameConstants.POWER_UP_RAPID_FIRE:
+			player.activate_rapid_fire()
+			if hud:
+				hud.show_power_up("Rapid Fire", power_up_time_remaining)
+		GameConstants.POWER_UP_MULTI_LANE:
+			player.activate_multi_lane()
+			if hud:
+				hud.show_power_up("Multi-Lane", power_up_time_remaining)
+
+func _process_power_up_timer(delta: float) -> void:
+	if game_over:
+		return
+	if active_power_up_type == -1:
+		return
+	power_up_time_remaining -= delta
+	if power_up_time_remaining <= 0.0:
+		power_up_time_remaining = 0.0
+		player.deactivate_power_up()
+		active_power_up_type = -1
+		if hud:
+			hud.hide_power_up()
+	elif hud:
+		var name = "Rapid Fire" if active_power_up_type == GameConstants.POWER_UP_RAPID_FIRE else "Multi-Lane"
+		hud.show_power_up(name, power_up_time_remaining)
