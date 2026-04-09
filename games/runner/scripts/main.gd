@@ -97,6 +97,9 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if game_over and event.is_action_pressed("restart"):
 		restart_game()
+	# Tap to restart on game over
+	if game_over and event is InputEventScreenTouch and not event.pressed:
+		restart_game()
 
 func _get_road_segments() -> Array[MeshInstance3D]:
 	# For test compatibility: return the RoadMesh children

@@ -6,6 +6,11 @@ var target_x: float = GameConstants.LANE_POSITIONS[GameConstants.DEFAULT_LANE]
 var bullet_scene: PackedScene = preload("res://scenes/bullet.tscn")
 var shoot_timer: Timer
 
+# Touch input tracking
+var touch_start_position: Vector2 = Vector2.ZERO
+var is_touching: bool = false
+const SWIPE_THRESHOLD: float = 50.0
+
 func _ready() -> void:
 	position.x = target_x
 	shoot_timer = Timer.new()
@@ -22,6 +27,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		move_left()
 	elif event.is_action_pressed("move_right"):
 		move_right()
+
+	# Touch/swipe input
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			touch_start_position = event.position
+			is_touching = true
+		else:
+			if is_touching:
+				_handle_swipe(event.position)
+			is_touching = false
+
+func _handle_swipe(end_position: Vector2) -> void:
+	var swipe := end_position - touch_start_position
+	if absf(swipe.x) > SWIPE_THRESHOLD and absf(swipe.x) > absf(swipe.y):
+		if swipe.x < 0:
+			move_left()
+		else:
+			move_right()
 
 func move_left() -> void:
 	current_lane = max(current_lane - 1, 0)
