@@ -321,6 +321,7 @@ func _on_zombie_reached_player(_zombie: Node) -> void:
 	difficulty_timer.stop()
 	power_up_spawn_timer.stop()
 	player.shoot_timer.stop()
+	player.die()
 	if hud:
 		hud.show_game_over(score)
 
@@ -359,6 +360,9 @@ func restart_game() -> void:
 	player.current_lane = GameConstants.DEFAULT_LANE
 	player.target_x = GameConstants.LANE_POSITIONS[GameConstants.DEFAULT_LANE]
 	player.position.x = player.target_x
+
+	# Reset player animation
+	player.reset_animation()
 
 	# Restart timers
 	spawn_timer.wait_time = spawn_interval
