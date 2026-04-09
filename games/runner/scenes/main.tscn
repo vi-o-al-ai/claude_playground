@@ -32,18 +32,18 @@ background_mode = 2
 sky = SubResource("Sky_main")
 ambient_light_source = 2
 ambient_light_color = Color(0.3, 0.3, 0.4, 1)
-ambient_light_energy = 0.5
+ambient_light_energy = 1.5
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 8, 12)
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 8, 8)
 fov = 60.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 10, 0)
-light_energy = 1.2
+light_energy = 2.5
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_main")
