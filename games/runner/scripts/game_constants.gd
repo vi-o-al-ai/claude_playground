@@ -23,3 +23,13 @@ const DIFFICULTY_MULTIPLIER: float = 0.9  # spawn interval multiplied by this
 const SPEED_INCREASE: float = 0.05  # 5% speed increase
 
 const LANE_SWITCH_SPEED: float = 10.0  # lerp speed for lane transitions
+
+# Power-ups
+const POWER_UP_RAPID_FIRE: int = 0
+const POWER_UP_MULTI_LANE: int = 1
+const POWER_UP_DURATION: float = 5.0
+const POWER_UP_SPAWN_MIN_INTERVAL: float = 15.0
+const POWER_UP_SPAWN_MAX_INTERVAL: float = 20.0
+const POWER_UP_BARREL_HITS: int = 3
+const POWER_UP_SPEED: float = 5.0
+const RAPID_FIRE_INTERVAL: float = SHOOT_INTERVAL / 2.0
