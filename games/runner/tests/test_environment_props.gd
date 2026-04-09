@@ -1,5 +1,5 @@
 extends GutTest
-## Issue #42: Environment props (trees, buildings, fences, lamp posts)
+## Issue #61: Replace procedural props with imported GLB assets
 
 # =============================================================================
 # Props exist on road segments
@@ -38,7 +38,7 @@ func test_props_on_both_sides_of_road() -> void:
 	assert_gt(right_count, 0, "Should have props on right side of road")
 
 # =============================================================================
-# Prop types
+# GLB-based prop types
 # =============================================================================
 
 func test_multiple_prop_types_exist() -> void:
@@ -51,28 +51,24 @@ func test_multiple_prop_types_exist() -> void:
 				types[child.name.get_slice("_", 0)] = true
 	assert_gte(types.size(), 2, "Should have at least 2 different prop types, got: %s" % str(types.keys()))
 
-func test_tree_prop_has_trunk_and_foliage() -> void:
+func test_props_are_instanced_scenes() -> void:
 	var main_scene = load("res://scenes/main.tscn").instantiate()
 	add_child_autofree(main_scene)
-	var tree := _find_first_prop_by_prefix(main_scene, "Tree")
-	assert_not_null(tree, "Should have at least one Tree prop")
-	if tree:
-		assert_gte(tree.get_child_count(), 2, "Tree should have at least trunk and foliage meshes")
+	var found_any := false
+	for container in main_scene.road_containers:
+		for child in container.get_children():
+			if child.is_in_group("props"):
+				found_any = true
+				# GLB instances have child meshes from the imported scene
+				assert_gt(child.get_child_count(), 0,
+					"GLB prop '%s' should have child nodes from the imported model" % child.name)
+	assert_true(found_any, "Should have at least one prop")
 
-func test_lamp_post_has_emissive_light() -> void:
+func test_all_nine_asset_types_in_pool() -> void:
 	var main_scene = load("res://scenes/main.tscn").instantiate()
 	add_child_autofree(main_scene)
-	var lamp := _find_first_prop_by_prefix(main_scene, "LampPost")
-	assert_not_null(lamp, "Should have at least one LampPost prop")
-	if lamp:
-		var found_emissive := false
-		for child in lamp.get_children():
-			if child is MeshInstance3D and child.mesh and child.mesh.material:
-				var mat = child.mesh.material
-				if mat is StandardMaterial3D and mat.emission_enabled:
-					found_emissive = true
-					break
-		assert_true(found_emissive, "Lamp post should have an emissive light mesh")
+	assert_eq(main_scene.prop_scenes.size(), 9,
+		"Should have 9 GLB assets in the prop pool")
 
 # =============================================================================
 # Props recycle with road segments
@@ -123,13 +119,6 @@ func _count_props(container: Node3D) -> int:
 		if child.is_in_group("props"):
 			count += 1
 	return count
-
-func _find_first_prop_by_prefix(main_scene: Node3D, prefix: String) -> Node3D:
-	for container in main_scene.road_containers:
-		for child in container.get_children():
-			if child.is_in_group("props") and child.name.begins_with(prefix):
-				return child
-	return null
 
 func _find_first_prop_in_container(container: Node3D) -> Node3D:
 	for child in container.get_children():
