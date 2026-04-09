@@ -65,6 +65,29 @@ func test_lane_dividers_exist() -> void:
 	assert_gte(dash_count, 2, "Should have at least 2 lane divider dashes per segment")
 
 # =============================================================================
+# Green ground on both sides of road
+# =============================================================================
+
+func test_road_segments_have_ground_planes() -> void:
+	var main_scene = load("res://scenes/main.tscn").instantiate()
+	add_child_autofree(main_scene)
+	var container = main_scene.road_containers[0]
+	var left_ground = container.get_node_or_null("GroundLeft")
+	var right_ground = container.get_node_or_null("GroundRight")
+	assert_not_null(left_ground, "Road segment should have left ground plane")
+	assert_not_null(right_ground, "Road segment should have right ground plane")
+
+func test_ground_planes_are_green() -> void:
+	var main_scene = load("res://scenes/main.tscn").instantiate()
+	add_child_autofree(main_scene)
+	var container = main_scene.road_containers[0]
+	var left_ground: MeshInstance3D = container.get_node("GroundLeft")
+	var mat: StandardMaterial3D = left_ground.mesh.material
+	# Should be greenish (G component higher than R and B)
+	assert_gt(mat.albedo_color.g, mat.albedo_color.r, "Ground should be green (G > R)")
+	assert_gt(mat.albedo_color.g, mat.albedo_color.b, "Ground should be green (G > B)")
+
+# =============================================================================
 # 7c: Zombie bob animation
 # =============================================================================
 
