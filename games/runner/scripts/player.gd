@@ -7,6 +7,8 @@ var bullet_scene: PackedScene = preload("res://scenes/bullet.tscn")
 var shoot_timer: Timer
 var multi_lane_active: bool = false
 
+@onready var animation_player: AnimationPlayer = $Model/AnimationPlayer
+
 # Touch input tracking
 var touch_start_position: Vector2 = Vector2.ZERO
 var is_touching: bool = false
@@ -19,6 +21,11 @@ func _ready() -> void:
 	shoot_timer.autostart = true
 	shoot_timer.timeout.connect(_on_shoot_timer_timeout)
 	add_child(shoot_timer)
+
+	var anim = animation_player.get_animation("Run_Shoot")
+	if anim:
+		anim.loop_mode = Animation.LOOP_LINEAR
+	animation_player.play("Run_Shoot")
 
 func _process(delta: float) -> void:
 	position.x = move_toward(position.x, target_x, GameConstants.LANE_SWITCH_SPEED * delta)
@@ -64,6 +71,17 @@ func activate_multi_lane() -> void:
 func deactivate_power_up() -> void:
 	shoot_timer.wait_time = GameConstants.SHOOT_INTERVAL
 	multi_lane_active = false
+
+func die() -> void:
+	if animation_player:
+		animation_player.play("Death")
+
+func reset_animation() -> void:
+	if animation_player:
+		var anim = animation_player.get_animation("Run_Shoot")
+		if anim:
+			anim.loop_mode = Animation.LOOP_LINEAR
+		animation_player.play("Run_Shoot")
 
 func _on_shoot_timer_timeout() -> void:
 	if multi_lane_active:
