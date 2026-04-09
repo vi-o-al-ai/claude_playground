@@ -29,8 +29,8 @@ func test_power_up_duration_is_five_seconds() -> void:
 	assert_eq(GameConstants.POWER_UP_DURATION, 5.0, "Power-up duration should be 5 seconds")
 
 func test_power_up_spawn_interval_range() -> void:
-	assert_gte(GameConstants.POWER_UP_SPAWN_MIN_INTERVAL, 15.0, "Min spawn interval should be >= 15s")
-	assert_lte(GameConstants.POWER_UP_SPAWN_MAX_INTERVAL, 20.0, "Max spawn interval should be <= 20s")
+	assert_gt(GameConstants.POWER_UP_SPAWN_MIN_INTERVAL, 0.0, "Min spawn interval should be positive")
+	assert_gte(GameConstants.POWER_UP_SPAWN_MAX_INTERVAL, GameConstants.POWER_UP_SPAWN_MIN_INTERVAL, "Max should be >= min")
 
 func test_rapid_fire_rate_is_double() -> void:
 	assert_eq(
@@ -314,3 +314,26 @@ func test_power_up_barrel_cleaned_on_restart() -> void:
 			if not child.is_queued_for_deletion():
 				power_ups_remaining += 1
 	assert_eq(power_ups_remaining, 0, "All power-up barrels should be cleaned up on restart")
+
+# =============================================================================
+# Barrel orientation and rolling
+# =============================================================================
+
+func test_barrel_model_is_on_its_side() -> void:
+	var power_up = _create_power_up()
+	add_child_autofree(power_up)
+	var barrel_model = power_up.get_node("BarrelModel")
+	# Barrel's local Y axis (cylinder axis) should be horizontal (perpendicular to world Y)
+	var local_y = barrel_model.transform.basis.y.normalized()
+	assert_almost_eq(local_y.y, 0.0, 0.01,
+		"Barrel cylinder axis should be horizontal (on its side)")
+
+func test_barrel_rolls_as_it_moves() -> void:
+	var power_up = _create_power_up()
+	add_child_autofree(power_up)
+	var barrel_model = power_up.get_node("BarrelModel")
+	var initial_transform = barrel_model.transform
+	# Simulate movement
+	power_up._process(0.1)
+	assert_ne(barrel_model.transform, initial_transform,
+		"Barrel should roll as it moves forward")

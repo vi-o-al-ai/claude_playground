@@ -83,14 +83,21 @@ func _build_road() -> void:
 	dash_mesh.size = Vector3(0.1, 0.12, 2.0)
 	dash_mesh.material = dash_mat
 
-	var seg_count := 6
+	var grass_mat := StandardMaterial3D.new()
+	grass_mat.albedo_color = Color(0.15, 0.35, 0.1, 1)
+
+	var grass_mesh := BoxMesh.new()
+	grass_mesh.size = Vector3(50, 0.1, GameConstants.ROAD_SEGMENT_LENGTH)
+	grass_mesh.material = grass_mat
+
+	var seg_count := GameConstants.ROAD_SEGMENT_COUNT
 	var dash_spacing := 5.0
 	var dashes_per_segment := int(GameConstants.ROAD_SEGMENT_LENGTH / dash_spacing)
 
 	for i in range(seg_count):
 		var container := Node3D.new()
 		container.name = "RoadSegment%d" % i
-		container.position.z = 25.0 - i * GameConstants.ROAD_SEGMENT_LENGTH
+		container.position.z = GameConstants.ROAD_SEGMENT_LENGTH / 2.0 - i * GameConstants.ROAD_SEGMENT_LENGTH
 		road.add_child(container)
 
 		# Road surface mesh
@@ -99,6 +106,19 @@ func _build_road() -> void:
 		mesh_inst.mesh = road_mesh
 		mesh_inst.position.y = -0.05
 		container.add_child(mesh_inst)
+
+		# Green ground on both sides of the road
+		var ground_left := MeshInstance3D.new()
+		ground_left.name = "GroundLeft"
+		ground_left.mesh = grass_mesh
+		ground_left.position = Vector3(-30.0, -0.05, 0)
+		container.add_child(ground_left)
+
+		var ground_right := MeshInstance3D.new()
+		ground_right.name = "GroundRight"
+		ground_right.mesh = grass_mesh
+		ground_right.position = Vector3(30.0, -0.05, 0)
+		container.add_child(ground_right)
 
 		# Dashed lane lines at x = -1.5 and 1.5
 		for x in [-1.5, 1.5]:
@@ -193,7 +213,7 @@ func recycle_road_segments() -> void:
 		if c.position.z < min_z:
 			min_z = c.position.z
 	for c in road_containers:
-		if c.position.z > 50.0:
+		if c.position.z > GameConstants.ROAD_SEGMENT_LENGTH:
 			c.position.z = min_z - GameConstants.ROAD_SEGMENT_LENGTH
 
 func _on_spawn_timer_timeout() -> void:

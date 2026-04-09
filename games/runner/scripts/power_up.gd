@@ -14,8 +14,12 @@ func _process(delta: float) -> void:
 	if collected:
 		return
 	position.z += speed * delta
+	var barrel_model = get_node_or_null("BarrelModel")
+	if barrel_model:
+		barrel_model.rotate_object_local(Vector3.MODEL_TOP, speed * delta * 2.0)
 
 func _on_area_entered(area: Area3D) -> void:
+	
 	if area.is_in_group("bullets"):
 		_on_hit_by_bullet(area)
 
