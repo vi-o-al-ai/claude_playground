@@ -11,7 +11,7 @@ height = 1.0
 script = ExtResource("1_power_up")
 
 [node name="BarrelModel" parent="." instance=ExtResource("2_barrel")]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+transform = Transform3D(2, 0, 0, 0, 0, 2, 0, -2, 0, 0, 0.5, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
