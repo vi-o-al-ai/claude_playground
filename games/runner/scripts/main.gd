@@ -87,7 +87,7 @@ func _build_road() -> void:
 	grass_mat.albedo_color = Color(0.15, 0.35, 0.1, 1)
 
 	var grass_mesh := BoxMesh.new()
-	grass_mesh.size = Vector3(20, 0.1, GameConstants.ROAD_SEGMENT_LENGTH)
+	grass_mesh.size = Vector3(50, 0.1, GameConstants.ROAD_SEGMENT_LENGTH)
 	grass_mesh.material = grass_mat
 
 	var seg_count := GameConstants.ROAD_SEGMENT_COUNT
@@ -111,13 +111,13 @@ func _build_road() -> void:
 		var ground_left := MeshInstance3D.new()
 		ground_left.name = "GroundLeft"
 		ground_left.mesh = grass_mesh
-		ground_left.position = Vector3(-15.0, -0.05, 0)
+		ground_left.position = Vector3(-30.0, -0.05, 0)
 		container.add_child(ground_left)
 
 		var ground_right := MeshInstance3D.new()
 		ground_right.name = "GroundRight"
 		ground_right.mesh = grass_mesh
-		ground_right.position = Vector3(15.0, -0.05, 0)
+		ground_right.position = Vector3(30.0, -0.05, 0)
 		container.add_child(ground_right)
 
 		# Dashed lane lines at x = -1.5 and 1.5
