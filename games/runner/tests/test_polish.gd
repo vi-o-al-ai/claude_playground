@@ -68,19 +68,10 @@ func test_lane_dividers_exist() -> void:
 # 7c: Zombie bob animation
 # =============================================================================
 
-func test_zombie_bobs_vertically() -> void:
+func test_zombie_has_walk_animation() -> void:
 	var zombie = load("res://scenes/zombie.tscn").instantiate()
 	add_child_autofree(zombie)
-	zombie.position = Vector3(0, 0, -20)
-	var mesh = zombie.get_node("MeshInstance3D")
-	var start_y = mesh.position.y
-	var found_different_y := false
-	for i in range(30):
-		zombie._process(0.05)
-		if abs(mesh.position.y - start_y) > 0.01:
-			found_different_y = true
-			break
-	assert_true(found_different_y, "Zombie mesh should bob up and down during movement")
+	assert_eq(zombie.animation_player.current_animation, "Walk", "Zombie should play Walk animation")
 
 # =============================================================================
 # 7d: Environment (sky gradient)

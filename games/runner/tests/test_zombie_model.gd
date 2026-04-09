@@ -46,13 +46,14 @@ func test_zombie_has_collision_shape() -> void:
 	assert_not_null(collision, "Zombie should still have a CollisionShape3D")
 
 func test_zombie_plays_death_on_hit() -> void:
-	zombie = _create_zombie()
 	var main_scene = load("res://scenes/main.tscn").instantiate()
 	add_child_autofree(main_scene)
+	zombie = load("res://scenes/zombie.tscn").instantiate()
 	var bullet = _create_bullet()
-	bullet.position = zombie.position
-	main_scene.add_child(bullet)
+	bullet.position = Vector3(0, 0, -5)
+	zombie.position = Vector3(0, 0, -5)
 	main_scene.add_child(zombie)
+	main_scene.add_child(bullet)
 	zombie._on_hit_by_bullet(bullet)
 	var anim_player = _get_animation_player(zombie)
 	assert_eq(anim_player.current_animation, "Death", "Zombie should play Death animation when hit")
@@ -70,12 +71,13 @@ func test_zombie_stops_moving_when_dead() -> void:
 	assert_eq(zombie.position.z, z_before, "Dead zombie should not move")
 
 func test_zombie_dead_flag_set_on_hit() -> void:
-	zombie = _create_zombie()
 	var main_scene = load("res://scenes/main.tscn").instantiate()
 	add_child_autofree(main_scene)
+	zombie = load("res://scenes/zombie.tscn").instantiate()
 	var bullet = _create_bullet()
-	bullet.position = zombie.position
-	main_scene.add_child(bullet)
+	bullet.position = Vector3(0, 0, -5)
+	zombie.position = Vector3(0, 0, -5)
 	main_scene.add_child(zombie)
+	main_scene.add_child(bullet)
 	zombie._on_hit_by_bullet(bullet)
 	assert_true(zombie.dead, "Zombie should be marked dead after being hit")
