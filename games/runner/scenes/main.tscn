@@ -1,8 +1,22 @@
-[gd_scene load_steps=6 format=3 uid="uid://main_scene"]
+[gd_scene load_steps=9 format=3 uid="uid://main_scene"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://player_scene" path="res://scenes/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="3_hud"]
+
+[sub_resource type="Gradient" id="Gradient_cog"]
+colors = PackedColorArray(1, 1, 1, 0.8, 1, 1, 1, 0.8)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_cog"]
+width = 64
+height = 64
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+fill = 1
+gradient = SubResource("Gradient_cog")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_bg"]
+bg_color = Color(0, 0, 0, 0.7)
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.05, 0.05, 0.15, 1)
@@ -75,3 +89,56 @@ layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
 text = "Game Over!"
+
+[node name="PauseButton" type="TextureButton" parent="HUD"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = -74.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 74.0
+texture_normal = SubResource("GradientTexture2D_cog")
+stretch_mode = 0
+
+[node name="PauseButtonLabel" type="Label" parent="HUD/PauseButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "⚙"
+
+[node name="PausePanel" type="PanelContainer" parent="HUD"]
+visible = false
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_pause_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/PausePanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="PausedLabel" type="Label" parent="HUD/PausePanel/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "PAUSED"
+
+[node name="ResumeButton" type="Button" parent="HUD/PausePanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+size_flags_horizontal = 4
+text = "Resume"
+
+[node name="RestartButton" type="Button" parent="HUD/PausePanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+size_flags_horizontal = 4
+text = "Restart"
