@@ -314,3 +314,25 @@ func test_power_up_barrel_cleaned_on_restart() -> void:
 			if not child.is_queued_for_deletion():
 				power_ups_remaining += 1
 	assert_eq(power_ups_remaining, 0, "All power-up barrels should be cleaned up on restart")
+
+# =============================================================================
+# Barrel orientation and rolling
+# =============================================================================
+
+func test_barrel_model_is_on_its_side() -> void:
+	var power_up = _create_power_up()
+	add_child_autofree(power_up)
+	var barrel_model = power_up.get_node("BarrelModel")
+	# Barrel should be rotated 90 degrees on X axis to lie on its side
+	assert_almost_eq(barrel_model.rotation.x, -PI / 2.0, 0.01,
+		"Barrel model should be rotated -90 degrees on X to lie on its side")
+
+func test_barrel_rolls_as_it_moves() -> void:
+	var power_up = _create_power_up()
+	add_child_autofree(power_up)
+	var barrel_model = power_up.get_node("BarrelModel")
+	var initial_rotation_z = barrel_model.rotation.z
+	# Simulate movement
+	power_up._process(0.1)
+	assert_ne(barrel_model.rotation.z, initial_rotation_z,
+		"Barrel should rotate on Z axis as it moves (rolling effect)")
