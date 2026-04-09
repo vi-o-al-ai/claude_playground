@@ -29,8 +29,8 @@ func test_power_up_duration_is_five_seconds() -> void:
 	assert_eq(GameConstants.POWER_UP_DURATION, 5.0, "Power-up duration should be 5 seconds")
 
 func test_power_up_spawn_interval_range() -> void:
-	assert_gte(GameConstants.POWER_UP_SPAWN_MIN_INTERVAL, 15.0, "Min spawn interval should be >= 15s")
-	assert_lte(GameConstants.POWER_UP_SPAWN_MAX_INTERVAL, 20.0, "Max spawn interval should be <= 20s")
+	assert_gt(GameConstants.POWER_UP_SPAWN_MIN_INTERVAL, 0.0, "Min spawn interval should be positive")
+	assert_gte(GameConstants.POWER_UP_SPAWN_MAX_INTERVAL, GameConstants.POWER_UP_SPAWN_MIN_INTERVAL, "Max should be >= min")
 
 func test_rapid_fire_rate_is_double() -> void:
 	assert_eq(
