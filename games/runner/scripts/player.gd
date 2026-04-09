@@ -5,6 +5,7 @@ var target_x: float = GameConstants.LANE_POSITIONS[GameConstants.DEFAULT_LANE]
 
 var bullet_scene: PackedScene = preload("res://scenes/bullet.tscn")
 var shoot_timer: Timer
+var multi_lane_active: bool = false
 
 # Touch input tracking
 var touch_start_position: Vector2 = Vector2.ZERO
@@ -54,7 +55,23 @@ func move_right() -> void:
 	current_lane = min(current_lane + 1, GameConstants.LANE_COUNT - 1)
 	target_x = GameConstants.LANE_POSITIONS[current_lane]
 
+func activate_rapid_fire() -> void:
+	shoot_timer.wait_time = GameConstants.RAPID_FIRE_INTERVAL
+
+func activate_multi_lane() -> void:
+	multi_lane_active = true
+
+func deactivate_power_up() -> void:
+	shoot_timer.wait_time = GameConstants.SHOOT_INTERVAL
+	multi_lane_active = false
+
 func _on_shoot_timer_timeout() -> void:
-	var bullet = bullet_scene.instantiate()
-	bullet.position = Vector3(target_x, 0.8, position.z - 1.0)
-	get_tree().root.add_child(bullet)
+	if multi_lane_active:
+		for lane_x in GameConstants.LANE_POSITIONS:
+			var bullet = bullet_scene.instantiate()
+			bullet.position = Vector3(lane_x, 0.8, position.z - 1.0)
+			get_tree().root.add_child(bullet)
+	else:
+		var bullet = bullet_scene.instantiate()
+		bullet.position = Vector3(target_x, 0.8, position.z - 1.0)
+		get_tree().root.add_child(bullet)
