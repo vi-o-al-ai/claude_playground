@@ -80,7 +80,136 @@ func _build_road() -> void:
 				dash.position = Vector3(x, 0.06, local_z)
 				container.add_child(dash)
 
+		_add_props_to_segment(container)
+
 		road_containers.append(container)
+
+func _create_tree() -> Node3D:
+	var tree := Node3D.new()
+	tree.name = "Tree"
+	tree.add_to_group("props")
+
+	var trunk_mat := StandardMaterial3D.new()
+	trunk_mat.albedo_color = Color(0.45, 0.3, 0.15)
+	var trunk_mesh := CylinderMesh.new()
+	trunk_mesh.top_radius = 0.15
+	trunk_mesh.bottom_radius = 0.2
+	trunk_mesh.height = 1.5
+	trunk_mesh.material = trunk_mat
+	var trunk := MeshInstance3D.new()
+	trunk.mesh = trunk_mesh
+	trunk.position.y = 0.75
+	tree.add_child(trunk)
+
+	var foliage_mat := StandardMaterial3D.new()
+	foliage_mat.albedo_color = Color(0.15, 0.5, 0.15)
+	var foliage_mesh := CylinderMesh.new()
+	foliage_mesh.top_radius = 0.0
+	foliage_mesh.bottom_radius = 1.0
+	foliage_mesh.height = 2.5
+	foliage_mesh.material = foliage_mat
+	var foliage := MeshInstance3D.new()
+	foliage.mesh = foliage_mesh
+	foliage.position.y = 2.75
+	tree.add_child(foliage)
+
+	return tree
+
+func _create_building() -> Node3D:
+	var building := Node3D.new()
+	building.name = "Building"
+	building.add_to_group("props")
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.5, 0.45, 0.4)
+	var height := randf_range(3.0, 6.0)
+	var width := randf_range(2.0, 4.0)
+	var depth := randf_range(2.0, 4.0)
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(width, height, depth)
+	mesh.material = mat
+	var inst := MeshInstance3D.new()
+	inst.mesh = mesh
+	inst.position.y = height / 2.0
+	building.add_child(inst)
+
+	return building
+
+func _create_fence(length: float) -> Node3D:
+	var fence := Node3D.new()
+	fence.name = "Fence"
+	fence.add_to_group("props")
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.6, 0.5, 0.35)
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(0.15, 1.0, length)
+	mesh.material = mat
+	var inst := MeshInstance3D.new()
+	inst.mesh = mesh
+	inst.position.y = 0.5
+	fence.add_child(inst)
+
+	return fence
+
+func _create_lamp_post() -> Node3D:
+	var lamp := Node3D.new()
+	lamp.name = "LampPost"
+	lamp.add_to_group("props")
+
+	var pole_mat := StandardMaterial3D.new()
+	pole_mat.albedo_color = Color(0.3, 0.3, 0.3)
+	var pole_mesh := CylinderMesh.new()
+	pole_mesh.top_radius = 0.05
+	pole_mesh.bottom_radius = 0.08
+	pole_mesh.height = 4.0
+	pole_mesh.material = pole_mat
+	var pole := MeshInstance3D.new()
+	pole.mesh = pole_mesh
+	pole.position.y = 2.0
+	lamp.add_child(pole)
+
+	var light_mat := StandardMaterial3D.new()
+	light_mat.albedo_color = Color(1.0, 0.95, 0.7)
+	light_mat.emission_enabled = true
+	light_mat.emission = Color(1.0, 0.95, 0.7)
+	light_mat.emission_energy_multiplier = 0.5
+	var light_mesh := BoxMesh.new()
+	light_mesh.size = Vector3(0.4, 0.15, 0.4)
+	light_mesh.material = light_mat
+	var light_inst := MeshInstance3D.new()
+	light_inst.mesh = light_mesh
+	light_inst.position.y = 4.1
+	lamp.add_child(light_inst)
+
+	return lamp
+
+func _add_props_to_segment(container: Node3D) -> void:
+	var seg_half_z := GameConstants.ROAD_SEGMENT_LENGTH / 2.0
+	var road_half_width := GameConstants.ROAD_WIDTH / 2.0
+
+	for side in [-1.0, 1.0]:
+		var base_x: float = side * (road_half_width + 2.0)
+		var prop_count := randi_range(2, 5)
+
+		for _p in range(prop_count):
+			var prop: Node3D
+			var prop_type := randi() % 4
+
+			match prop_type:
+				0:
+					prop = _create_tree()
+				1:
+					prop = _create_building()
+				2:
+					prop = _create_fence(randf_range(3.0, 8.0))
+				3:
+					prop = _create_lamp_post()
+
+			var x_offset: float = randf_range(0.0, 3.0) * side
+			var z_pos := randf_range(-seg_half_z, seg_half_z)
+			prop.position = Vector3(base_x + x_offset, 0.0, z_pos)
+			container.add_child(prop)
 
 func _process(delta: float) -> void:
 	if not game_over:
