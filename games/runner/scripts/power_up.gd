@@ -16,7 +16,7 @@ func _process(delta: float) -> void:
 	position.z += speed * delta
 	var barrel_model = get_node_or_null("BarrelModel")
 	if barrel_model:
-		barrel_model.rotation.z += speed * delta * 2.0
+		barrel_model.rotation.x -= speed * delta * 2.0
 
 func _on_area_entered(area: Area3D) -> void:
 	if area.is_in_group("bullets"):
