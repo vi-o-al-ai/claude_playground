@@ -27,6 +27,10 @@ window/size/viewport_height=720
 
 enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
 [input]
 
 move_left={
