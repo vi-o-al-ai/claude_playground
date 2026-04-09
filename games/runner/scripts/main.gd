@@ -119,7 +119,7 @@ func _add_props_to_segment(container: Node3D) -> void:
 
 	for side in [-1.0, 1.0]:
 		var base_x: float = side * (road_half_width + 2.0)
-		var prop_count := randi_range(2, 5)
+		var prop_count := randi_range(3, 6)
 
 		for _p in range(prop_count):
 			var scene: PackedScene = prop_scenes[randi() % prop_scenes.size()]
@@ -132,6 +132,8 @@ func _add_props_to_segment(container: Node3D) -> void:
 
 			# Random Y rotation for variety
 			prop.rotation.y = randf() * TAU
+			# Scale up — raw models are small (trees ~2 units tall)
+			prop.scale = Vector3(2.5, 2.5, 2.5)
 
 			container.add_child(prop)
 
