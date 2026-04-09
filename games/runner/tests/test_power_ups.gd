@@ -323,9 +323,10 @@ func test_barrel_model_is_on_its_side() -> void:
 	var power_up = _create_power_up()
 	add_child_autofree(power_up)
 	var barrel_model = power_up.get_node("BarrelModel")
-	# Barrel should be rotated 90 degrees on X axis to lie on its side
-	assert_almost_eq(barrel_model.rotation.x, -PI / 2.0, 0.01,
-		"Barrel model should be rotated -90 degrees on X to lie on its side")
+	# Barrel's local Y axis (cylinder axis) should be horizontal (perpendicular to world Y)
+	var local_y = barrel_model.transform.basis.y.normalized()
+	assert_almost_eq(local_y.y, 0.0, 0.01,
+		"Barrel cylinder axis should be horizontal (on its side)")
 
 func test_barrel_rolls_as_it_moves() -> void:
 	var power_up = _create_power_up()
