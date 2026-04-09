@@ -83,14 +83,14 @@ func _build_road() -> void:
 	dash_mesh.size = Vector3(0.1, 0.12, 2.0)
 	dash_mesh.material = dash_mat
 
-	var seg_count := 6
+	var seg_count := GameConstants.ROAD_SEGMENT_COUNT
 	var dash_spacing := 5.0
 	var dashes_per_segment := int(GameConstants.ROAD_SEGMENT_LENGTH / dash_spacing)
 
 	for i in range(seg_count):
 		var container := Node3D.new()
 		container.name = "RoadSegment%d" % i
-		container.position.z = 25.0 - i * GameConstants.ROAD_SEGMENT_LENGTH
+		container.position.z = GameConstants.ROAD_SEGMENT_LENGTH / 2.0 - i * GameConstants.ROAD_SEGMENT_LENGTH
 		road.add_child(container)
 
 		# Road surface mesh
@@ -193,7 +193,7 @@ func recycle_road_segments() -> void:
 		if c.position.z < min_z:
 			min_z = c.position.z
 	for c in road_containers:
-		if c.position.z > 50.0:
+		if c.position.z > GameConstants.ROAD_SEGMENT_LENGTH:
 			c.position.z = min_z - GameConstants.ROAD_SEGMENT_LENGTH
 
 func _on_spawn_timer_timeout() -> void:
