@@ -10,6 +10,7 @@ var power_up_scene: PackedScene = preload("res://scenes/power_up.tscn")
 
 var score: int = 0
 var game_over: bool = false
+var paused: bool = false
 var road_speed: float = 15.0
 
 var spawn_interval: float = GameConstants.ZOMBIE_INITIAL_SPAWN_INTERVAL
@@ -112,11 +113,25 @@ func _process(delta: float) -> void:
 				return
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("pause") and not game_over:
+		toggle_pause()
+		return
 	if game_over and event.is_action_pressed("restart"):
 		restart_game()
 	# Tap to restart on game over
 	if game_over and event is InputEventScreenTouch and not event.pressed:
 		restart_game()
+
+func toggle_pause() -> void:
+	if game_over:
+		return
+	paused = not paused
+	get_tree().paused = paused
+	if hud:
+		if paused:
+			hud.show_pause()
+		else:
+			hud.hide_pause()
 
 func _get_road_segments() -> Array[MeshInstance3D]:
 	# For test compatibility: return the RoadMesh children
@@ -202,6 +217,7 @@ func restart_game() -> void:
 	# Reset state
 	score = 0
 	game_over = false
+	paused = false
 	spawn_interval = GameConstants.ZOMBIE_INITIAL_SPAWN_INTERVAL
 	zombie_speed = GameConstants.ZOMBIE_INITIAL_SPEED
 
@@ -231,6 +247,7 @@ func restart_game() -> void:
 		hud.hide_game_over()
 		hud.update_score(0)
 		hud.hide_power_up()
+		hud.hide_pause()
 
 func _on_power_up_spawn_timer_timeout() -> void:
 	if game_over:
