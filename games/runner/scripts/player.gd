@@ -22,19 +22,50 @@ func _ready() -> void:
 	shoot_timer.timeout.connect(_on_shoot_timer_timeout)
 	add_child(shoot_timer)
 
-	var anim = animation_player.get_animation("Run_Shoot")
+	var anim = animation_player.get_animation(default_animation)
 	if anim:
 		anim.loop_mode = Animation.LOOP_LINEAR
-	animation_player.play("Run_Shoot")
+	animation_player.play(default_animation)
 
 func _process(delta: float) -> void:
-	position.x = move_toward(position.x, target_x, GameConstants.LANE_SWITCH_SPEED * delta)
+	if strafe_mode:
+		_process_strafe(delta)
+	else:
+		position.x = move_toward(position.x, target_x, GameConstants.LANE_SWITCH_SPEED * delta)
+
+func _process_strafe(delta: float) -> void:
+	var moving := _strafe_direction != 0.0
+	if moving:
+		position.x = clampf(
+			position.x + _strafe_direction * STRAFE_SPEED * delta,
+			STRAFE_X_MIN, STRAFE_X_MAX
+		)
+
+	var model = get_node_or_null("Model")
+	if moving and not _strafe_moving:
+		_strafe_moving = true
+		_play_looping("Walk_Shoot")
+	elif not moving and _strafe_moving:
+		_strafe_moving = false
+		_play_looping(default_animation)
+
+	if model:
+		if moving:
+			model.rotation.y = PI - _strafe_direction * 0.4
+		else:
+			model.rotation.y = PI
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("move_left"):
-		move_left()
-	elif event.is_action_pressed("move_right"):
-		move_right()
+	if strafe_mode:
+		# Continuous movement — update direction based on held keys
+		if event.is_action_pressed("move_left") or event.is_action_released("move_left") \
+				or event.is_action_pressed("move_right") or event.is_action_released("move_right"):
+			_update_strafe_direction()
+	else:
+		if event.is_action_pressed("move_left"):
+			move_left()
+		elif event.is_action_pressed("move_right"):
+			move_right()
 
 	# Touch/swipe input
 	if event is InputEventScreenTouch:
@@ -53,6 +84,16 @@ func _handle_swipe(end_position: Vector2) -> void:
 			move_left()
 		else:
 			move_right()
+
+func _update_strafe_direction() -> void:
+	var left := Input.is_action_pressed("move_left")
+	var right := Input.is_action_pressed("move_right")
+	if left and not right:
+		_strafe_direction = -1.0
+	elif right and not left:
+		_strafe_direction = 1.0
+	else:
+		_strafe_direction = 0.0
 
 func move_left() -> void:
 	current_lane = max(current_lane - 1, 0)
@@ -76,12 +117,32 @@ func die() -> void:
 	if animation_player:
 		animation_player.play("Death")
 
+var default_animation: String = "Run_Shoot"
+var strafe_mode: bool = false
+var _strafe_moving: bool = false
+var _strafe_direction: float = 0.0  # -1, 0, or 1 for continuous movement
+const STRAFE_SPEED: float = 8.0
+const STRAFE_X_MIN: float = -4.5
+const STRAFE_X_MAX: float = 4.5
+
+func set_default_animation(anim_name: String) -> void:
+	default_animation = anim_name
+	strafe_mode = true
+	reset_animation()
+
 func reset_animation() -> void:
+	_strafe_moving = false
+	_play_looping(default_animation)
+	var model = get_node_or_null("Model")
+	if model:
+		model.rotation.y = PI
+
+func _play_looping(anim_name: String) -> void:
 	if animation_player:
-		var anim = animation_player.get_animation("Run_Shoot")
+		var anim = animation_player.get_animation(anim_name)
 		if anim:
 			anim.loop_mode = Animation.LOOP_LINEAR
-		animation_player.play("Run_Shoot")
+		animation_player.play(anim_name)
 
 func _on_shoot_timer_timeout() -> void:
 	if multi_lane_active:
@@ -91,5 +152,5 @@ func _on_shoot_timer_timeout() -> void:
 			get_tree().root.add_child(bullet)
 	else:
 		var bullet = bullet_scene.instantiate()
-		bullet.position = Vector3(target_x, 0.8, position.z - 1.0)
+		bullet.position = Vector3(position.x, 0.8, position.z - 1.0)
 		get_tree().root.add_child(bullet)
