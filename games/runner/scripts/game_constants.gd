@@ -33,3 +33,12 @@ const POWER_UP_SPAWN_MAX_INTERVAL: float = 2.0
 const POWER_UP_BARREL_HITS: int = 3
 const POWER_UP_SPEED: float = 5.0
 const RAPID_FIRE_INTERVAL: float = SHOOT_INTERVAL / 2.0
+
+# Zombie pool & swarm
+const ZOMBIE_POOL_SIZE: int = 100
+const ZOMBIE_LOD_DISTANCE: float = 15.0
+const ZOMBIE_BATCH_SIZE_INITIAL: int = 3
+const ZOMBIE_BATCH_SIZE_MAX: int = 8
+const ZOMBIE_BATCH_SIZE_INCREASE: float = 0.5  # added per difficulty tick
+const ZOMBIE_OVERRUN_LIMIT: int = 10
+const ZOMBIE_OVERRUN_Z: float = 1.0
