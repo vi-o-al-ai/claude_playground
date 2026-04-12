@@ -28,7 +28,26 @@ func _ready() -> void:
 	animation_player.play(default_animation)
 
 func _process(delta: float) -> void:
+	var was_at_target := is_equal_approx(position.x, target_x)
 	position.x = move_toward(position.x, target_x, GameConstants.LANE_SWITCH_SPEED * delta)
+	var at_target := is_equal_approx(position.x, target_x)
+
+	if strafe_mode:
+		var model = get_node_or_null("Model")
+		if not was_at_target and not at_target:
+			# Still moving — play walk and face movement direction
+			if not _strafe_moving:
+				_strafe_moving = true
+				_play_looping("Walk_Shoot")
+			if model:
+				var dir := 1.0 if target_x > position.x else -1.0
+				model.rotation.y = dir * PI * 0.5
+		elif _strafe_moving and at_target:
+			# Just arrived — return to idle facing forward
+			_strafe_moving = false
+			_play_looping(default_animation)
+			if model:
+				model.rotation.y = 0.0
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("move_left"):
@@ -77,17 +96,27 @@ func die() -> void:
 		animation_player.play("Death")
 
 var default_animation: String = "Run_Shoot"
+var strafe_mode: bool = false
+var _strafe_moving: bool = false
 
 func set_default_animation(anim_name: String) -> void:
 	default_animation = anim_name
+	strafe_mode = true
 	reset_animation()
 
 func reset_animation() -> void:
+	_strafe_moving = false
+	_play_looping(default_animation)
+	var model = get_node_or_null("Model")
+	if model:
+		model.rotation.y = 0.0
+
+func _play_looping(anim_name: String) -> void:
 	if animation_player:
-		var anim = animation_player.get_animation(default_animation)
+		var anim = animation_player.get_animation(anim_name)
 		if anim:
 			anim.loop_mode = Animation.LOOP_LINEAR
-		animation_player.play(default_animation)
+		animation_player.play(anim_name)
 
 func _on_shoot_timer_timeout() -> void:
 	if multi_lane_active:
