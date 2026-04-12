@@ -1,0 +1,62 @@
+# Daily news digest workflow — copy this file into YOUR PRIVATE REPO at
+# .github/workflows/daily.yml and adjust the cron time to your timezone.
+#
+# Prerequisites in the private repo:
+#   - sources.json at the repo root (copied from sources.example.json, edited with your real sources)
+#   - CLAUDE_CODE_OAUTH_TOKEN secret set in repo settings
+#   - Actions → General → Workflow permissions → "Read and write permissions" enabled
+#     (so the workflow can commit the generated digest back to the repo)
+
+name: Daily News Digest
+
+on:
+  schedule:
+    # 13:00 UTC = 6:00 AM PT / 9:00 AM ET. Edit to match your morning.
+    # Cron fields: minute hour day-of-month month day-of-week
+    - cron: "0 13 * * *"
+  workflow_dispatch: # allows manual "Run workflow" button for first-run testing
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed so claude-code-action can commit the digest back
+      id-token: write
+    steps:
+      - name: Checkout private data repo (this repo)
+        uses: actions/checkout@v4
+        with:
+          path: data
+          fetch-depth: 1
+
+      - name: Checkout public engine (claude_playground)
+        uses: actions/checkout@v4
+        with:
+          repository: vi-o-al-ai/claude_playground
+          ref: main # TODO: replace with a SHA or tag once stable, e.g. ref: abc1234
+          path: engine
+          fetch-depth: 1
+
+      - name: Configure git for bot commits
+        working-directory: data
+        run: |
+          git config user.name "news-digest-bot"
+          git config user.email "news-digest-bot@users.noreply.github.com"
+
+      - name: Run Claude Code to generate digest
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Follow the instructions in ./engine/apps/news-digest/PROMPT.md exactly.
+
+            Context:
+            - Config file: ./data/sources.json
+            - Output directory: ./data/digests/
+            - Filename: YYYY-MM-DD.md where the date is today in UTC
+            - Working directory for git operations: ./data
+
+            After writing the digest file, cd into ./data, stage digests/,
+            commit with message "digest: YYYY-MM-DD", and push.
+          claude_args: |
+            --allowedTools "WebFetch,Read,Write,Edit,Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git pull:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(date:*)"

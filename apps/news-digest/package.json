@@ -1,0 +1,7 @@
+{
+  "name": "@ai-arcade/news-digest",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CI-only news digest engine. Not a browser app — Claude Code runs this in a scheduled GitHub Actions workflow to fetch, summarize, and write daily news markdown.",
+  "type": "module"
+}
