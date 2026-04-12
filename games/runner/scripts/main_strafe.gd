@@ -224,8 +224,8 @@ func _on_spawn_timer_timeout() -> void:
 		var zombie = zombie_pool.acquire()
 		if zombie == null:
 			break
-		var road_half := GameConstants.ROAD_WIDTH / 2.0 - 0.5
-		var x_pos := randf_range(-road_half, road_half)
+		var half_width := GameConstants.ROAD_WIDTH / 2.0
+		var x_pos := randf_range(-half_width, half_width)
 		var z_offset = -float(i) * randf_range(0.5, 1.5)
 		zombie.position = Vector3(
 			x_pos,
