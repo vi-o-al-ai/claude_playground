@@ -3,6 +3,14 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    paths:
+      - "games/**"
+      - "apps/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.shared.js"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
