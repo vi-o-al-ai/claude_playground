@@ -65,3 +65,75 @@ func test_zombie_moves_every_frame_regardless_of_lod() -> void:
 	var start_z = z.position.z
 	z._process(0.1)
 	assert_gt(z.position.z, start_z, "zombie should move even without LOD update")
+
+# =============================================================================
+# ZombiePool
+# =============================================================================
+
+var pool_script = preload("res://scripts/zombie_pool.gd")
+
+func _create_pool(size: int = 5) -> Node:
+	var pool = Node.new()
+	pool.set_script(pool_script)
+	pool.pool_size = size
+	add_child_autofree(pool)
+	# Pool calls _ready() which instantiates zombies
+	return pool
+
+func test_pool_creates_zombies_on_ready() -> void:
+	var pool = _create_pool(5)
+	assert_eq(pool.get_child_count(), 5, "pool should have 5 children")
+
+func test_pool_zombies_start_deactivated() -> void:
+	var pool = _create_pool(3)
+	for child in pool.get_children():
+		assert_false(child.visible, "pooled zombie should be hidden")
+
+func test_acquire_returns_zombie() -> void:
+	var pool = _create_pool(3)
+	var z = pool.acquire()
+	assert_not_null(z, "acquire should return a zombie")
+	assert_true(z.visible, "acquired zombie should be visible")
+
+func test_acquire_returns_null_when_exhausted() -> void:
+	var pool = _create_pool(2)
+	pool.acquire()
+	pool.acquire()
+	var z = pool.acquire()
+	assert_null(z, "acquire should return null when pool exhausted")
+
+func test_release_makes_zombie_available_again() -> void:
+	var pool = _create_pool(1)
+	var z = pool.acquire()
+	assert_not_null(z, "first acquire should work")
+	pool.release(z)
+	var z2 = pool.acquire()
+	assert_not_null(z2, "should be able to acquire after release")
+	assert_eq(z, z2, "should get the same zombie back")
+
+func test_release_all_returns_all_active() -> void:
+	var pool = _create_pool(3)
+	pool.acquire()
+	pool.acquire()
+	pool.acquire()
+	assert_null(pool.acquire(), "pool should be exhausted")
+	pool.release_all()
+	assert_not_null(pool.acquire(), "pool should have zombies after release_all")
+
+func test_acquire_assigns_frame_group() -> void:
+	var pool = _create_pool(6)
+	var groups: Array[int] = []
+	for i in range(6):
+		var z = pool.acquire()
+		groups.append(z.frame_group)
+	# Should cycle 0, 1, 2, 0, 1, 2
+	assert_eq(groups, [0, 1, 2, 0, 1, 2], "frame groups should cycle 0-2")
+
+func test_get_active_count() -> void:
+	var pool = _create_pool(5)
+	assert_eq(pool.get_active_count(), 0, "no active zombies initially")
+	pool.acquire()
+	pool.acquire()
+	assert_eq(pool.get_active_count(), 2, "two active after two acquires")
+	pool.release_all()
+	assert_eq(pool.get_active_count(), 0, "none active after release_all")
