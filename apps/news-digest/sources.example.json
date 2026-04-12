@@ -1,5 +1,5 @@
 {
-  "$schema": "./sources.schema.json",
+  "$schema": "https://raw.githubusercontent.com/vi-o-al-ai/claude_playground/main/apps/news-digest/sources.schema.json",
   "digestTitle": "Morning Brew",
   "topN": 5,
   "sources": [
