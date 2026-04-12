@@ -152,5 +152,5 @@ func _on_shoot_timer_timeout() -> void:
 			get_tree().root.add_child(bullet)
 	else:
 		var bullet = bullet_scene.instantiate()
-		bullet.position = Vector3(target_x, 0.8, position.z - 1.0)
+		bullet.position = Vector3(position.x, 0.8, position.z - 1.0)
 		get_tree().root.add_child(bullet)
