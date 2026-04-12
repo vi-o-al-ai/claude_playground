@@ -22,10 +22,10 @@ func _ready() -> void:
 	shoot_timer.timeout.connect(_on_shoot_timer_timeout)
 	add_child(shoot_timer)
 
-	var anim = animation_player.get_animation("Run_Shoot")
+	var anim = animation_player.get_animation(default_animation)
 	if anim:
 		anim.loop_mode = Animation.LOOP_LINEAR
-	animation_player.play("Run_Shoot")
+	animation_player.play(default_animation)
 
 func _process(delta: float) -> void:
 	position.x = move_toward(position.x, target_x, GameConstants.LANE_SWITCH_SPEED * delta)
@@ -76,12 +76,18 @@ func die() -> void:
 	if animation_player:
 		animation_player.play("Death")
 
+var default_animation: String = "Run_Shoot"
+
+func set_default_animation(anim_name: String) -> void:
+	default_animation = anim_name
+	reset_animation()
+
 func reset_animation() -> void:
 	if animation_player:
-		var anim = animation_player.get_animation("Run_Shoot")
+		var anim = animation_player.get_animation(default_animation)
 		if anim:
 			anim.loop_mode = Animation.LOOP_LINEAR
-		animation_player.play("Run_Shoot")
+		animation_player.play(default_animation)
 
 func _on_shoot_timer_timeout() -> void:
 	if multi_lane_active:

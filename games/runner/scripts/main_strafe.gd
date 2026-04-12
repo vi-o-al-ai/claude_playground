@@ -39,6 +39,7 @@ var power_up_time_remaining: float = 0.0
 var road_containers: Array[Node3D] = []
 
 func _ready() -> void:
+	player.set_default_animation("Idle_Shoot")
 	_build_road()
 
 	spawn_timer = Timer.new()
