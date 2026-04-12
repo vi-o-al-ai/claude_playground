@@ -1,0 +1,22 @@
+{
+  "$schema": "./sources.schema.json",
+  "digestTitle": "Morning Brew",
+  "topN": 5,
+  "sources": [
+    {
+      "type": "reddit",
+      "subreddit": "programming",
+      "timeWindow": "day"
+    },
+    {
+      "type": "reddit",
+      "subreddit": "MachineLearning",
+      "timeWindow": "day",
+      "topN": 3
+    },
+    {
+      "type": "hackernews",
+      "list": "topstories"
+    }
+  ]
+}
