@@ -39,9 +39,7 @@ var power_up_time_remaining: float = 0.0
 var road_containers: Array[Node3D] = []
 
 func _ready() -> void:
-	# Reset player model rotation to face -Z (toward incoming zombies)
-	var model = player.get_node("Model")
-	model.transform = Transform3D.IDENTITY
+	# Keep the same model orientation as stage 1 (facing -Z toward zombies)
 	player.set_default_animation("Idle_Shoot")
 	_build_road()
 
