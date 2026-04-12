@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: vi-o-al-ai/claude_playground
-          ref: main # pin to a SHA or tag for stability if desired
+          ref: main # TODO: replace with a SHA or tag once stable, e.g. ref: abc1234
           path: engine
           fetch-depth: 1
 
@@ -59,4 +59,4 @@ jobs:
             After writing the digest file, cd into ./data, stage digests/,
             commit with message "digest: YYYY-MM-DD", and push.
           claude_args: |
-            --allowedTools "WebFetch,Read,Write,Edit,Bash(git:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(date:*)"
+            --allowedTools "WebFetch,Read,Write,Edit,Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git pull:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(date:*)"
