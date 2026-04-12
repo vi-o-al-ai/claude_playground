@@ -35,13 +35,13 @@ func _process(delta: float) -> void:
 	if strafe_mode:
 		var model = get_node_or_null("Model")
 		if not was_at_target and not at_target:
-			# Still moving — play walk and face movement direction
+			# Still moving — play walk and lean slightly toward movement direction
 			if not _strafe_moving:
 				_strafe_moving = true
 				_play_looping("Walk_Shoot")
 			if model:
 				var dir := 1.0 if target_x > position.x else -1.0
-				model.rotation.y = dir * PI * 0.5
+				model.rotation.y = dir * 0.4
 		elif _strafe_moving and at_target:
 			# Just arrived — return to idle facing forward
 			_strafe_moving = false
