@@ -41,13 +41,13 @@ func _process(delta: float) -> void:
 				_play_looping("Walk_Shoot")
 			if model:
 				var dir := 1.0 if target_x > position.x else -1.0
-				model.rotation.y = dir * 0.4
+				model.rotation.y = PI + dir * 0.4
 		elif _strafe_moving and at_target:
 			# Just arrived — return to idle facing forward
 			_strafe_moving = false
 			_play_looping(default_animation)
 			if model:
-				model.rotation.y = 0.0
+				model.rotation.y = PI
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("move_left"):
@@ -109,7 +109,7 @@ func reset_animation() -> void:
 	_play_looping(default_animation)
 	var model = get_node_or_null("Model")
 	if model:
-		model.rotation.y = 0.0
+		model.rotation.y = PI
 
 func _play_looping(anim_name: String) -> void:
 	if animation_player:
