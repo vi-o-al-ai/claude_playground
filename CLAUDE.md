@@ -45,6 +45,10 @@ Pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged `.js`, 
 - **CI** (`.github/workflows/ci.yml`): lint, format check, vitest, build, and Godot GUT tests. Node 22.
 - **Deploy** (`.github/workflows/deploy.yml`): Builds all Vite apps + exports Godot runner to web, assembles into GitHub Pages site at `/claude_playground/`.
 
+## Starting New Work
+
+**IMPORTANT:** Before starting any new feature, bug fix, or issue, always run the `/start-issue` skill first to pull latest main and create a clean feature branch. Never start work on a stale branch.
+
 ## Development Workflow (TDD)
 
 Always follow test-driven development. For every feature or bug fix:
