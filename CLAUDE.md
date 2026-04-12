@@ -48,7 +48,11 @@ Pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged `.js`, 
 
 ## Starting New Work
 
-**IMPORTANT:** Before starting any new feature, bug fix, or issue, always run the `/start-issue` skill first to pull latest main and create a clean feature branch. Never start work on a stale branch.
+**IMPORTANT:** Before starting any new feature, bug fix, or issue:
+
+- If the user references an existing issue, run `/start-issue` to pull latest main and create a feature branch.
+- If the user describes new work without an existing issue, run `/start-work` to create a GitHub issue first, then set up the branch.
+  Never start work without an issue or on a stale branch.
 
 ## Development Workflow (TDD)
 
