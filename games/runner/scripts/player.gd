@@ -41,7 +41,7 @@ func _process(delta: float) -> void:
 				_play_looping("Walk_Shoot")
 			if model:
 				var dir := 1.0 if target_x > position.x else -1.0
-				model.rotation.y = PI + dir * 0.4
+				model.rotation.y = PI - dir * 0.4
 		elif _strafe_moving and at_target:
 			# Just arrived — return to idle facing forward
 			_strafe_moving = false
