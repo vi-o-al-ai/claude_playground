@@ -42,7 +42,8 @@ Pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged `.js`, 
 
 ## CI/CD
 
-- **CI** (`.github/workflows/ci.yml`): lint, format check, vitest, build, and Godot GUT tests. Node 22.
+- **CI Web** (`.github/workflows/ci-web.yml`): lint, format check, vitest, build. Triggers on JS/Vite file changes. Node 22.
+- **CI Godot** (`.github/workflows/ci-godot.yml`): GUT tests in `barichello/godot-ci:4.6` container. Triggers on `games/runner/` changes.
 - **Deploy** (`.github/workflows/deploy.yml`): Builds all Vite apps + exports Godot runner to web, assembles into GitHub Pages site at `/claude_playground/`.
 
 ## Starting New Work
