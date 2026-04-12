@@ -5,7 +5,6 @@ extends Node3D
 @onready var player: CharacterBody3D = $Player
 @onready var hud: CanvasLayer = $HUD
 
-var zombie_scene: PackedScene = preload("res://scenes/zombie.tscn")
 var power_up_scene: PackedScene = preload("res://scenes/power_up.tscn")
 
 var prop_scenes: Array[PackedScene] = [
@@ -23,9 +22,11 @@ var prop_scenes: Array[PackedScene] = [
 var score: int = 0
 var game_over: bool = false
 var paused: bool = false
+var zombies_passed: int = 0
 
 var spawn_interval: float = GameConstants.ZOMBIE_INITIAL_SPAWN_INTERVAL
 var zombie_speed: float = GameConstants.ZOMBIE_INITIAL_SPEED
+var batch_size: float = GameConstants.ZOMBIE_BATCH_SIZE_INITIAL
 
 var spawn_timer: Timer
 var difficulty_timer: Timer
@@ -38,10 +39,19 @@ var power_up_time_remaining: float = 0.0
 # Road segment containers
 var road_containers: Array[Node3D] = []
 
+# Zombie pool
+var zombie_pool: Node = null
+var _pool_script: GDScript = preload("res://scripts/zombie_pool.gd")
+
 func _ready() -> void:
-	# Keep the same model orientation as stage 1 (facing -Z toward zombies)
 	player.set_default_animation("Idle_Shoot")
 	_build_road()
+
+	# Create zombie pool
+	zombie_pool = Node.new()
+	zombie_pool.set_script(_pool_script)
+	zombie_pool.name = "ZombiePool"
+	add_child(zombie_pool)
 
 	spawn_timer = Timer.new()
 	spawn_timer.wait_time = spawn_interval
@@ -94,7 +104,6 @@ func _build_road() -> void:
 	var dash_spacing := 5.0
 	var dashes_per_segment := int(GameConstants.ROAD_SEGMENT_LENGTH / dash_spacing)
 
-	# Place segments centered around Z=0 (static arena)
 	var total_length := seg_count * GameConstants.ROAD_SEGMENT_LENGTH
 	var start_z := total_length / 2.0
 
@@ -160,11 +169,32 @@ func _process(delta: float) -> void:
 		_process_power_up_timer(delta)
 	if game_over:
 		return
-	for child in get_children():
-		if child is Area3D and child.get("dead") != null and not child.dead:
-			if child.position.z >= player.position.z:
-				_on_zombie_reached_player(child)
+	_check_overrun()
+
+func _check_overrun() -> void:
+	for zombie in zombie_pool.get_active_zombies():
+		if zombie.dead:
+			continue
+		if zombie.position.z >= GameConstants.ZOMBIE_OVERRUN_Z:
+			zombies_passed += 1
+			zombie_pool.release(zombie)
+			if hud:
+				hud.update_overrun(zombies_passed, GameConstants.ZOMBIE_OVERRUN_LIMIT)
+			if zombies_passed >= GameConstants.ZOMBIE_OVERRUN_LIMIT:
+				_on_overrun()
 				return
+
+func _on_overrun() -> void:
+	if game_over:
+		return
+	game_over = true
+	spawn_timer.stop()
+	difficulty_timer.stop()
+	power_up_spawn_timer.stop()
+	player.shoot_timer.stop()
+	player.die()
+	if hud:
+		hud.show_game_over(score)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause") and not game_over:
@@ -189,15 +219,19 @@ func toggle_pause() -> void:
 func _on_spawn_timer_timeout() -> void:
 	if game_over:
 		return
-	var zombie = zombie_scene.instantiate()
-	var lane = randi() % GameConstants.LANE_COUNT
-	zombie.position = Vector3(
-		GameConstants.LANE_POSITIONS[lane],
-		0,
-		-GameConstants.ZOMBIE_SPAWN_DISTANCE
-	)
-	zombie.speed = zombie_speed
-	add_child(zombie)
+	var count := int(batch_size)
+	for i in range(count):
+		var zombie = zombie_pool.acquire()
+		if zombie == null:
+			break
+		var lane = randi() % GameConstants.LANE_COUNT
+		var z_offset = -float(i) * randf_range(0.5, 1.5)
+		zombie.position = Vector3(
+			GameConstants.LANE_POSITIONS[lane],
+			0,
+			-GameConstants.ZOMBIE_SPAWN_DISTANCE + z_offset
+		)
+		zombie.speed = zombie_speed
 
 func _on_difficulty_timer_timeout() -> void:
 	if game_over:
@@ -210,19 +244,14 @@ func _on_difficulty_timer_timeout() -> void:
 		zombie_speed * (1.0 + GameConstants.SPEED_INCREASE),
 		GameConstants.ZOMBIE_MAX_SPEED
 	)
+	batch_size = min(
+		batch_size + GameConstants.ZOMBIE_BATCH_SIZE_INCREASE,
+		GameConstants.ZOMBIE_BATCH_SIZE_MAX
+	)
 	spawn_timer.wait_time = spawn_interval
 
-func _on_zombie_reached_player(_zombie: Node) -> void:
-	if game_over:
-		return
-	game_over = true
-	spawn_timer.stop()
-	difficulty_timer.stop()
-	power_up_spawn_timer.stop()
-	player.shoot_timer.stop()
-	player.die()
-	if hud:
-		hud.show_game_over(score)
+func release_zombie(zombie: Area3D) -> void:
+	zombie_pool.release(zombie)
 
 func add_score() -> void:
 	score += 1
@@ -230,9 +259,8 @@ func add_score() -> void:
 		hud.update_score(score)
 
 func restart_game() -> void:
-	for child in get_children():
-		if child is Area3D and child.get("dead") != null:
-			child.queue_free()
+	zombie_pool.release_all()
+
 	for child in get_children():
 		if child.is_in_group("power_ups"):
 			child.queue_free()
@@ -243,8 +271,10 @@ func restart_game() -> void:
 	score = 0
 	game_over = false
 	paused = false
+	zombies_passed = 0
 	spawn_interval = GameConstants.ZOMBIE_INITIAL_SPAWN_INTERVAL
 	zombie_speed = GameConstants.ZOMBIE_INITIAL_SPEED
+	batch_size = GameConstants.ZOMBIE_BATCH_SIZE_INITIAL
 
 	active_power_up_type = -1
 	power_up_time_remaining = 0.0
@@ -271,6 +301,7 @@ func restart_game() -> void:
 		hud.update_score(0)
 		hud.hide_power_up()
 		hud.hide_pause()
+		hud.hide_overrun()
 
 func _on_power_up_spawn_timer_timeout() -> void:
 	if game_over:

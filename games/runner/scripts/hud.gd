@@ -8,6 +8,7 @@ extends CanvasLayer
 @onready var pause_button: TextureButton = $PauseButton
 @onready var resume_button: Button = $PausePanel/VBoxContainer/ResumeButton
 @onready var restart_button: Button = $PausePanel/VBoxContainer/RestartButton
+var overrun_label: Label = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -19,6 +20,9 @@ func _ready() -> void:
 	pause_button.pressed.connect(_on_pause_button_pressed)
 	resume_button.pressed.connect(_on_resume_pressed)
 	restart_button.pressed.connect(_on_restart_pressed)
+	overrun_label = get_node_or_null("OverrunLabel")
+	if overrun_label:
+		overrun_label.visible = false
 
 func update_score(score: int) -> void:
 	score_label.text = "Score: %d" % score
@@ -62,3 +66,13 @@ func _on_restart_pressed() -> void:
 		main.toggle_pause()
 	if main.has_method("restart_game"):
 		main.restart_game()
+
+func update_overrun(passed: int, limit: int) -> void:
+	if not overrun_label:
+		return
+	overrun_label.visible = true
+	overrun_label.text = "Escaped: %d/%d" % [passed, limit]
+
+func hide_overrun() -> void:
+	if overrun_label:
+		overrun_label.visible = false
