@@ -14,7 +14,7 @@ npm run lint:fix      # ESLint with auto-fix
 npm run format:check  # Prettier check
 npm run format        # Prettier write
 npm run test          # Vitest (all workspaces)
-npm run check         # lint + format:check + test (what CI runs)
+npm run check         # lint + format:check + test (all-in-one local check)
 
 # Run a single test file
 npx vitest run games/sudoku/src/__tests__/engine.test.js
@@ -42,7 +42,8 @@ Pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged `.js`, 
 
 ## CI/CD
 
-- **CI** (`.github/workflows/ci.yml`): lint, format check, vitest, build, and Godot GUT tests. Node 22.
+- **CI Web** (`.github/workflows/ci-web.yml`): lint, format check, vitest, build. Triggers on JS/Vite file changes. Node 22.
+- **CI Godot** (`.github/workflows/ci-godot.yml`): GUT tests in `barichello/godot-ci:4.6` container. Triggers on `games/runner/` changes.
 - **Deploy** (`.github/workflows/deploy.yml`): Builds all Vite apps + exports Godot runner to web, assembles into GitHub Pages site at `/claude_playground/`.
 
 ## Starting New Work

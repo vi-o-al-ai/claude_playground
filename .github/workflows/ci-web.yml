@@ -1,10 +1,34 @@
-name: CI
+name: CI Web
 
 on:
   push:
     branches: [main]
+    paths:
+      - "games/**"
+      - "!games/runner/**"
+      - "apps/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.shared.js"
+      - "eslint.config.js"
+      - ".prettierrc"
+      - ".prettierignore"
+      - ".github/workflows/ci-web.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "games/**"
+      - "!games/runner/**"
+      - "apps/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.shared.js"
+      - "eslint.config.js"
+      - ".prettierrc"
+      - ".prettierignore"
+      - ".github/workflows/ci-web.yml"
 
 jobs:
   lint:
@@ -43,20 +67,3 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-
-  test-godot:
-    name: Godot Tests
-    runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.6
-    steps:
-      - uses: actions/checkout@v4
-      - name: Import project
-        run: |
-          cd games/runner
-          godot --headless --import 2>&1 || true
-          godot --headless --import 2>&1 || true
-      - name: Run GUT tests
-        run: |
-          cd games/runner
-          godot --headless -s res://addons/gut/gut_cmdln.gd 2>&1
