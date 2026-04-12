@@ -14,7 +14,7 @@ npm run lint:fix      # ESLint with auto-fix
 npm run format:check  # Prettier check
 npm run format        # Prettier write
 npm run test          # Vitest (all workspaces)
-npm run check         # lint + format:check + test (what CI runs)
+npm run check         # lint + format:check + test (all-in-one local check)
 
 # Run a single test file
 npx vitest run games/sudoku/src/__tests__/engine.test.js
