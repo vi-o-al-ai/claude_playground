@@ -38,13 +38,15 @@ Pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged `.js`, 
 - **`apps/*`** — Non-game apps (same structure as games).
 - **`packages/shared-ui`** — Shared UI components (game-header, game-over, modal, theme CSS). Games depend on it via `@arcade/shared-ui`.
 - **`games/runner`** — Godot 4.6 project (GDScript, not JS). Excluded from ESLint. Uses GUT for testing; CI runs tests in a `barichello/godot-ci:4.6` container.
-- **`games/arcade-hub`** — Landing page that links to all games.
+- **`apps/landing`** — Root GitHub Pages landing page. Uses a custom `vite.config.js` (not `createGameConfig()`) so its `base` is `/claude_playground/` rather than `/claude_playground/landing/`. The deploy workflow copies its dist contents into `_site/` root instead of a subdirectory.
+- **`games/arcade-hub`** — Games-only gateway linked from the root landing page.
+- **`apps/ai-metrics`** — Dashboard for tracking AI model usage; pure engine in `src/metrics.js` with full Vitest coverage. See `apps/ai-metrics/README.md`.
 
 ## CI/CD
 
 - **CI Web** (`.github/workflows/ci-web.yml`): lint, format check, vitest, build. Triggers on JS/Vite file changes. Node 22.
 - **CI Godot** (`.github/workflows/ci-godot.yml`): GUT tests in `barichello/godot-ci:4.6` container. Triggers on `games/runner/` changes.
-- **Deploy** (`.github/workflows/deploy.yml`): Builds all Vite apps + exports Godot runner to web, assembles into GitHub Pages site at `/claude_playground/`.
+- **Deploy** (`.github/workflows/deploy.yml`): Builds all Vite apps + exports Godot runner to web, assembles into GitHub Pages site at `/claude_playground/`. `apps/landing` is special-cased in the assembly step: its dist contents are copied to `_site/` root so it owns the top-level `index.html`.
 
 ## Starting New Work
 
