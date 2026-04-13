@@ -104,9 +104,13 @@ jobs:
       - name: Assemble site
         run: |
           mkdir _site
-          # Copy Vite-built games and apps
+          # Copy Vite-built games and apps. The `landing` package is special:
+          # its output becomes the Pages root, not a subdirectory.
           for pkg in games/*/ apps/*/; do
             name=$(basename "$pkg")
+            if [ "$name" = "landing" ]; then
+              continue
+            fi
             if [ -d "$pkg/dist" ]; then
               cp -r "$pkg/dist" "_site/$name"
             fi
@@ -114,6 +118,10 @@ jobs:
           # Copy Godot-exported game
           if [ -d "godot-export" ]; then
             cp -r godot-export _site/runner
+          fi
+          # Copy root landing page last so it takes the top-level slot
+          if [ -d "apps/landing/dist" ]; then
+            cp -r apps/landing/dist/. _site/
           fi
 
       - name: Upload Pages artifact

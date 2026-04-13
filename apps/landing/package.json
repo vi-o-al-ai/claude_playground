@@ -1,0 +1,12 @@
+{
+  "name": "@ai-arcade/landing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root GitHub Pages landing page linking to every app and game in the monorepo",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
