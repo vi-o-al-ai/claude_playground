@@ -108,8 +108,20 @@ describe("computeSummary", () => {
 
   it("sums totals across sessions", () => {
     const sessions = [
-      createSession({ durationMinutes: 10, promptTokens: 100, completionTokens: 50, cost: 0.2, rating: 4 }),
-      createSession({ durationMinutes: 20, promptTokens: 200, completionTokens: 100, cost: 0.5, rating: 5 }),
+      createSession({
+        durationMinutes: 10,
+        promptTokens: 100,
+        completionTokens: 50,
+        cost: 0.2,
+        rating: 4,
+      }),
+      createSession({
+        durationMinutes: 20,
+        promptTokens: 200,
+        completionTokens: 100,
+        cost: 0.5,
+        rating: 5,
+      }),
       createSession({ durationMinutes: 5, promptTokens: 50, completionTokens: 25, cost: 0.1 }),
     ];
     const s = computeSummary(sessions);
@@ -124,7 +136,10 @@ describe("computeSummary", () => {
   });
 
   it("returns averageRating 0 when no sessions are rated", () => {
-    const sessions = [createSession({ durationMinutes: 5 }), createSession({ durationMinutes: 10 })];
+    const sessions = [
+      createSession({ durationMinutes: 5 }),
+      createSession({ durationMinutes: 10 }),
+    ];
     const s = computeSummary(sessions);
     expect(s.averageRating).toBe(0);
     expect(s.ratedCount).toBe(0);
@@ -134,9 +149,30 @@ describe("computeSummary", () => {
 describe("groupByModel", () => {
   it("aggregates sessions by model", () => {
     const sessions = [
-      createSession({ model: "claude-opus-4-6", durationMinutes: 30, promptTokens: 100, completionTokens: 50, cost: 0.3, rating: 5 }),
-      createSession({ model: "claude-opus-4-6", durationMinutes: 10, promptTokens: 20, completionTokens: 10, cost: 0.1, rating: 3 }),
-      createSession({ model: "gpt-4o", durationMinutes: 15, promptTokens: 200, completionTokens: 100, cost: 0.4, rating: 4 }),
+      createSession({
+        model: "claude-opus-4-6",
+        durationMinutes: 30,
+        promptTokens: 100,
+        completionTokens: 50,
+        cost: 0.3,
+        rating: 5,
+      }),
+      createSession({
+        model: "claude-opus-4-6",
+        durationMinutes: 10,
+        promptTokens: 20,
+        completionTokens: 10,
+        cost: 0.1,
+        rating: 3,
+      }),
+      createSession({
+        model: "gpt-4o",
+        durationMinutes: 15,
+        promptTokens: 200,
+        completionTokens: 100,
+        cost: 0.4,
+        rating: 4,
+      }),
     ];
     const groups = groupByModel(sessions);
     expect(groups.length).toBe(2);
@@ -238,18 +274,12 @@ describe("computeStreak", () => {
   });
 
   it("allows streak to end at yesterday when today is empty", () => {
-    const sessions = [
-      createSession({ timestamp: at(1) }),
-      createSession({ timestamp: at(2) }),
-    ];
+    const sessions = [createSession({ timestamp: at(1) }), createSession({ timestamp: at(2) })];
     expect(computeStreak(sessions, REF)).toBe(2);
   });
 
   it("returns 0 when the most recent session is older than yesterday", () => {
-    const sessions = [
-      createSession({ timestamp: at(3) }),
-      createSession({ timestamp: at(4) }),
-    ];
+    const sessions = [createSession({ timestamp: at(3) }), createSession({ timestamp: at(4) })];
     expect(computeStreak(sessions, REF)).toBe(0);
   });
 
