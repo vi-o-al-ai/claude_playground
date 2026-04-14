@@ -1,0 +1,151 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/main_strafe.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://player_scene" path="res://scenes/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="3_hud"]
+
+[sub_resource type="Gradient" id="Gradient_cog"]
+colors = PackedColorArray(1, 1, 1, 0.8, 1, 1, 1, 0.8)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_cog"]
+width = 64
+height = 64
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+fill = 1
+gradient = SubResource("Gradient_cog")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_bg"]
+bg_color = Color(0, 0, 0, 0.7)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.05, 0.05, 0.15, 1)
+sky_horizon_color = Color(0.15, 0.1, 0.3, 1)
+ground_bottom_color = Color(0.05, 0.05, 0.1, 1)
+ground_horizon_color = Color(0.15, 0.1, 0.3, 1)
+
+[sub_resource type="Sky" id="Sky_main"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 2
+sky = SubResource("Sky_main")
+ambient_light_source = 2
+ambient_light_color = Color(0.3, 0.3, 0.4, 1)
+ambient_light_energy = 1.5
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 8, 8)
+fov = 60.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 10, 0)
+light_energy = 2.5
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="Road" type="Node3D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("3_hud")
+
+[node name="ScoreLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 300.0
+offset_bottom = 60.0
+text = "Score: 0"
+
+[node name="PowerUpLabel" type="Label" parent="HUD"]
+visible = false
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 400.0
+offset_bottom = 100.0
+text = ""
+
+[node name="GameOverPanel" type="PanelContainer" parent="HUD"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -60.0
+offset_right = 150.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FinalScoreLabel" type="Label" parent="HUD/GameOverPanel"]
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Game Over!"
+
+[node name="PauseButton" type="TextureButton" parent="HUD"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_left = -74.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 74.0
+texture_normal = SubResource("GradientTexture2D_cog")
+stretch_mode = 0
+
+[node name="PauseButtonLabel" type="Label" parent="HUD/PauseButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "⚙"
+
+[node name="PausePanel" type="PanelContainer" parent="HUD"]
+visible = false
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_pause_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/PausePanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="PausedLabel" type="Label" parent="HUD/PausePanel/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "PAUSED"
+
+[node name="ResumeButton" type="Button" parent="HUD/PausePanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+size_flags_horizontal = 4
+text = "Resume"
+
+[node name="RestartButton" type="Button" parent="HUD/PausePanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 50)
+size_flags_horizontal = 4
+text = "Restart"
+
+[node name="OverrunLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 100.0
+offset_right = 300.0
+offset_bottom = 140.0
+text = "Escaped: 0/10"

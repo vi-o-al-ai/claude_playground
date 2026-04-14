@@ -5,3 +5,10 @@ dist/
 .DS_Store
 .env
 .env.local
+
+# Claude Code
+.claude/settings.json
+
+# Godot
+.godot/
+*.uid

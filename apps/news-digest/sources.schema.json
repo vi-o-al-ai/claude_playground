@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/vi-o-al-ai/claude_playground/apps/news-digest/sources.schema.json",
+  "title": "News Digest Sources Config",
+  "description": "Configuration for the news-digest engine. Lists sources to fetch, summarize, and render into a daily markdown digest.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sources"],
+  "properties": {
+    "digestTitle": {
+      "type": "string",
+      "description": "Title rendered at the top of each daily digest file.",
+      "default": "News Digest"
+    },
+    "topN": {
+      "type": "integer",
+      "description": "Default number of items per source. Individual sources may override.",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 5
+    },
+    "sources": {
+      "type": "array",
+      "description": "Ordered list of sources. Each source renders as its own section in the output.",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/definitions/redditSource" },
+          { "$ref": "#/definitions/hackernewsSource" }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "redditSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "subreddit"],
+      "properties": {
+        "type": { "const": "reddit" },
+        "subreddit": {
+          "type": "string",
+          "description": "Subreddit name without the 'r/' prefix.",
+          "pattern": "^[A-Za-z0-9_]+$"
+        },
+        "timeWindow": {
+          "type": "string",
+          "description": "Time window passed to Reddit's top listing.",
+          "enum": ["hour", "day", "week", "month", "year", "all"],
+          "default": "day"
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "label": {
+          "type": "string",
+          "description": "Optional display label for the section heading. Defaults to 'r/{subreddit}'."
+        }
+      }
+    },
+    "hackernewsSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "hackernews" },
+        "list": {
+          "type": "string",
+          "description": "Which HN story list to pull from.",
+          "enum": ["topstories", "newstories", "beststories"],
+          "default": "topstories"
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "label": {
+          "type": "string",
+          "description": "Optional display label for the section heading. Defaults to 'Hacker News ({list})'."
+        }
+      }
+    }
+  }
+}

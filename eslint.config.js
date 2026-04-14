@@ -60,8 +60,8 @@ export default [
       "**/node_modules/",
       "**/dist/",
       "**/*.config.js",
-      // Non-JS game packages should be listed here to skip linting.
-      // Example: "packages/my-godot-game/",
+      // Non-JS game packages
+      "games/runner/",
     ],
   },
   js.configs.recommended,

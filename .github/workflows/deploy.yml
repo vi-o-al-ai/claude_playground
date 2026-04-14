@@ -3,6 +3,14 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    paths:
+      - "games/**"
+      - "apps/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "vite.shared.js"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -15,8 +23,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build
+  build-web:
+    name: Build Web Games
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,21 +36,92 @@ jobs:
       - run: npm run build
         env:
           PAGES_BASE: /claude_playground
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-games
+          path: |
+            games/*/dist/
+            apps/*/dist/
+
+  build-godot:
+    name: Build Godot Games
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.6
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup export templates
+        run: |
+          TEMPLATE_DIR="/github/home/.local/share/godot/export_templates/4.6.stable"
+          mkdir -p "$TEMPLATE_DIR"
+          wget -q https://github.com/godotengine/godot/releases/download/4.6-stable/Godot_v4.6-stable_export_templates.tpz -O /tmp/templates.zip
+          unzip -q /tmp/templates.zip -d /tmp/templates
+          mv /tmp/templates/templates/* "$TEMPLATE_DIR/"
+
+      - name: Import Godot project
+        run: |
+          cd games/runner
+          godot --headless --import 2>&1 || true
+          godot --headless --import 2>&1 || true
+
+      - name: Export to Web
+        run: |
+          mkdir -p games/runner/web
+          cd games/runner
+          godot --headless --export-release "Web" web/index.html 2>&1
+
+      - name: Upload Godot build
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-games
+          path: games/runner/web/
+
+  assemble:
+    name: Assemble Site
+    needs: [build-web, build-godot]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            games
+            apps
+
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-games
+          path: .
+
+      - name: Download Godot build
+        uses: actions/download-artifact@v4
+        with:
+          name: godot-games
+          path: godot-export
+
       - name: Assemble site
         run: |
           mkdir _site
+          # Copy Vite-built games and apps
           for pkg in games/*/ apps/*/; do
             name=$(basename "$pkg")
             if [ -d "$pkg/dist" ]; then
               cp -r "$pkg/dist" "_site/$name"
             fi
           done
-      - name: Upload artifact
+          # Copy Godot-exported game
+          if [ -d "godot-export" ]; then
+            cp -r godot-export _site/runner
+          fi
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
 
   deploy:
     name: Deploy
-    needs: build
+    needs: assemble
     runs-on: ubuntu-latest
     environment:
       name: github-pages
