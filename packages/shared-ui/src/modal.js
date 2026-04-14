@@ -135,7 +135,7 @@ export class Modal {
    *
    * @param {object} opts
    * @param {string} opts.title       - Heading text
-   * @param {string} [opts.message]   - Body text or HTML
+   * @param {string|Node} [opts.message] - Body text, HTML string, or a DOM Node
    * @param {Array}  [opts.buttons]   - Array of { label, onClick, variant }
    * @param {boolean} [opts.dismissable=true] - Allow backdrop/escape close
    */
@@ -143,7 +143,10 @@ export class Modal {
     this._dismissable = dismissable;
     this._title.textContent = title;
 
-    if (typeof message === "string" && message.includes("<")) {
+    this._message.textContent = "";
+    if (message instanceof Node) {
+      this._message.appendChild(message);
+    } else if (typeof message === "string" && message.includes("<")) {
       this._message.innerHTML = message;
     } else {
       this._message.textContent = message;
