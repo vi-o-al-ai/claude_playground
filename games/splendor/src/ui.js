@@ -7,6 +7,7 @@ import { SplendorNetwork } from "./network.js";
 import { GameHeader, GameOver } from "@arcade/shared-ui";
 
 const gameOverOverlay = new GameOver();
+let gameHeader = null;
 
 let game = null;
 let network = null;
@@ -170,10 +171,12 @@ function showGameScreen() {
   document.getElementById("lobby-screen").style.display = "none";
   document.getElementById("game-screen").style.display = "block";
 
-  new GameHeader({
-    title: "Splendor",
-    container: document.getElementById("game-screen"),
-  });
+  if (!gameHeader) {
+    gameHeader = new GameHeader({
+      title: "Splendor",
+      container: document.getElementById("game-screen"),
+    });
+  }
 
   if (isOnline && network) {
     document.getElementById("game-room-code").textContent = "Room: " + (network.roomCode || "");

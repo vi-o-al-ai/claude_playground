@@ -323,7 +323,7 @@ function handleSave() {
   modal.show({
     title: "Game Saved",
     message: "Your progress has been saved. You can resume anytime.",
-    buttons: [{ label: "OK", variant: "primary" }],
+    buttons: [{ label: "OK", variant: "primary", onClick: () => modal.hide() }],
   });
 }
 
@@ -333,7 +333,7 @@ function handleLoad() {
     modal.show({
       title: "No Saved Game",
       message: "There is no saved game to resume.",
-      buttons: [{ label: "OK", variant: "primary" }],
+      buttons: [{ label: "OK", variant: "primary", onClick: () => modal.hide() }],
     });
     return;
   }
@@ -352,13 +352,13 @@ function handleLoad() {
     modal.show({
       title: "Game Resumed",
       message: `Your ${state.difficulty} game has been loaded.`,
-      buttons: [{ label: "OK", variant: "primary" }],
+      buttons: [{ label: "OK", variant: "primary", onClick: () => modal.hide() }],
     });
   } catch {
     modal.show({
       title: "Error",
       message: "Could not load saved game. The save data may be corrupted.",
-      buttons: [{ label: "OK", variant: "primary" }],
+      buttons: [{ label: "OK", variant: "primary", onClick: () => modal.hide() }],
     });
   }
 }
@@ -367,38 +367,43 @@ function handleLoad() {
 
 function handleShare() {
   const url = shareUrl(state, `${window.location.origin}${window.location.pathname}`);
+
+  // Build the share-link box imperatively to avoid HTML injection via the URL.
+  const wrapper = document.createElement("div");
+  const intro = document.createElement("p");
+  intro.textContent = `Share this ${state.difficulty} puzzle with friends:`;
+  const box = document.createElement("div");
+  box.id = "share-link-box";
+  const urlInput = document.createElement("input");
+  urlInput.type = "text";
+  urlInput.id = "share-url";
+  urlInput.readOnly = true;
+  urlInput.value = url;
+  const copyBtn = document.createElement("button");
+  copyBtn.id = "copy-btn";
+  copyBtn.textContent = "Copy";
+  copyBtn.addEventListener("click", () => {
+    urlInput.select();
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => {
+          copyBtn.textContent = "Copy";
+        }, 2000);
+      })
+      .catch(() => {
+        copyBtn.textContent = "Failed — copy manually";
+      });
+  });
+  box.append(urlInput, copyBtn);
+  wrapper.append(intro, box);
+
   modal.show({
     title: "Share Puzzle",
-    message: `<p>Share this ${state.difficulty} puzzle with friends:</p>
-      <div id="share-link-box">
-        <input type="text" id="share-url" value="${url}" readonly>
-        <button id="copy-btn">Copy</button>
-      </div>`,
-    buttons: [{ label: "Close", variant: "secondary" }],
+    message: wrapper,
+    buttons: [{ label: "Close", variant: "secondary", onClick: () => modal.hide() }],
   });
-
-  setTimeout(() => {
-    const copyBtn = document.getElementById("copy-btn");
-    if (copyBtn) {
-      copyBtn.addEventListener("click", () => {
-        const input = document.getElementById("share-url");
-        input.select();
-        navigator.clipboard
-          .writeText(url)
-          .then(() => {
-            document.getElementById("copy-btn").textContent = "Copied!";
-            setTimeout(() => {
-              const btn = document.getElementById("copy-btn");
-              if (btn) btn.textContent = "Copy";
-            }, 2000);
-          })
-          .catch(() => {
-            document.execCommand("copy");
-            document.getElementById("copy-btn").textContent = "Copied!";
-          });
-      });
-    }
-  }, 0);
 }
 
 // --- Start ---

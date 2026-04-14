@@ -24,6 +24,7 @@ const browserGlobals = {
   File: "readonly",
   FileReader: "readonly",
   HTMLElement: "readonly",
+  Node: "readonly",
   KeyboardEvent: "readonly",
   MouseEvent: "readonly",
   Event: "readonly",
