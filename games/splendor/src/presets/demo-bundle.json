@@ -1,0 +1,51 @@
+{
+  "format": "splendor-art-bundle",
+  "version": 1,
+  "exportedAt": "2026-04-15T00:00:00.000Z",
+  "name": "Demo Preset",
+  "description": "Tiny built-in preset that showcases the custom-art feature. Maps a handful of pieces (one Tier 1 card, one Tier 3 card, a noble, the red gem and the body background) to inline SVG placeholders so the feature is playable out of the box.",
+  "assets": [
+    {
+      "id": "demo-tier1-forest",
+      "name": "Forest (demo)",
+      "mimeType": "image/svg+xml",
+      "hideDefaultHud": false,
+      "data": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTQwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE0MCIgZmlsbD0iIzFhM2EyYSIvPjxwb2x5Z29uIHBvaW50cz0iNTAsMjAgMjgsNzggNzIsNzgiIGZpbGw9IiMyZDg2NTkiLz48cG9seWdvbiBwb2ludHM9IjUwLDQ1IDIyLDEwOCA3OCwxMDgiIGZpbGw9IiM0Y2FmNmQiLz48cmVjdCB4PSI0NiIgeT0iMTAwIiB3aWR0aD0iOCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzVkM2ExYSIvPjxjaXJjbGUgY3g9IjM1IiBjeT0iNjUiIHI9IjMiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuNCIvPjxjaXJjbGUgY3g9IjY1IiBjeT0iOTAiIHI9IjMiIGZpbGw9IiNmZmYiIG9wYWNpdHk9IjAuNCIvPjwvc3ZnPg=="
+    },
+    {
+      "id": "demo-tier3-flame",
+      "name": "Flame (demo)",
+      "mimeType": "image/svg+xml",
+      "hideDefaultHud": false,
+      "data": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTQwIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImciIGN4PSIwLjUiIGN5PSIwLjciPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2ZmZWIzYiIvPjxzdG9wIG9mZnNldD0iMC40IiBzdG9wLWNvbG9yPSIjZmY2YjAwIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMmEwYTAwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxNDAiIGZpbGw9InVybCgjZykiLz48cGF0aCBkPSJNNTAgMjAgQzMwIDUwIDMyIDcwIDQwIDk1IEM0MiA4MCA0OCA4NSA1MCA5NSBDNTUgNzUgNjAgODUgNjIgOTUgQzY4IDcwIDcyIDUwIDUwIDIwWiIgZmlsbD0iI2ZmZjU5ZCIgb3BhY2l0eT0iMC43NSIvPjwvc3ZnPg=="
+    },
+    {
+      "id": "demo-noble-crown",
+      "name": "Crown (demo)",
+      "mimeType": "image/svg+xml",
+      "hideDefaultHud": false,
+      "data": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNmZmQ3MDAiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4YjY5MTQiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzJhMWYwMCIvPjxwYXRoIGQ9Ik0xOCA1OCBMMjggMjggTDUwIDUyIEw3MiAyOCBMODIgNTggTDgyIDc4IEwxOCA3OCBaIiBmaWxsPSJ1cmwoI2cpIiBzdHJva2U9IiNmZmY4ZGMiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iNDIiIHI9IjQiIGZpbGw9IiNmZjAwNDQiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI4IiByPSIzIiBmaWxsPSIjZmYwMDQ0Ii8+PGNpcmNsZSBjeD0iNzIiIGN5PSIyOCIgcj0iMyIgZmlsbD0iIzAwYWFmZiIvPjwvc3ZnPg=="
+    },
+    {
+      "id": "demo-bg-nebula",
+      "name": "Nebula (demo)",
+      "mimeType": "image/svg+xml",
+      "hideDefaultHud": false,
+      "data": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMzAwIj48ZGVmcz48cmFkaWFsR3JhZGllbnQgaWQ9ImciIGN4PSIwLjMiIGN5PSIwLjMiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzZhMGRhZCIvPjxzdG9wIG9mZnNldD0iMC41IiBzdG9wLWNvbG9yPSIjMWEwMDMzIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDAwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9InVybCgjZykiLz48Y2lyY2xlIGN4PSI4MCIgY3k9IjYwIiByPSIxIiBmaWxsPSIjZmZmIi8+PGNpcmNsZSBjeD0iMjIwIiBjeT0iOTAiIHI9IjEiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIzMTAiIGN5PSI0MCIgcj0iMS41IiBmaWxsPSIjZmZmIi8+PGNpcmNsZSBjeD0iMTYwIiBjeT0iMjAwIiByPSIxIiBmaWxsPSIjZmZmIi8+PGNpcmNsZSBjeD0iMzQwIiBjeT0iMjMwIiByPSIxIiBmaWxsPSIjZmZmIi8+PGNpcmNsZSBjeD0iNjAiIGN5PSIxODAiIHI9IjEuNSIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjI1MCIgcj0iMSIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjE1MCIgcj0iMSIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjI4MCIgY3k9IjE4MCIgcj0iMiIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMTAwIiByPSIxIiBmaWxsPSIjZmZmIi8+PGNpcmNsZSBjeD0iMzcwIiBjeT0iMTIwIiByPSIxLjIiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIyNTAiIGN5PSI0MCIgcj0iMSIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg=="
+    },
+    {
+      "id": "demo-gem-ruby",
+      "name": "Ruby (demo)",
+      "mimeType": "image/svg+xml",
+      "hideDefaultHud": false,
+      "data": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MCA2MCI+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnIiBjeD0iMC40IiBjeT0iMC4zNSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmY2YjZiIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjOGIwMDAwIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMjYiIGZpbGw9InVybCgjZykiLz48ZWxsaXBzZSBjeD0iMjIiIGN5PSIyMCIgcng9IjYiIHJ5PSI0IiBmaWxsPSIjZmZmIiBvcGFjaXR5PSIwLjciLz48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmYwMDAwIiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iMC42Ii8+PC9zdmc+"
+    }
+  ],
+  "mapping": {
+    "card:t1:0": "demo-tier1-forest",
+    "card:t3:0": "demo-tier3-flame",
+    "noble:0": "demo-noble-crown",
+    "gem:red": "demo-gem-ruby",
+    "bg:body": "demo-bg-nebula"
+  }
+}
