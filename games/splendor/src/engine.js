@@ -13,7 +13,21 @@ export const GEM_HEX = {
   gold: "#FFD700",
 };
 
-export const TIER1_CARDS = [
+/**
+ * Stable piece-ID map used by the custom-art bundle feature.
+ * These identifiers give every customizable visual element a unique,
+ * reshuffle-proof handle so user-mapped artwork can be looked up at render time.
+ */
+export const PIECE_IDS = {
+  gems: [...GEM_COLORS, "gold"].map((c) => `gem:${c}`),
+  decks: ["deck:t1", "deck:t2", "deck:t3"],
+  background: "bg:body",
+};
+
+const _withCardIds = (cards, tier) => cards.map((c, i) => ({ ...c, id: `card:t${tier}:${i}` }));
+const _withNobleIds = (nobles) => nobles.map((n, i) => ({ ...n, id: `noble:${i}` }));
+
+const _TIER1_CARDS_RAW = [
   // White bonus
   { tier: 1, bonus: "white", points: 0, cost: { blue: 1, green: 1, red: 1, black: 1 } },
   { tier: 1, bonus: "white", points: 0, cost: { red: 2, black: 1 } },
@@ -60,8 +74,9 @@ export const TIER1_CARDS = [
   { tier: 1, bonus: "black", points: 0, cost: { green: 3 } },
   { tier: 1, bonus: "black", points: 1, cost: { white: 4 } },
 ];
+export const TIER1_CARDS = _withCardIds(_TIER1_CARDS_RAW, 1);
 
-export const TIER2_CARDS = [
+const _TIER2_CARDS_RAW = [
   // White bonus
   { tier: 2, bonus: "white", points: 1, cost: { green: 3, red: 2, black: 2 } },
   { tier: 2, bonus: "white", points: 1, cost: { white: 2, blue: 3, red: 3 } },
@@ -98,8 +113,9 @@ export const TIER2_CARDS = [
   { tier: 2, bonus: "black", points: 2, cost: { white: 5, red: 3 } },
   { tier: 2, bonus: "black", points: 3, cost: { black: 6 } },
 ];
+export const TIER2_CARDS = _withCardIds(_TIER2_CARDS_RAW, 2);
 
-export const TIER3_CARDS = [
+const _TIER3_CARDS_RAW = [
   // White bonus
   { tier: 3, bonus: "white", points: 3, cost: { blue: 3, green: 3, red: 5, black: 3 } },
   { tier: 3, bonus: "white", points: 4, cost: { white: 3, red: 3, black: 6 } },
@@ -126,8 +142,9 @@ export const TIER3_CARDS = [
   { tier: 3, bonus: "black", points: 4, cost: { red: 7 } },
   { tier: 3, bonus: "black", points: 5, cost: { red: 7, black: 3 } },
 ];
+export const TIER3_CARDS = _withCardIds(_TIER3_CARDS_RAW, 3);
 
-export const NOBLES = [
+const _NOBLES_RAW = [
   { points: 3, requires: { white: 3, blue: 3, black: 3 } },
   { points: 3, requires: { white: 3, green: 3, red: 3 } },
   { points: 3, requires: { blue: 3, green: 3, red: 3 } },
@@ -139,6 +156,17 @@ export const NOBLES = [
   { points: 3, requires: { white: 4, blue: 4 } },
   { points: 3, requires: { red: 4, black: 4 } },
 ];
+export const NOBLES = _withNobleIds(_NOBLES_RAW);
+
+/** @returns {string[]} Every possible card id across all three tiers. */
+export function getAllCardIds() {
+  return [...TIER1_CARDS, ...TIER2_CARDS, ...TIER3_CARDS].map((c) => c.id);
+}
+
+/** @returns {string[]} Every possible noble id. */
+export function getAllNobleIds() {
+  return NOBLES.map((n) => n.id);
+}
 
 // ============================================================
 // SplendorGame Class
@@ -199,7 +227,7 @@ export class SplendorGame {
 
     // Select nobles: playerCount + 1
     const shuffledNobles = this.shuffleDeck(
-      NOBLES.map((n) => ({ ...n, requires: { ...n.requires } })),
+      NOBLES.map((n) => ({ id: n.id, points: n.points, requires: { ...n.requires } })),
     );
     const nobles = shuffledNobles.slice(0, this.playerCount + 1);
 
@@ -244,6 +272,7 @@ export class SplendorGame {
 
   _copyCard(card) {
     return {
+      id: card.id,
       tier: card.tier,
       bonus: card.bonus,
       points: card.points,
