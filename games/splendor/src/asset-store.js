@@ -343,7 +343,9 @@ export class AssetStore {
     if (assetId === null || assetId === undefined) {
       if (pieceId in this._mappings) {
         delete this._mappings[pieceId];
-        this._persistMappings();
+        this._persistMappings().catch((err) =>
+          console.error("AssetStore: failed to persist mappings", err),
+        );
         this._emit();
       }
       return;
@@ -481,13 +483,16 @@ export class AssetStore {
    */
   applyOverlayBundle(bundle) {
     if (!bundle || bundle.format !== BUNDLE_FORMAT) return;
-    this.clearOverlayBundle();
+    this.clearOverlayBundle({ _silent: true });
 
     const assetsById = {};
     for (const asset of bundle.assets || []) {
       try {
         assetsById[asset.id] = {
-          blob: _dataUrlToBlob(asset.data),
+        const blob = _dataUrlToBlob(asset.data);
+        if (!blob.type.startsWith("image/")) throw new Error(`Non-image MIME: ${blob.type}`);
+        assetsById[asset.id] = {
+          blob,
           hideDefaultHud: !!asset.hideDefaultHud,
           mimeType: asset.mimeType,
           name: asset.name,

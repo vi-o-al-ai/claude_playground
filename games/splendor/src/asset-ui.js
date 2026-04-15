@@ -40,7 +40,8 @@ export function initArtCustomizer(assetStore) {
   }
 
   window._showArtCustomizer = openOverlay;
-  window.showArtCustomizer = openOverlay;
+  window._showArtCustomizer = openOverlay;
+  window.hideArtCustomizer = closeOverlay;
   window.hideArtCustomizer = closeOverlay;
 
   // Close on backdrop click.
@@ -136,7 +137,9 @@ function renderLibrary(container) {
   uploadInput.onchange = async () => {
     for (const file of uploadInput.files) {
       try {
-        await store.addAsset(file.name, file);
+        // 2048 px preserves detail on body backgrounds and large card art
+        // without exploding IndexedDB or the online-broadcast payload.
+        await store.addAsset(file.name, file, { maxDim: 2048 });
       } catch (err) {
         alert("Failed to add " + file.name + ": " + err.message);
       }
