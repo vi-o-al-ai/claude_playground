@@ -41,8 +41,8 @@ jobs:
         with:
           name: web-games
           path: |
-            games/*/dist/
-            apps/*/dist/
+            games/web/*/dist/
+            apps/web/*/dist/
 
   build-godot:
     name: Build Godot Games
@@ -62,21 +62,21 @@ jobs:
 
       - name: Import Godot project
         run: |
-          cd games/runner
+          cd games/godot/runner
           godot --headless --import 2>&1 || true
           godot --headless --import 2>&1 || true
 
       - name: Export to Web
         run: |
-          mkdir -p games/runner/web
-          cd games/runner
+          mkdir -p games/godot/runner/web
+          cd games/godot/runner
           godot --headless --export-release "Web" web/index.html 2>&1
 
       - name: Upload Godot build
         uses: actions/upload-artifact@v4
         with:
           name: godot-games
-          path: games/runner/web/
+          path: games/godot/runner/web/
 
   assemble:
     name: Assemble Site
@@ -105,7 +105,7 @@ jobs:
         run: |
           mkdir _site
           # Copy Vite-built games and apps
-          for pkg in games/*/ apps/*/; do
+          for pkg in games/web/*/ apps/web/*/; do
             name=$(basename "$pkg")
             if [ -d "$pkg/dist" ]; then
               cp -r "$pkg/dist" "_site/$name"

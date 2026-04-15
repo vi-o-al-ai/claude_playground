@@ -5,8 +5,9 @@
   "description": "A browser-based collection of interactive games built with diverse tech stacks",
   "type": "module",
   "workspaces": [
-    "games/*",
-    "apps/*",
+    "games/web/*",
+    "apps/web/*",
+    "apps/node/*",
     "packages/*"
   ],
   "scripts": {

@@ -67,7 +67,7 @@ export default [
       "**/dist/",
       "**/*.config.js",
       // Non-JS game packages
-      "games/runner/",
+      "games/godot/runner/",
     ],
   },
   js.configs.recommended,
@@ -114,7 +114,7 @@ export default [
   },
   {
     // Legacy non-module game scripts (not in src/)
-    files: ["games/sudoku/sudoku.js", "games/sudoku/game.js"],
+    files: ["games/web/sudoku/sudoku.js", "games/web/sudoku/game.js"],
     languageOptions: {
       sourceType: "script",
       globals: {

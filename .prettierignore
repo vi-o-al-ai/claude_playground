@@ -4,4 +4,4 @@ dist/
 package-lock.json
 
 # Non-JS game packages
-games/runner/
+games/godot/runner/
