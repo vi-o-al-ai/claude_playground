@@ -26,6 +26,7 @@ export class SplendorNetwork {
     this._onError = [];
     this._onConnected = [];
     this._onChatReceived = [];
+    this._onArtBundle = [];
   }
 
   // ---------------------------------------------------------------------------
@@ -127,6 +128,32 @@ export class SplendorNetwork {
     this._broadcast({ type: "start_game" });
   }
 
+  /**
+   * Host-only. Broadcast a custom-art bundle (JSON, with base64 asset data)
+   * to every connected client. Clients apply it as a read-only overlay that
+   * does not touch their local art library.
+   *
+   * PeerJS reliable channels auto-chunk large payloads, but we still guard
+   * against absurdly large bundles so the game can still start if someone
+   * dumped a massive photo library in.
+   */
+  broadcastArtBundle(bundle) {
+    if (!this.isHost || !bundle) return;
+    try {
+      const size = JSON.stringify(bundle).length;
+      if (size > 15_000_000) {
+        this._emitError(
+          new Error(`Art bundle too large to broadcast (${Math.round(size / 1e6)} MB > 15 MB).`),
+        );
+        return;
+      }
+    } catch (err) {
+      this._emitError(err);
+      return;
+    }
+    this._broadcast({ type: "art_bundle", bundle });
+  }
+
   // ---------------------------------------------------------------------------
   // Public API - Callback registration
   // ---------------------------------------------------------------------------
@@ -157,6 +184,10 @@ export class SplendorNetwork {
 
   onChatReceived(callback) {
     this._onChatReceived.push(callback);
+  }
+
+  onArtBundle(callback) {
+    this._onArtBundle.push(callback);
   }
 
   // ---------------------------------------------------------------------------
@@ -342,6 +373,10 @@ export class SplendorNetwork {
 
         case "start_game":
           this._emit(this._onStateUpdate, { type: "start_game" });
+          break;
+
+        case "art_bundle":
+          this._emit(this._onArtBundle, data.bundle);
           break;
 
         case "error":

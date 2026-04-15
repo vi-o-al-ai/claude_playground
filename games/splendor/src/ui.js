@@ -155,6 +155,16 @@ window.joinRoom = async function () {
     });
     network.onChatReceived((msg) => addChatMessage(msg));
     network.onError((err) => logMsg("Network error: " + err.message));
+    // Host-broadcast custom art: apply as a read-only overlay so the
+    // client sees the same visuals without overwriting its local library.
+    network.onArtBundle((bundle) => {
+      try {
+        assetStore.applyOverlayBundle(bundle);
+        logMsg("Loaded host art bundle");
+      } catch (err) {
+        console.warn("Failed to apply host art bundle:", err);
+      }
+    });
   } catch (e) {
     alert("Failed to join room: " + e.message);
   }
