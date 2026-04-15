@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "games/**"
-      - "!games/runner/**"
+      - "!games/godot/**"
       - "apps/**"
       - "packages/**"
       - "package.json"
@@ -19,7 +19,7 @@ on:
     branches: [main]
     paths:
       - "games/**"
-      - "!games/runner/**"
+      - "!games/godot/**"
       - "apps/**"
       - "packages/**"
       - "package.json"

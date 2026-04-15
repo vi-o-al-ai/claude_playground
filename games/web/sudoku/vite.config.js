@@ -1,5 +1,5 @@
 import { resolve } from "path";
-import { createGameConfig } from "../../vite.shared.js";
+import { createGameConfig } from "../../../vite.shared.js";
 
 export default createGameConfig({
   root: resolve(import.meta.dirname, "."),

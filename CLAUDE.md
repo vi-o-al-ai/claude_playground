@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A browser-based arcade of games and apps, built as an npm workspaces monorepo. Most packages are vanilla JS + Vite; one game (`games/runner`) is a Godot 4.6 project.
+A browser-based arcade of games and apps, built as an npm workspaces monorepo. Projects are organized by tech stack: `games/web/` (Vite + JS), `games/godot/` (Godot 4.6), `apps/web/` (Vite + JS), `apps/node/` (Node.js).
 
 ## Commands
 
@@ -17,16 +17,16 @@ npm run test          # Vitest (all workspaces)
 npm run check         # lint + format:check + test (all-in-one local check)
 
 # Run a single test file
-npx vitest run games/sudoku/src/__tests__/engine.test.js
+npx vitest run games/web/sudoku/src/__tests__/engine.test.js
 
 # Dev server for a specific game/app
-npm run dev --workspace games/tic-tac-toe
+npm run dev --workspace games/web/tic-tac-toe
 
 # Build all packages
 npm run build
 
-# Godot GUT tests (from games/runner/)
-cd games/runner
+# Godot GUT tests (from games/godot/runner/)
+cd games/godot/runner
 /Applications/Godot.app/Contents/MacOS/Godot --headless --script addons/gut/gut_cmdln.gd
 ```
 
@@ -34,16 +34,17 @@ Pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged `.js`, 
 
 ## Architecture
 
-- **`games/*`** — Each game is an independent Vite app with its own `index.html`, `vite.config.js`, and `package.json`. Configs use `createGameConfig()` from the root `vite.shared.js`.
-- **`apps/*`** — Non-game apps (same structure as games).
+- **`games/web/*`** — Vite + Vanilla JS games. Each has its own `index.html`, `vite.config.js`, and `package.json`. Configs use `createGameConfig()` from the root `vite.shared.js`.
+- **`games/godot/*`** — Godot 4.6 projects (GDScript, not JS). Excluded from ESLint. Uses GUT for testing; CI runs tests in a `barichello/godot-ci:4.6` container.
+- **`apps/web/*`** — Vite + Vanilla JS apps (same structure as web games).
+- **`apps/node/*`** — Node.js apps (non-browser, e.g. CI-only workflows).
 - **`packages/shared-ui`** — Shared UI components (game-header, game-over, modal, theme CSS). Games depend on it via `@arcade/shared-ui`.
-- **`games/runner`** — Godot 4.6 project (GDScript, not JS). Excluded from ESLint. Uses GUT for testing; CI runs tests in a `barichello/godot-ci:4.6` container.
-- **`games/arcade-hub`** — Landing page that links to all games.
+- **`games/web/arcade-hub`** — Landing page that links to all games.
 
 ## CI/CD
 
 - **CI Web** (`.github/workflows/ci-web.yml`): lint, format check, vitest, build. Triggers on JS/Vite file changes. Node 22.
-- **CI Godot** (`.github/workflows/ci-godot.yml`): GUT tests in `barichello/godot-ci:4.6` container. Triggers on `games/runner/` changes.
+- **CI Godot** (`.github/workflows/ci-godot.yml`): GUT tests in `barichello/godot-ci:4.6` container. Triggers on `games/godot/runner/` changes.
 - **Deploy** (`.github/workflows/deploy.yml`): Builds all Vite apps + exports Godot runner to web, assembles into GitHub Pages site at `/claude_playground/`.
 
 ## Starting New Work
@@ -66,7 +67,7 @@ Always follow test-driven development. For every feature or bug fix:
 
 ## Adding a New Game
 
-1. Create `games/<name>/` with `package.json` (name `@ai-arcade/<name>`), `index.html`, `vite.config.js` (use `createGameConfig()`), and `src/`.
+1. Create `games/web/<name>/` with `package.json` (name `@ai-arcade/<name>`), `index.html`, `vite.config.js` (use `createGameConfig()`), and `src/`.
 2. Add `@arcade/shared-ui` as a dependency if using shared components.
 3. Run `npm install` from root to link workspaces.
 4. Tests go in `src/__tests__/*.test.js` (Vitest + jsdom).
