@@ -4,10 +4,29 @@
  */
 import { GEM_COLORS, GEM_HEX, SplendorGame } from "./engine.js";
 import { SplendorNetwork } from "./network.js";
+import { AssetStore } from "./asset-store.js";
+import { initArtCustomizer } from "./asset-ui.js";
 import { GameHeader, GameOver } from "@arcade/shared-ui";
 
 const gameOverOverlay = new GameOver();
 let gameHeader = null;
+
+// Custom-art asset store (local library + optional online overlay bundle).
+// Art mappings are stored in IndexedDB per browser profile and are local to
+// each player by default. When a host starts an online game, their bundle is
+// broadcast and loaded via applyOverlayBundle() on every client.
+const assetStore = new AssetStore();
+const DEFAULT_BODY_BACKGROUND = "linear-gradient(135deg, #0f0c29, #302b63, #24243e)";
+const assetStoreReady = assetStore.init().then(() => {
+  applyBodyBackground();
+});
+assetStore.onChange(() => {
+  applyBodyBackground();
+  if (game) renderGame();
+});
+initArtCustomizer(assetStore);
+// Expose for the lobby button (inline onclick in index.html).
+window.showArtCustomizer = () => window._showArtCustomizer?.();
 
 let game = null;
 let network = null;
@@ -36,7 +55,7 @@ window.updateLocalPlayerInputs = function () {
   }
 };
 
-window.startLocalGame = function () {
+window.startLocalGame = async function () {
   const count = parseInt(document.getElementById("local-player-count").value);
   const names = [];
   for (let i = 0; i < count; i++) {
@@ -47,7 +66,7 @@ window.startLocalGame = function () {
   isHost = true;
   myPlayerIndex = 0;
   game = new SplendorGame(count, names);
-  showGameScreen();
+  await showGameScreen();
   renderGame();
 };
 
@@ -114,7 +133,7 @@ window.joinRoom = async function () {
       li.textContent = pName;
       clientList.appendChild(li);
     });
-    network.onStateUpdate((state) => {
+    network.onStateUpdate(async (state) => {
       if (state && state.type === "start_game") return;
       if (state && state.players) {
         if (!game) {
@@ -128,7 +147,7 @@ window.joinRoom = async function () {
               break;
             }
           }
-          showGameScreen();
+          await showGameScreen();
         }
         game.loadState(state);
         renderGame();
@@ -153,12 +172,23 @@ function updatePlayerList() {
   btn.disabled = playerNames.length < 2;
 }
 
-window.startOnlineGame = function () {
+window.startOnlineGame = async function () {
   if (playerNames.length < 2) return;
   game = new SplendorGame(playerNames.length, playerNames);
   network.startGame();
   network.broadcastState(game.getState());
-  showGameScreen();
+  // Host also shares its local art bundle so every client sees the same
+  // visuals. Clients apply it as a read-only overlay that does not touch
+  // their own saved library.
+  try {
+    const bundle = await assetStore.exportBundle();
+    if (bundle.assets.length > 0 || Object.keys(bundle.mapping).length > 0) {
+      network.broadcastArtBundle(bundle);
+    }
+  } catch (err) {
+    console.warn("Failed to broadcast art bundle:", err);
+  }
+  await showGameScreen();
   renderGame();
 };
 
@@ -167,7 +197,11 @@ window.copyRoomCode = function () {
   navigator.clipboard.writeText(code).catch(() => {});
 };
 
-function showGameScreen() {
+async function showGameScreen() {
+  // Ensure the asset store is hydrated so the first render already applies
+  // any custom art instead of flashing the default theme.
+  await assetStoreReady;
+
   document.getElementById("lobby-screen").style.display = "none";
   document.getElementById("game-screen").style.display = "block";
 
@@ -178,8 +212,19 @@ function showGameScreen() {
     });
   }
 
+  applyBodyBackground();
+
   if (isOnline && network) {
     document.getElementById("game-room-code").textContent = "Room: " + (network.roomCode || "");
+  }
+}
+
+function applyBodyBackground() {
+  const url = assetStore.getUrlForPiece("bg:body");
+  if (url) {
+    document.body.style.background = `url(${url}) center/cover no-repeat fixed, ${DEFAULT_BODY_BACKGROUND}`;
+  } else {
+    document.body.style.background = DEFAULT_BODY_BACKGROUND;
   }
 }
 
@@ -213,6 +258,7 @@ function renderNobles(st) {
   st.nobles.forEach((noble) => {
     const tile = document.createElement("div");
     tile.className = "noble-tile";
+    applyCustomArt(tile, noble.id);
     tile.innerHTML = `<span class="noble-pts">${noble.points}</span><div class="noble-reqs">${GEM_COLORS.filter(
       (c) => noble.requires[c],
     )
@@ -225,12 +271,30 @@ function renderNobles(st) {
   });
 }
 
+/**
+ * If the given piece has a mapped custom image, apply it as a background image
+ * and tag the element so CSS can lay the default HUD on top with a legibility
+ * gradient. Returns true if custom art was applied.
+ */
+function applyCustomArt(el, pieceId) {
+  if (!pieceId) return false;
+  const url = assetStore.getUrlForPiece(pieceId);
+  if (!url) return false;
+  el.classList.add("has-custom-art");
+  el.style.backgroundImage = `url("${url}")`;
+  if (assetStore.getHideHudForPiece(pieceId)) {
+    el.classList.add("hide-hud");
+  }
+  return true;
+}
+
 function renderBank(st) {
   const bank = document.getElementById("token-bank");
   bank.innerHTML = "";
   [...GEM_COLORS, "gold"].forEach((color) => {
     const tok = document.createElement("div");
     tok.className = `bank-token gem-${color}`;
+    applyCustomArt(tok, `gem:${color}`);
     if (
       selectedGems.includes(color) ||
       (selectedGems.length === 2 && selectedGems[0] === color && selectedGems[1] === color)
@@ -255,6 +319,7 @@ function renderTiers(st) {
     deck.className = "deck-indicator";
     deck.style.borderColor =
       t === 2 ? "rgba(33,150,243,0.4)" : t === 1 ? "rgba(255,215,0,0.4)" : "rgba(76,175,80,0.4)";
+    applyCustomArt(deck, `deck:t${t + 1}`);
     deck.innerHTML = `<span class="deck-count">${tier.deck.length}</span><span>Tier ${t + 1}</span>`;
     deck.onclick = () => onDeckClick(t + 1);
     container.appendChild(deck);
@@ -282,6 +347,7 @@ function renderTiers(st) {
 function renderCard(card, onClick) {
   const div = document.createElement("div");
   div.className = `game-card card-bg-${card.bonus}`;
+  applyCustomArt(div, card.id);
   const pts = card.points > 0 ? card.points : "";
   const costHtml = GEM_COLORS.filter((c) => card.cost[c])
     .map(

@@ -340,7 +340,7 @@ export class AssetStore {
   // --------------------------------------------------------------------
 
   setMapping(pieceId, assetId) {
-    if (assetId == null) {
+    if (assetId === null || assetId === undefined) {
       if (pieceId in this._mappings) {
         delete this._mappings[pieceId];
         this._persistMappings();

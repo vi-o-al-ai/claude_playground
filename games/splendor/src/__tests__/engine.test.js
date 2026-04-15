@@ -102,7 +102,8 @@ describe("SplendorGame preserves piece IDs through initialization", () => {
 
   it("getState/loadState round-trip preserves card and noble IDs", () => {
     const game = new SplendorGame(2, ["A", "B"]);
-    const originalFirstCardId = game.state.tiers[0].deck[0]?.id ?? game.state.tiers[0].visible[0].id;
+    const originalFirstCardId =
+      game.state.tiers[0].deck[0]?.id ?? game.state.tiers[0].visible[0].id;
     const originalFirstNobleId = game.state.nobles[0].id;
 
     const snapshot = game.getState();
