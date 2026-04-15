@@ -1089,6 +1089,14 @@
         <button class="primary" onclick="startLocalGame()" style="width: 100%; margin-top: 12px">
           Start Local Game
         </button>
+        <button
+          type="button"
+          class="art-customizer-btn"
+          onclick="showArtCustomizer()"
+          style="width: 100%; margin-top: 8px"
+        >
+          🎨 Customize Art
+        </button>
       </div>
     </div>
 
@@ -1101,6 +1109,14 @@
         </div>
         <div>
           <span class="room-code-small" id="game-room-code"></span>
+          <button
+            type="button"
+            class="art-customizer-btn"
+            onclick="showArtCustomizer()"
+            style="margin-left: 8px; padding: 6px 12px; font-size: 0.8rem"
+          >
+            🎨 Art
+          </button>
           <button
             onclick="showChat()"
             id="chat-btn"
@@ -1167,6 +1183,11 @@
         <p>Multiple nobles wish to visit you!</p>
         <div class="noble-selector" id="noble-selector"></div>
       </div>
+    </div>
+
+    <!-- Art customizer overlay (populated by asset-ui.js) -->
+    <div class="overlay" id="art-customizer-overlay">
+      <div class="overlay-content overlay-content--wide" id="art-customizer-body"></div>
     </div>
 
     <!-- Chat panel -->
