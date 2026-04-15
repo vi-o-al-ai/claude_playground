@@ -40,8 +40,6 @@ export function initArtCustomizer(assetStore) {
   }
 
   window._showArtCustomizer = openOverlay;
-  window._showArtCustomizer = openOverlay;
-  window.hideArtCustomizer = closeOverlay;
   window.hideArtCustomizer = closeOverlay;
 
   // Close on backdrop click.

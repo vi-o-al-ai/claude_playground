@@ -488,9 +488,10 @@ export class AssetStore {
     const assetsById = {};
     for (const asset of bundle.assets || []) {
       try {
-        assetsById[asset.id] = {
         const blob = _dataUrlToBlob(asset.data);
-        if (!blob.type.startsWith("image/")) throw new Error(`Non-image MIME: ${blob.type}`);
+        if (!blob.type.startsWith("image/")) {
+          throw new Error(`Non-image MIME: ${blob.type}`);
+        }
         assetsById[asset.id] = {
           blob,
           hideDefaultHud: !!asset.hideDefaultHud,
@@ -506,14 +507,14 @@ export class AssetStore {
     this._emit();
   }
 
-  clearOverlayBundle() {
+  clearOverlayBundle({ _silent = false } = {}) {
     for (const url of this._overlayUrls.values()) {
       URL.revokeObjectURL(url);
     }
     this._overlayUrls.clear();
     this._overlayAssets = null;
     this._overlayMappings = null;
-    this._emit();
+    if (!_silent) this._emit();
   }
 
   // --------------------------------------------------------------------
