@@ -4,28 +4,32 @@ on:
   push:
     branches: [main]
     paths:
-      - "games/godot/runner/**"
+      - "games/godot/**"
       - ".github/workflows/ci-godot.yml"
   pull_request:
     branches: [main]
     paths:
-      - "games/godot/runner/**"
+      - "games/godot/**"
       - ".github/workflows/ci-godot.yml"
 
 jobs:
   test-godot:
-    name: Godot Tests
+    name: Godot Tests (${{ matrix.project }})
     runs-on: ubuntu-latest
     container:
       image: barichello/godot-ci:4.6
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [runner, crowd-runner]
     steps:
       - uses: actions/checkout@v4
       - name: Import project
         run: |
-          cd games/godot/runner
+          cd games/godot/${{ matrix.project }}
           godot --headless --import 2>&1 || true
           godot --headless --import 2>&1 || true
       - name: Run GUT tests
         run: |
-          cd games/godot/runner
+          cd games/godot/${{ matrix.project }}
           godot --headless -s res://addons/gut/gut_cmdln.gd 2>&1

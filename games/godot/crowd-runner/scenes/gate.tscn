@@ -1,0 +1,56 @@
+[gd_scene load_steps=7 format=3 uid="uid://cr_gate"]
+
+[ext_resource type="Script" path="res://scripts/gate.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Material_gate"]
+transparency = 1
+albedo_color = Color(0.25, 0.85, 0.3, 0.55)
+emission_enabled = true
+emission = Color(0.1, 0.6, 0.15, 1)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_left_post"]
+size = Vector3(0.4, 3.0, 0.4)
+material = SubResource("Material_gate")
+
+[sub_resource type="BoxMesh" id="BoxMesh_right_post"]
+size = Vector3(0.4, 3.0, 0.4)
+material = SubResource("Material_gate")
+
+[sub_resource type="BoxMesh" id="BoxMesh_top"]
+size = Vector3(8.0, 0.4, 0.4)
+material = SubResource("Material_gate")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gate"]
+size = Vector3(8.0, 3.0, 0.5)
+
+[node name="Gate" type="Area3D"]
+script = ExtResource("1_script")
+
+[node name="LeftPost" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0, 1.5, 0)
+mesh = SubResource("BoxMesh_left_post")
+
+[node name="RightPost" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 1.5, 0)
+mesh = SubResource("BoxMesh_right_post")
+
+[node name="TopBar" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.0, 0)
+mesh = SubResource("BoxMesh_top")
+
+[node name="Label" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.0, 0)
+billboard = 1
+no_depth_test = true
+fixed_size = true
+pixel_size = 0.012
+text = "+20"
+font_size = 96
+outline_size = 24
+modulate = Color(1, 1, 1, 1)
+outline_modulate = Color(0, 0.35, 0.1, 1)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("BoxShape3D_gate")

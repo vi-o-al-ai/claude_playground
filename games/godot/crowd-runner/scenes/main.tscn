@@ -1,0 +1,103 @@
+[gd_scene load_steps=10 format=3 uid="uid://cr_main"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://cr_player_crowd" path="res://scenes/player_crowd.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://cr_gate" path="res://scenes/gate.tscn" id="3_gate"]
+[ext_resource type="PackedScene" uid="uid://cr_enemy_crowd" path="res://scenes/enemy_crowd.tscn" id="4_enemy"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.55, 0.6, 0.7, 1)
+sky_horizon_color = Color(0.78, 0.82, 0.88, 1)
+ground_bottom_color = Color(0.35, 0.38, 0.42, 1)
+ground_horizon_color = Color(0.7, 0.75, 0.82, 1)
+
+[sub_resource type="Sky" id="Sky_main"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 2
+sky = SubResource("Sky_main")
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.58, 0.65, 1)
+ambient_light_energy = 1.2
+fog_enabled = true
+fog_light_color = Color(0.78, 0.82, 0.88, 1)
+fog_density = 0.012
+
+[sub_resource type="StandardMaterial3D" id="Material_road"]
+albedo_color = Color(0.28, 0.29, 0.32, 1)
+roughness = 0.9
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_road"]
+material = SubResource("Material_road")
+size = Vector2(10, 200)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 20, 0)
+light_energy = 1.4
+shadow_enabled = true
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.86602, 0.5, 0, -0.5, 0.86602, 0, 6, 8)
+fov = 55.0
+
+[node name="Road" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -80)
+mesh = SubResource("PlaneMesh_road")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+
+[node name="Gate" parent="." instance=ExtResource("3_gate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20)
+op = "+"
+value = 20
+
+[node name="Enemy" parent="." instance=ExtResource("4_enemy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -55)
+initial_count = 25
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="InstructionsLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 500.0
+offset_bottom = 50.0
+text = "Drag or A/D to steer. Pass the gate, then fight the enemy crowd."
+
+[node name="GameOverPanel" type="PanelContainer" parent="HUD"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -90.0
+offset_right = 160.0
+offset_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUD/GameOverPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="ResultLabel" type="Label" parent="HUD/GameOverPanel/VBoxContainer"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Result"
+
+[node name="RestartButton" type="Button" parent="HUD/GameOverPanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(220, 50)
+size_flags_horizontal = 4
+text = "Restart"

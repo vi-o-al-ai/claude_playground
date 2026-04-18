@@ -60,23 +60,35 @@ jobs:
           unzip -q /tmp/templates.zip -d /tmp/templates
           mv /tmp/templates/templates/* "$TEMPLATE_DIR/"
 
-      - name: Import Godot project
+      - name: Import Godot projects
         run: |
-          cd games/godot/runner
-          godot --headless --import 2>&1 || true
-          godot --headless --import 2>&1 || true
+          for project in runner crowd-runner; do
+            cd "games/godot/$project"
+            godot --headless --import 2>&1 || true
+            godot --headless --import 2>&1 || true
+            cd - > /dev/null
+          done
 
       - name: Export to Web
         run: |
-          mkdir -p games/godot/runner/web
-          cd games/godot/runner
-          godot --headless --export-release "Web" web/index.html 2>&1
+          for project in runner crowd-runner; do
+            mkdir -p "games/godot/$project/web"
+            cd "games/godot/$project"
+            godot --headless --export-release "Web" web/index.html 2>&1
+            cd - > /dev/null
+          done
+
+      - name: Stage Godot builds for upload
+        run: |
+          mkdir -p godot-out
+          cp -r games/godot/runner/web godot-out/runner
+          cp -r games/godot/crowd-runner/web godot-out/crowd-runner
 
       - name: Upload Godot build
         uses: actions/upload-artifact@v4
         with:
           name: godot-games
-          path: games/godot/runner/web/
+          path: godot-out/
 
   assemble:
     name: Assemble Site
@@ -111,10 +123,11 @@ jobs:
               cp -r "$pkg/dist" "_site/$name"
             fi
           done
-          # Copy Godot-exported game
-          if [ -d "godot-export" ]; then
-            cp -r godot-export _site/runner
-          fi
+          # Copy Godot-exported games (one subdir per project).
+          for project_dir in godot-export/*/; do
+            name=$(basename "$project_dir")
+            cp -r "$project_dir" "_site/$name"
+          done
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

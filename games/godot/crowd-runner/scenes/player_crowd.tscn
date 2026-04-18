@@ -1,0 +1,45 @@
+[gd_scene load_steps=7 format=3 uid="uid://cr_player_crowd"]
+
+[ext_resource type="Script" path="res://scripts/player_crowd.gd" id="1_script"]
+
+[sub_resource type="StandardMaterial3D" id="Material_player"]
+albedo_color = Color(0.25, 0.85, 0.35, 1)
+roughness = 0.6
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_player"]
+material = SubResource("Material_player")
+radius = 0.18
+height = 0.55
+
+[sub_resource type="MultiMesh" id="MultiMesh_player"]
+transform_format = 1
+mesh = SubResource("CapsuleMesh_player")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_player"]
+size = Vector3(4.0, 1.0, 2.0)
+
+[sub_resource type="StandardMaterial3D" id="Material_label_bg"]
+albedo_color = Color(0.1, 0.75, 0.25, 1)
+
+[node name="PlayerCrowd" type="Area3D"]
+script = ExtResource("1_script")
+
+[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+multimesh = SubResource("MultiMesh_player")
+
+[node name="CountLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+billboard = 1
+no_depth_test = true
+fixed_size = true
+pixel_size = 0.008
+text = "10"
+font_size = 96
+outline_size = 24
+modulate = Color(1, 1, 1, 1)
+outline_modulate = Color(0, 0.35, 0.1, 1)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 1.0)
+shape = SubResource("BoxShape3D_player")
