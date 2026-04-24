@@ -6,6 +6,72 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A browser-based arcade of games and apps, built as an npm workspaces monorepo. Projects are organized by tech stack: `games/web/` (Vite + JS), `games/godot/` (Godot 4.6), `apps/web/` (Vite + JS), `apps/node/` (Node.js).
 
+## Navigation docs
+
+- [`REPO_MAP.md`](REPO_MAP.md) — top-level map, stack, commands, conventions.
+- [`SUBPROJECTS.md`](SUBPROJECTS.md) — full inventory of the 10 sub-projects with inbound/outbound deps.
+- [`IMPROVEMENTS.md`](IMPROVEMENTS.md) — boundary/coupling/CI findings, each tagged `[quick-win|medium|structural]` and `[safe|risky]`.
+
+## Sub-projects
+
+Each sub-project has its own `CLAUDE.md` with purpose, run/test/build
+commands, key files, boundary rules, sharp edges, and extraction status.
+
+| Sub-project                   | Path                                                           | One-liner                                              |
+|-------------------------------|----------------------------------------------------------------|--------------------------------------------------------|
+| `@arcade/shared-ui`           | [`packages/shared-ui/CLAUDE.md`](packages/shared-ui/CLAUDE.md) | Vanilla-JS components (Modal, GameHeader, GameOver).   |
+| `@ai-arcade/arcade-hub`       | [`games/web/arcade-hub/CLAUDE.md`](games/web/arcade-hub/CLAUDE.md) | PWA landing page that links every game.            |
+| `@ai-arcade/solitaire`        | [`games/web/solitaire/CLAUDE.md`](games/web/solitaire/CLAUDE.md) | Klondike solitaire with DOM drag-and-drop.          |
+| `@ai-arcade/space-invaders`   | [`games/web/space-invaders/CLAUDE.md`](games/web/space-invaders/CLAUDE.md) | Canvas arcade shooter (rAF loop).            |
+| `@ai-arcade/splendor`         | [`games/web/splendor/CLAUDE.md`](games/web/splendor/CLAUDE.md) | Multiplayer board game (PeerJS CDN, IndexedDB assets). |
+| `@ai-arcade/sudoku`           | [`games/web/sudoku/CLAUDE.md`](games/web/sudoku/CLAUDE.md)     | Sudoku with save/resume, hints, URL sharing.           |
+| `@ai-arcade/tic-tac-toe`      | [`games/web/tic-tac-toe/CLAUDE.md`](games/web/tic-tac-toe/CLAUDE.md) | Tic-tac-toe with deterministic AI. Reference engine/ui split. |
+| Zombie Lane Runner (Godot)    | [`games/godot/runner/CLAUDE.md`](games/godot/runner/CLAUDE.md) | 3D lane runner built in Godot 4.6; own CI pipeline.    |
+| `@ai-arcade/timeline-tracker` | [`apps/web/timeline-tracker/CLAUDE.md`](apps/web/timeline-tracker/CLAUDE.md) | Single-file inline-JS activity tracker.  |
+| `@ai-arcade/news-digest`      | [`apps/node/news-digest/CLAUDE.md`](apps/node/news-digest/CLAUDE.md) | CI-only agent engine (PROMPT.md + JSON schema).   |
+
+## Cross-boundary rule
+
+**When working inside a sub-project directory, read that sub-project's
+`CLAUDE.md` first.** It overrides root guidance for its own scope. Any
+change that crosses a sub-project boundary (for example, editing
+`@arcade/shared-ui` and a consumer in the same PR) requires updating
+**both sides'** `CLAUDE.md` — the shared package's CLAUDE.md and the
+consumer's — so the contract stays documented.
+
+## Extraction roadmap
+
+Priority order based on [`IMPROVEMENTS.md`](IMPROVEMENTS.md) and
+[`SUBPROJECTS.md`](SUBPROJECTS.md):
+
+**Ready to extract today** (no code changes required):
+
+- **Zombie Lane Runner** — self-contained, own CI, own container image.
+  Blocked only by shared GitHub Pages deploy plumbing.
+- **`@ai-arcade/tic-tac-toe`** — textbook engine/ui split with tests.
+- **`@ai-arcade/news-digest`** — already written to be consumed by an
+  external private repo.
+
+**Ready after small quick-wins** (listed in IMPROVEMENTS.md):
+
+- **`@arcade/shared-ui`** — needs a build step + contract tests (items 18, 19).
+- **`@ai-arcade/sudoku`** — needs dead-code removal (item 8/31).
+- **`@ai-arcade/solitaire`**, **`@ai-arcade/space-invaders`** — add tests
+  first (items 23, 24).
+- **`@ai-arcade/timeline-tracker`** — do the engine/ui split (item 38).
+
+**Blocked on structural change:**
+
+- **`@ai-arcade/splendor`** — PeerJS CDN coupling (item 9/26). Must
+  move to npm-bundled `peerjs` before extraction.
+
+**Should stay in the monolith (for now):**
+
+- **`@ai-arcade/arcade-hub`** — the assembled-site "front door." Its
+  whole job is to link siblings via relative paths resolved by the
+  deploy layout. Extraction cost > value today. See item 7 for the
+  right prerequisite (generate `games.json` from the assemble step).
+
 ## Commands
 
 ```bash
