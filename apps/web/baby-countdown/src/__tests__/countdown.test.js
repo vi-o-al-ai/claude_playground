@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeCountdown, formatCountdown, DUE_DATE_ISO } from "../countdown.js";
+import { computeCountdown, formatCountdown, pregnancyWeek, DUE_DATE_ISO } from "../countdown.js";
 
 describe("DUE_DATE_ISO", () => {
   it("targets July 1st at 00:00 UTC", () => {
@@ -49,6 +49,35 @@ describe("computeCountdown", () => {
     const r = computeCountdown(due - 1500, due);
     expect(r.seconds).toBe(1);
     expect(r.minutes).toBe(0);
+  });
+});
+
+describe("pregnancyWeek", () => {
+  const due = Date.parse("2026-07-01T00:00:00.000Z");
+  const DAY = 24 * 60 * 60 * 1000;
+
+  it("returns 40 at the due date", () => {
+    expect(pregnancyWeek(due, due)).toBe(40);
+  });
+
+  it("returns 40 past the due date", () => {
+    expect(pregnancyWeek(due + 5 * DAY, due)).toBe(40);
+  });
+
+  it("returns 39 one week before due", () => {
+    expect(pregnancyWeek(due - 7 * DAY, due)).toBe(39);
+  });
+
+  it("returns 31 when 62 days before due (matches Apr 30 -> Jul 1)", () => {
+    expect(pregnancyWeek(due - 62 * DAY, due)).toBe(31);
+  });
+
+  it("clamps to 0 well before pregnancy start", () => {
+    expect(pregnancyWeek(due - 400 * DAY, due)).toBe(0);
+  });
+
+  it("returns 0 at the start of pregnancy (~280 days out)", () => {
+    expect(pregnancyWeek(due - 280 * DAY, due)).toBe(0);
   });
 });
 
