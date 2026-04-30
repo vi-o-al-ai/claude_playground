@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Little Sprout — Baby Countdown</title>
+    <style>
+      :root {
+        --moss: #5b8c5a;
+        --moss-dark: #3d6b3c;
+        --leaf: #8bbf6f;
+        --leaf-light: #c7e3b4;
+        --bark: #6b4f3a;
+        --bark-light: #9c7a5e;
+        --cream: #fdf6e3;
+        --cream-warm: #f6ead0;
+        --sun: #ffd97d;
+        --berry: #e08a8a;
+        --shadow: rgba(61, 107, 60, 0.18);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        font-family:
+          "Comic Sans MS",
+          "Chalkboard SE",
+          "Marker Felt",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        color: var(--moss-dark);
+        background: linear-gradient(180deg, #cfeafd 0%, #e8f5d8 55%, #d6e8b8 100%);
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      /* Sun */
+      .sun {
+        position: fixed;
+        top: 40px;
+        right: 60px;
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #ffe9a3, var(--sun));
+        box-shadow:
+          0 0 60px rgba(255, 217, 125, 0.7),
+          0 0 120px rgba(255, 217, 125, 0.35);
+        z-index: 0;
+        animation: sun-bob 6s ease-in-out infinite;
+      }
+
+      @keyframes sun-bob {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+
+      /* Falling leaves */
+      .leaves {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 1;
+      }
+
+      .leaf {
+        position: absolute;
+        top: -40px;
+        font-size: 22px;
+        opacity: 0.85;
+        animation: fall linear infinite;
+      }
+
+      @keyframes fall {
+        0% {
+          transform: translateY(-40px) rotate(0deg);
+        }
+        100% {
+          transform: translateY(105vh) rotate(540deg);
+        }
+      }
+
+      /* Trees in background */
+      .forest-bg {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 220px;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .tree-bg {
+        position: absolute;
+        bottom: 0;
+        font-size: 110px;
+        line-height: 1;
+        opacity: 0.55;
+        filter: blur(0.4px);
+        animation: sway 5s ease-in-out infinite;
+      }
+
+      .tree-bg.t1 {
+        left: 4%;
+        animation-delay: -1s;
+      }
+      .tree-bg.t2 {
+        left: 18%;
+        font-size: 80px;
+        opacity: 0.4;
+        animation-delay: -2.4s;
+      }
+      .tree-bg.t3 {
+        right: 8%;
+        animation-delay: -0.6s;
+      }
+      .tree-bg.t4 {
+        right: 22%;
+        font-size: 90px;
+        opacity: 0.5;
+        animation-delay: -3.2s;
+      }
+
+      @keyframes sway {
+        0%,
+        100% {
+          transform: rotate(-2deg);
+        }
+        50% {
+          transform: rotate(2deg);
+        }
+      }
+
+      /* Ground */
+      .ground {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        background: linear-gradient(180deg, #b8d893 0%, #95b96f 100%);
+        border-top: 4px dashed #7ea65a;
+        z-index: 0;
+      }
+
+      /* Layout */
+      main {
+        position: relative;
+        z-index: 2;
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 32px 20px 260px;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+
+      h1 {
+        font-size: 2.4rem;
+        color: var(--moss-dark);
+        text-shadow:
+          2px 2px 0 var(--cream),
+          3px 3px 0 var(--shadow);
+        letter-spacing: 1px;
+      }
+
+      .subtitle {
+        margin-top: 8px;
+        font-size: 1rem;
+        color: var(--moss);
+      }
+
+      .due-date {
+        display: inline-block;
+        margin-top: 14px;
+        padding: 8px 18px;
+        background: var(--cream);
+        border: 3px dashed var(--moss);
+        border-radius: 999px;
+        color: var(--moss-dark);
+        font-weight: bold;
+        font-size: 1.05rem;
+        box-shadow: 0 4px 0 var(--shadow);
+      }
+
+      .week-badge {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 14px;
+        margin-left: 8px;
+        padding: 8px 18px;
+        background: linear-gradient(135deg, #ffd0d0 0%, #ffb6c1 100%);
+        border: 3px solid var(--berry);
+        border-radius: 999px;
+        color: #7a3838;
+        box-shadow: 0 4px 0 var(--shadow);
+      }
+
+      .week-label,
+      .week-of {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.8;
+      }
+
+      .week-number {
+        font-size: 1.6rem;
+        font-weight: bold;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Countdown signs */
+      .countdown {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin: 36px 0 28px;
+      }
+
+      .sign {
+        position: relative;
+        background: var(--cream-warm);
+        border: 4px solid var(--bark);
+        border-radius: 18px;
+        padding: 18px 8px 14px;
+        text-align: center;
+        box-shadow:
+          0 6px 0 var(--bark),
+          0 10px 16px var(--shadow);
+        transform: rotate(var(--tilt, 0deg));
+        transition: transform 0.2s;
+      }
+
+      .sign:hover {
+        transform: rotate(0deg) translateY(-2px);
+      }
+
+      .sign:nth-child(1) {
+        --tilt: -2deg;
+      }
+      .sign:nth-child(2) {
+        --tilt: 1.5deg;
+      }
+      .sign:nth-child(3) {
+        --tilt: -1deg;
+      }
+      .sign:nth-child(4) {
+        --tilt: 2deg;
+      }
+
+      .sign::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 14px;
+        height: 14px;
+        background: var(--bark);
+        border-radius: 50%;
+        box-shadow: 0 0 0 2px var(--cream);
+      }
+
+      .number {
+        font-size: 2.6rem;
+        font-weight: bold;
+        color: var(--moss-dark);
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+        transition: transform 0.25s;
+      }
+
+      .number.tick {
+        transform: scale(1.15);
+      }
+
+      .label {
+        margin-top: 6px;
+        font-size: 0.82rem;
+        color: var(--bark);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      /* Forest path / progress */
+      .path-card {
+        background: var(--cream);
+        border: 4px solid var(--leaf);
+        border-radius: 22px;
+        padding: 20px 22px 24px;
+        box-shadow: 0 6px 0 var(--shadow);
+        margin-bottom: 22px;
+      }
+
+      .path-card h2 {
+        font-size: 1.05rem;
+        color: var(--moss-dark);
+        margin-bottom: 14px;
+        text-align: center;
+      }
+
+      .path {
+        position: relative;
+        height: 60px;
+        background: repeating-linear-gradient(
+          90deg,
+          var(--leaf-light),
+          var(--leaf-light) 14px,
+          transparent 14px,
+          transparent 24px
+        );
+        border-radius: 30px;
+        border: 2px dashed var(--moss);
+      }
+
+      .path .start,
+      .path .end {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 28px;
+      }
+
+      .path .start {
+        left: 8px;
+      }
+
+      .path .end {
+        right: 8px;
+      }
+
+      .path .walker {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translate(-50%, -50%);
+        font-size: 30px;
+        transition: left 1s ease-out;
+        filter: drop-shadow(0 2px 2px var(--shadow));
+        animation: walk 0.6s ease-in-out infinite alternate;
+      }
+
+      @keyframes walk {
+        from {
+          transform: translate(-50%, -55%);
+        }
+        to {
+          transform: translate(-50%, -45%);
+        }
+      }
+
+      .progress-text {
+        margin-top: 12px;
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--moss);
+      }
+
+      /* Milestone card */
+      .milestone {
+        background: linear-gradient(135deg, #ffe9a3 0%, #ffd97d 100%);
+        border: 4px solid var(--bark-light);
+        border-radius: 22px;
+        padding: 18px 22px;
+        box-shadow: 0 6px 0 var(--shadow);
+        text-align: center;
+      }
+
+      .milestone .icon {
+        font-size: 2rem;
+        margin-bottom: 4px;
+      }
+
+      .milestone .text {
+        font-size: 1rem;
+        color: var(--bark);
+        font-weight: bold;
+      }
+
+      /* Arrival celebration */
+      .arrival {
+        text-align: center;
+        padding: 30px 20px;
+      }
+
+      .arrival h2 {
+        font-size: 2rem;
+        color: var(--berry);
+        margin-bottom: 12px;
+        animation: bounce 0.8s ease-in-out infinite alternate;
+      }
+
+      @keyframes bounce {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(-10px);
+        }
+      }
+
+      .arrival .baby {
+        font-size: 5rem;
+        margin: 12px 0;
+      }
+
+      .confetti {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 5;
+        overflow: hidden;
+      }
+
+      .confetti span {
+        position: absolute;
+        top: -20px;
+        font-size: 18px;
+        animation: confetti-fall linear infinite;
+      }
+
+      @keyframes confetti-fall {
+        0% {
+          transform: translateY(-20px) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(110vh) rotate(720deg);
+          opacity: 0.7;
+        }
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 30px;
+        font-size: 0.78rem;
+        color: var(--moss);
+        opacity: 0.75;
+      }
+
+      @media (max-width: 520px) {
+        h1 {
+          font-size: 1.7rem;
+        }
+        .countdown {
+          gap: 8px;
+        }
+        .sign {
+          padding: 14px 4px 10px;
+          border-width: 3px;
+        }
+        .number {
+          font-size: 1.7rem;
+        }
+        .label {
+          font-size: 0.65rem;
+        }
+        .sun {
+          width: 60px;
+          height: 60px;
+          top: 20px;
+          right: 20px;
+        }
+        .tree-bg {
+          font-size: 80px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sun" aria-hidden="true"></div>
+    <div class="leaves" id="leaves" aria-hidden="true"></div>
+
+    <div class="forest-bg" aria-hidden="true">
+      <div class="tree-bg t1">🌳</div>
+      <div class="tree-bg t2">🌲</div>
+      <div class="tree-bg t3">🌳</div>
+      <div class="tree-bg t4">🌲</div>
+    </div>
+    <div class="ground" aria-hidden="true"></div>
+
+    <main>
+      <header>
+        <h1>🌱 Little Sprout 🌿</h1>
+        <p class="subtitle">A tiny woodland bear is on the way!</p>
+        <div class="due-date">🐻 Arriving July 1, 2026</div>
+        <div class="week-badge">
+          <span class="week-label">Pregnancy week</span>
+          <span class="week-number" id="week-number">--</span>
+          <span class="week-of">of 40</span>
+        </div>
+      </header>
+
+      <section id="countdown-section">
+        <div class="countdown" id="countdown">
+          <div class="sign">
+            <div class="number" id="days">--</div>
+            <div class="label">Days</div>
+          </div>
+          <div class="sign">
+            <div class="number" id="hours">--</div>
+            <div class="label">Hours</div>
+          </div>
+          <div class="sign">
+            <div class="number" id="minutes">--</div>
+            <div class="label">Mins</div>
+          </div>
+          <div class="sign">
+            <div class="number" id="seconds">--</div>
+            <div class="label">Secs</div>
+          </div>
+        </div>
+
+        <div class="path-card">
+          <h2>🌲 Bear's walk to the den 🌲</h2>
+          <div class="path">
+            <span class="start">🏡</span>
+            <span class="walker" id="walker">🐻</span>
+            <span class="end">🍯</span>
+          </div>
+          <div class="progress-text" id="progress-text">Just starting the walk…</div>
+        </div>
+
+        <div class="milestone">
+          <div class="icon" id="milestone-icon">🌰</div>
+          <div class="text" id="milestone-text">Counting down…</div>
+        </div>
+      </section>
+
+      <section id="arrival-section" class="arrival" hidden>
+        <h2>🎉 Welcome, little cub! 🎉</h2>
+        <div class="baby">👶🐻🌸</div>
+        <p class="text">The forest welcomes our newest friend.</p>
+      </section>
+
+      <footer>Made with 🌿 in the forest</footer>
+    </main>
+
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
