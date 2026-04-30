@@ -37,12 +37,12 @@ function setNumber(key, value) {
 }
 
 function chooseMilestone(days) {
-  if (days > 180) return ["🫘", "Tiny bean is curled up cozy and snug."];
-  if (days > 90) return ["🌱", "Our little bean is sprouting roots and dreams."];
-  if (days > 60) return ["🍃", "Two months until our bean blooms into the world!"];
-  if (days > 30) return ["🌿", "One month to go — bean is leafing out!"];
-  if (days > 14) return ["🍄", "Two weeks! The garden is getting ready."];
-  if (days > 7) return ["🐝", "One week left — bees are buzzing with excitement."];
+  if (days > 180) return ["🫘", "Tiny bean is curled up cozy in the chamber of secrets."];
+  if (days > 90) return ["🌱", "Our little bean is sprouting roots and magic."];
+  if (days > 60) return ["🍃", "Two months until our bean apparates into the world!"];
+  if (days > 30) return ["🐍", "One month to go — the Slytherin scarf is being knit."];
+  if (days > 14) return ["🪄", "Two weeks! Hogwarts is preparing the welcome owl."];
+  if (days > 7) return ["⚡", "One week left — the Sorting Hat is warming up."];
   if (days > 1) return ["🦋", "Just a few sleeps until our little bean arrives!"];
   if (days >= 1) return ["✨", "Tomorrow! Tomorrow! Tomorrow!"];
   return ["🌟", "Any moment now…"];
@@ -84,7 +84,7 @@ function tick() {
 }
 
 function spawnConfetti() {
-  const pieces = ["🌸", "🍃", "🌿", "✨", "🌼", "🦋"];
+  const pieces = ["🌸", "🍃", "🌿", "✨", "🌼", "🦋", "🐍", "⚡", "🪄"];
   for (let i = 0; i < 60; i++) {
     const s = document.createElement("span");
     s.textContent = pieces[i % pieces.length];
@@ -96,8 +96,8 @@ function spawnConfetti() {
 }
 
 function spawnLeaves() {
-  const kinds = ["🍃", "🌿", "🍂"];
-  for (let i = 0; i < 14; i++) {
+  const kinds = ["🍃", "🌿", "🍂", "🍃", "🌿", "✨", "🐍"];
+  for (let i = 0; i < 16; i++) {
     const l = document.createElement("div");
     l.className = "leaf";
     l.textContent = kinds[i % kinds.length];

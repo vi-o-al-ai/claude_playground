@@ -17,6 +17,11 @@
         --sun: #ffd97d;
         --berry: #e08a8a;
         --shadow: rgba(61, 107, 60, 0.18);
+        --slytherin-green: #1a472a;
+        --slytherin-green-light: #2a623d;
+        --slytherin-silver: #c0c0c0;
+        --slytherin-silver-light: #e2e2e2;
+        --castle-silhouette: #1f3a2c;
       }
 
       * {
@@ -159,6 +164,145 @@
         background: linear-gradient(180deg, #b8d893 0%, #95b96f 100%);
         border-top: 4px dashed #7ea65a;
         z-index: 0;
+      }
+
+      /* Hogwarts castle silhouette on the horizon */
+      .hogwarts {
+        position: fixed;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(1000px, 110vw);
+        height: 220px;
+        color: var(--castle-silhouette);
+        opacity: 0.6;
+        z-index: 0;
+        pointer-events: none;
+        filter: drop-shadow(0 -4px 12px rgba(26, 71, 42, 0.25));
+      }
+
+      .hogwarts svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .hogwarts .windows rect {
+        animation: window-flicker 5s ease-in-out infinite;
+      }
+      .hogwarts .windows rect:nth-child(2n) {
+        animation-delay: -1.7s;
+      }
+      .hogwarts .windows rect:nth-child(3n) {
+        animation-delay: -3.2s;
+      }
+
+      @keyframes window-flicker {
+        0%,
+        100% {
+          opacity: 0.95;
+        }
+        45% {
+          opacity: 0.45;
+        }
+        55% {
+          opacity: 0.85;
+        }
+      }
+
+      /* Slytherin house badge (corner sticker) */
+      .slytherin-badge {
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        background: linear-gradient(
+          135deg,
+          var(--slytherin-green) 0%,
+          var(--slytherin-green-light) 100%
+        );
+        border: 2px solid var(--slytherin-silver);
+        border-radius: 999px;
+        color: var(--slytherin-silver-light);
+        font-weight: bold;
+        font-size: 0.78rem;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        box-shadow:
+          0 4px 0 rgba(0, 0, 0, 0.25),
+          0 0 20px rgba(42, 98, 61, 0.45);
+        transform: rotate(-4deg);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      .slytherin-badge .snake {
+        font-size: 1.05rem;
+        filter: drop-shadow(0 0 4px rgba(192, 192, 192, 0.7));
+      }
+
+      /* Slytherin scarf hanging on a tree */
+      .scarf {
+        position: fixed;
+        bottom: 60px;
+        right: 6%;
+        width: 26px;
+        height: 110px;
+        z-index: 0;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          180deg,
+          var(--slytherin-green) 0,
+          var(--slytherin-green) 14px,
+          var(--slytherin-silver) 14px,
+          var(--slytherin-silver) 22px
+        );
+        border-radius: 4px 4px 6px 6px;
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.25);
+        transform: rotate(2deg);
+        animation: scarf-sway 4s ease-in-out infinite;
+        transform-origin: top center;
+      }
+
+      .scarf::before,
+      .scarf::after {
+        content: "";
+        position: absolute;
+        bottom: -6px;
+        width: 3px;
+        height: 8px;
+        background: var(--slytherin-silver);
+      }
+      .scarf::before {
+        left: 4px;
+      }
+      .scarf::after {
+        right: 4px;
+      }
+
+      @keyframes scarf-sway {
+        0%,
+        100% {
+          transform: rotate(1deg);
+        }
+        50% {
+          transform: rotate(4deg);
+        }
+      }
+
+      /* House points line */
+      .house-line {
+        margin-top: 14px;
+        font-size: 0.85rem;
+        color: var(--slytherin-green);
+        letter-spacing: 0.5px;
+      }
+
+      .house-line .silver {
+        color: #6b7a7a;
+        font-weight: bold;
       }
 
       /* Layout */
@@ -493,23 +637,73 @@
     <div class="sun" aria-hidden="true"></div>
     <div class="leaves" id="leaves" aria-hidden="true"></div>
 
+    <div class="hogwarts" aria-hidden="true">
+      <svg viewBox="0 0 1000 220" preserveAspectRatio="xMidYEnd meet">
+        <g fill="currentColor">
+          <path
+            d="M 0 220 L 0 170 L 70 170 L 70 140 L 110 140 L 110 110 L 130 110 L 130 80 L 145 55 L 160 80 L 160 110 L 180 110 L 180 140 L 240 140 L 240 120 L 280 120 L 280 95 L 295 70 L 310 95 L 310 120 L 350 120 L 350 150 L 420 150 L 420 100 L 450 100 L 450 70 L 470 40 L 490 70 L 490 100 L 520 100 L 520 150 L 590 150 L 590 115 L 620 115 L 620 90 L 635 65 L 650 90 L 650 115 L 680 115 L 680 150 L 740 150 L 740 130 L 770 130 L 770 105 L 785 80 L 800 105 L 800 130 L 830 130 L 830 160 L 900 160 L 900 175 L 1000 175 L 1000 220 Z"
+          />
+          <rect x="120" y="135" width="4" height="6" />
+          <rect x="128" y="135" width="4" height="6" />
+          <rect x="136" y="135" width="4" height="6" />
+          <rect x="144" y="135" width="4" height="6" />
+          <rect x="152" y="135" width="4" height="6" />
+          <rect x="160" y="135" width="4" height="6" />
+          <rect x="350" y="146" width="6" height="5" />
+          <rect x="362" y="146" width="6" height="5" />
+          <rect x="374" y="146" width="6" height="5" />
+          <rect x="386" y="146" width="6" height="5" />
+          <rect x="398" y="146" width="6" height="5" />
+          <rect x="410" y="146" width="6" height="5" />
+          <rect x="600" y="111" width="4" height="5" />
+          <rect x="610" y="111" width="4" height="5" />
+          <rect x="620" y="111" width="4" height="5" />
+          <rect x="630" y="111" width="4" height="5" />
+          <rect x="640" y="111" width="4" height="5" />
+        </g>
+        <g class="windows">
+          <rect x="143" y="90" width="3" height="6" rx="0.5" fill="#ffd97d" />
+          <rect x="293" y="100" width="3" height="6" rx="0.5" fill="#ffd97d" />
+          <rect x="468" y="65" width="3" height="6" rx="0.5" fill="#ffd97d" />
+          <rect x="633" y="90" width="3" height="6" rx="0.5" fill="#ffd97d" />
+          <rect x="783" y="105" width="3" height="6" rx="0.5" fill="#ffd97d" />
+          <rect x="100" y="155" width="3" height="5" rx="0.5" fill="#a8d2ff" />
+          <rect x="395" y="125" width="3" height="5" rx="0.5" fill="#a8d2ff" />
+          <rect x="555" y="135" width="3" height="5" rx="0.5" fill="#a8d2ff" />
+          <rect x="755" y="140" width="3" height="5" rx="0.5" fill="#a8d2ff" />
+          <rect x="220" y="148" width="3" height="5" rx="0.5" fill="#a8d2ff" />
+        </g>
+      </svg>
+    </div>
+
     <div class="forest-bg" aria-hidden="true">
       <div class="tree-bg t1">🌳</div>
       <div class="tree-bg t2">🌲</div>
       <div class="tree-bg t3">🌳</div>
       <div class="tree-bg t4">🌲</div>
     </div>
+    <div class="scarf" aria-hidden="true"></div>
     <div class="ground" aria-hidden="true"></div>
+
+    <div class="slytherin-badge" aria-label="Future Slytherin">
+      <span class="snake" aria-hidden="true">🐍</span>
+      <span>Future Slytherin</span>
+    </div>
 
     <main>
       <header>
         <h1>🫘 Little Bean 🌱</h1>
-        <p class="subtitle">A tiny little bean is sprouting their way to us!</p>
+        <p class="subtitle">A tiny little bean is sprouting their way to us! ⚡</p>
         <div class="due-date">🫘 Arriving July 1, 2026</div>
         <div class="week-badge">
           <span class="week-label">Pregnancy week</span>
           <span class="week-number" id="week-number">--</span>
           <span class="week-of">of 40</span>
+        </div>
+        <div class="house-line">
+          🐍 House:
+          <span class="silver">Slytherin</span>
+          · expected at Hogwarts in 11 years 🪄
         </div>
       </header>
 
@@ -551,11 +745,11 @@
 
       <section id="arrival-section" class="arrival" hidden>
         <h2>🎉 Welcome, little bean! 🎉</h2>
-        <div class="baby">👶🫘🌸</div>
-        <p class="text">Our little bean has sprouted into the world!</p>
+        <div class="baby">👶🫘🐍</div>
+        <p class="text">Our little bean has sprouted into the wizarding world!</p>
       </section>
 
-      <footer>Made with 🌿 in the forest</footer>
+      <footer>Made with 🌿 in the forest · 🐍 Slytherin pride · 🪄 mischief managed</footer>
     </main>
 
     <div class="confetti" id="confetti" aria-hidden="true"></div>
