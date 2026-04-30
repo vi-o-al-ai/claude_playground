@@ -37,13 +37,13 @@ function setNumber(key, value) {
 }
 
 function chooseMilestone(days) {
-  if (days > 180) return ["🌰", "Bear cub is curled up dreaming of honey."];
-  if (days > 90) return ["🌱", "Growing strong like a forest sapling."];
-  if (days > 60) return ["🍃", "Two months until the cub arrives!"];
-  if (days > 30) return ["🌿", "One month to go — the den is almost ready!"];
-  if (days > 14) return ["🍄", "Two weeks! Mushrooms are popping up to celebrate."];
-  if (days > 7) return ["🐿️", "One week left — squirrels are gathering acorns."];
-  if (days > 1) return ["🦋", "Just a few sleeps until the little bear arrives!"];
+  if (days > 180) return ["🫘", "Tiny bean is curled up cozy and snug."];
+  if (days > 90) return ["🌱", "Our little bean is sprouting roots and dreams."];
+  if (days > 60) return ["🍃", "Two months until our bean blooms into the world!"];
+  if (days > 30) return ["🌿", "One month to go — bean is leafing out!"];
+  if (days > 14) return ["🍄", "Two weeks! The garden is getting ready."];
+  if (days > 7) return ["🐝", "One week left — bees are buzzing with excitement."];
+  if (days > 1) return ["🦋", "Just a few sleeps until our little bean arrives!"];
   if (days >= 1) return ["✨", "Tomorrow! Tomorrow! Tomorrow!"];
   return ["🌟", "Any moment now…"];
 }
