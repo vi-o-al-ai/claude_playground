@@ -1,0 +1,311 @@
+@import "@arcade/shared-ui/theme";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #0f0f23;
+  color: #e0e0e0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.screen {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+label.field {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #c0c0d0;
+}
+
+label.field > span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #888;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+select,
+input[type="number"],
+input[type="text"] {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  background: #0f0f23;
+  color: #e0e0e0;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+select:focus,
+input:focus {
+  outline: none;
+  border-color: #7b2ff7;
+}
+
+button {
+  padding: 0.55rem 1rem;
+  background: #7b2ff7;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+button:hover {
+  background: #9355f9;
+}
+
+button.secondary {
+  background: #2a2a4a;
+  color: #c0c0d0;
+}
+
+button.secondary:hover {
+  background: #3a3a5e;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.toggle-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #7b2ff7;
+}
+
+.helper {
+  color: #888;
+  font-size: 0.85rem;
+  margin: 0.5rem 0 1rem;
+}
+
+/* Round screen */
+.round-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 1rem;
+}
+
+.round-meta .player {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #00d4ff;
+}
+
+.round-meta .card-label {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.clue-row {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.clue-number {
+  font-weight: 700;
+  text-align: right;
+  font-size: 1.05rem;
+}
+
+.clue-pill {
+  position: relative;
+  background: #faf3e0;
+  color: #2c3e50;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.95rem;
+  min-height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clue-pill.hidden {
+  background: #e6e6ee;
+  color: transparent;
+  cursor: pointer;
+  user-select: none;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.clue-pill.hidden:hover {
+  border-color: #7b2ff7;
+}
+
+.clue-pill.hidden::after {
+  content: "?";
+  color: #888;
+  font-size: 1.1rem;
+}
+
+/* color-code each pill row similar to the physical board */
+.clue-row[data-index="0"] .clue-number {
+  color: #f5b342;
+}
+.clue-row[data-index="1"] .clue-number {
+  color: #e74c3c;
+}
+.clue-row[data-index="2"] .clue-number {
+  color: #5b6cff;
+}
+.clue-row[data-index="3"] .clue-number {
+  color: #ff2d95;
+}
+.clue-row[data-index="4"] .clue-number {
+  color: #1abc9c;
+}
+.clue-row[data-index="5"] .clue-number {
+  color: #ff7a1c;
+}
+.clue-row[data-index="6"] .clue-number {
+  color: #3498db;
+}
+.clue-row[data-index="7"] .clue-number {
+  color: #2ecc71;
+}
+.clue-row[data-index="8"] .clue-number {
+  color: #d63ee2;
+}
+.clue-row[data-index="9"] .clue-number {
+  color: #ecf0f1;
+}
+
+.answer-row {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed #2a2a4a;
+}
+
+.answer-row .clue-number {
+  color: #f5b342;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+}
+
+.answer-pill {
+  background: #f5b342;
+  color: #2c3e50;
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  text-align: center;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-height: 2.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.answer-pill.hidden {
+  background: #e6e6ee;
+  color: transparent;
+}
+
+.answer-pill.hidden::after {
+  content: "?";
+  color: #888;
+}
+
+.answer-pill.correct {
+  background: #1abc9c;
+  color: #fff;
+}
+
+.guess-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.guess-form input {
+  flex: 1;
+}
+
+.feedback {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.feedback.wrong {
+  background: rgba(231, 76, 60, 0.15);
+  color: #ffb1a8;
+  border: 1px solid rgba(231, 76, 60, 0.4);
+}
+
+.feedback.right {
+  background: rgba(26, 188, 156, 0.15);
+  color: #9ff3df;
+  border: 1px solid rgba(26, 188, 156, 0.4);
+}
+
+.row-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.completed-tag {
+  color: #1abc9c;
+  font-size: 0.85rem;
+  margin-left: 0.4rem;
+}
