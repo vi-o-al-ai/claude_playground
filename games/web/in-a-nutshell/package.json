@@ -1,0 +1,15 @@
+{
+  "name": "@ai-arcade/in-a-nutshell",
+  "version": "1.0.0",
+  "private": true,
+  "description": "In a Nutshell party word-guessing game for AI Games Arcade",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@arcade/shared-ui": "*"
+  }
+}
