@@ -43,6 +43,38 @@ jobs:
           git config user.name "news-digest-bot"
           git config user.email "news-digest-bot@users.noreply.github.com"
 
+      # Reddit blocks Claude's WebFetch UA and rate-limits the GitHub Actions IP pool.
+      # Pre-fetch each reddit source from a shell step with a polite UA so the agent
+      # can read the JSON from disk via the Read tool. HN doesn't have this problem.
+      - name: Pre-fetch Reddit sources
+        working-directory: data
+        run: |
+          set -uo pipefail
+          mkdir -p .fetched/reddit
+          UA="news-digest-bot/1.0 (+https://github.com/${{ github.repository }})"
+          DEFAULT_TOPN=$(jq -r '.topN // 5' sources.json)
+          jq -c '.sources[] | select(.type == "reddit")' sources.json | while read -r src; do
+            sub=$(echo "$src"     | jq -r '.subreddit')
+            window=$(echo "$src"  | jq -r '.timeWindow // "day"')
+            topn=$(echo "$src"    | jq -r ".topN // $DEFAULT_TOPN")
+            url="https://www.reddit.com/r/${sub}/top.json?limit=${topn}&t=${window}"
+            echo "Fetching r/${sub} (topN=${topn}, window=${window})"
+            for attempt in 1 2; do
+              if curl -sSfL -m 30 -H "User-Agent: $UA" "$url" -o ".fetched/reddit/${sub}.json"; then
+                echo "  → success (attempt $attempt)"
+                break
+              fi
+              if [ "$attempt" = "1" ]; then
+                echo "  → attempt 1 failed, retrying in 30s"
+                sleep 30
+              else
+                echo "::warning::Failed to fetch r/${sub} after retries; digest will note 'no items available today'"
+                rm -f ".fetched/reddit/${sub}.json"
+              fi
+            done
+          done
+          ls -la .fetched/reddit/ || true
+
       - name: Run Claude Code to generate digest
         uses: anthropics/claude-code-action@v1
         with:
@@ -52,14 +84,15 @@ jobs:
 
             Context:
             - Config file: ./data/sources.json
+            - Pre-fetched Reddit JSON: ./data/.fetched/reddit/{subreddit}.json (read with Read tool)
             - Output directory: ./data/digests/
             - Filename: YYYY-MM-DD.md where the date is today in UTC
             - Working directory for git operations: ./data
 
-            After writing the digest file, cd into ./data, stage digests/,
-            commit with message "digest: YYYY-MM-DD", and push.
+            Stage, commit, and push using `git -C ./data <subcommand>` as separate
+            Bash calls (`cd ./data && git ...` is blocked by a safety check).
           claude_args: |
-            --allowedTools "WebFetch,Read,Write,Edit,Bash(git -C:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git pull:*),Bash(git status:*),Bash(git diff:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(date:*)"
+            --allowedTools "WebFetch,Read,Write,Edit,Bash(git -C ./data add:*),Bash(git -C ./data commit:*),Bash(git -C ./data push:*),Bash(git -C ./data pull:*),Bash(git -C ./data status:*),Bash(git -C ./data diff:*),Bash(ls:*),Bash(mkdir:*),Bash(date:*)"
 
       - name: Verify digest was committed
         working-directory: data
