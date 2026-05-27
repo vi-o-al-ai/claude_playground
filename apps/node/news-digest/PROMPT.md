@@ -102,13 +102,13 @@ Use one blank line between sections. Do not add a table of contents, a footer, o
 
 ## Step 5: Commit and push
 
-From the `./data` directory (the workflow has already configured the bot's `user.name` and `user.email`):
+The data repo is checked out at `./data`. Run each git command as a **separate Bash tool call** using the `git -C ./data <subcommand>` form — do **not** chain with `&&` or use `cd ./data && git ...`, both are blocked by built-in safety checks. The workflow has already configured the bot's `user.name` and `user.email`.
 
-```bash
-git add digests/
-git commit -m "digest: YYYY-MM-DD" || echo "no changes to commit"
-git push
-```
+Issue these three Bash calls in order:
+
+1. `git -C ./data add digests/`
+2. `git -C ./data commit -m "digest: YYYY-MM-DD" || echo "no changes to commit"`
+3. `git -C ./data push`
 
 If there are no changes (the file is byte-identical to yesterday's run, which should be rare), the commit is skipped and the workflow still succeeds.
 
