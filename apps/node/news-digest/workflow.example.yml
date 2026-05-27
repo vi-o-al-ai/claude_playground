@@ -48,7 +48,7 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            Follow the instructions in ./engine/apps/news-digest/PROMPT.md exactly.
+            Follow the instructions in ./engine/apps/node/news-digest/PROMPT.md exactly.
 
             Context:
             - Config file: ./data/sources.json
@@ -59,4 +59,19 @@ jobs:
             After writing the digest file, cd into ./data, stage digests/,
             commit with message "digest: YYYY-MM-DD", and push.
           claude_args: |
-            --allowedTools "WebFetch,Read,Write,Edit,Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git pull:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(date:*)"
+            --allowedTools "WebFetch,Read,Write,Edit,Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git pull:*),Bash(git status:*),Bash(git diff:*),Bash(cd:*),Bash(ls:*),Bash(mkdir:*),Bash(date:*)"
+
+      - name: Verify digest was committed
+        working-directory: data
+        run: |
+          TODAY=$(date -u +%F)
+          if [ ! -f "digests/$TODAY.md" ]; then
+            echo "::error::No digest file at digests/$TODAY.md — the agent did not produce today's digest."
+            exit 1
+          fi
+          if ! git log -1 --pretty=%s | grep -q "^digest: $TODAY$"; then
+            echo "::error::Latest commit is not 'digest: $TODAY'. The digest file exists but was not committed."
+            git log -1 --pretty=fuller
+            exit 1
+          fi
+          echo "OK: digests/$TODAY.md committed."
