@@ -7,7 +7,7 @@ Follow these steps **in order**. Do not skip steps. Do not invent sources that a
 ## Inputs and outputs
 
 - **Config path:** `./data/sources.json` (relative to the workflow working directory)
-- **Schema (reference only):** `./engine/apps/news-digest/sources.schema.json`
+- **Schema (reference only):** `./engine/apps/node/news-digest/sources.schema.json`
 - **Output path:** `./data/digests/YYYY-MM-DD.md`, where `YYYY-MM-DD` is today's UTC date
 - **Commit message:** `digest: YYYY-MM-DD`
 - **Working directory:** the root of the private data repo (`./data` in CI), with the engine available at `./engine`
@@ -102,12 +102,11 @@ Use one blank line between sections. Do not add a table of contents, a footer, o
 
 ## Step 5: Commit and push
 
-From the `./data` directory:
+From the `./data` directory (the workflow has already configured the bot's `user.name` and `user.email`):
 
 ```bash
 git add digests/
-git -c user.name="news-digest-bot" -c user.email="news-digest-bot@users.noreply.github.com" \
-    commit -m "digest: YYYY-MM-DD" || echo "no changes to commit"
+git commit -m "digest: YYYY-MM-DD" || echo "no changes to commit"
 git push
 ```
 
