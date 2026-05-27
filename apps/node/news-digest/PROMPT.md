@@ -37,9 +37,10 @@ Process sources **in the order they appear in the config**. For each source, use
 
 ### Type: `reddit`
 
-- **URL:** `https://www.reddit.com/r/{subreddit}/top.json?limit={topN}&t={timeWindow}`
-  - `timeWindow` defaults to `day` if unset
-- **Request requirement:** Reddit blocks default `User-Agent` strings. If `WebFetch` allows header customization in this environment, send `User-Agent: news-digest-bot/1.0 (github.com/vi-o-al-ai/claude_playground)`. If not, attempt the fetch anyway — Reddit sometimes responds to tool-based user agents.
+Reddit blocks Claude's `WebFetch` User-Agent and rate-limits GitHub Actions runner IPs hard, so the workflow **pre-fetches** Reddit JSON in a shell step (with a polite UA + retry) before the agent runs. The agent reads the cached JSON from disk — **do not call `WebFetch` on Reddit URLs**, it will return 403.
+
+- **Source:** `./data/.fetched/reddit/{subreddit}.json` — read with the `Read` tool.
+- **If the file is missing** for a configured Reddit source, the pre-fetch failed for that subreddit. Per the error-handling table below, emit a section heading with a one-line "no items available today" note and continue.
 - **Extract for each post** (`data.children[].data`):
   - `title` (post title)
   - `url` (the outbound article URL — may equal the Reddit permalink for self posts)
@@ -107,10 +108,10 @@ The data repo is checked out at `./data`. Run each git command as a **separate B
 Issue these three Bash calls in order:
 
 1. `git -C ./data add digests/`
-2. `git -C ./data commit -m "digest: YYYY-MM-DD" || echo "no changes to commit"`
+2. `git -C ./data commit -m "digest: YYYY-MM-DD"`
 3. `git -C ./data push`
 
-If there are no changes (the file is byte-identical to yesterday's run, which should be rare), the commit is skipped and the workflow still succeeds.
+If the commit step fails because the file is byte-identical to yesterday's digest (rare), the workflow's verification step will fail the job — that is the desired behavior. Don't try to suppress the commit error.
 
 ## Error handling summary
 
