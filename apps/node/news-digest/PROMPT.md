@@ -37,17 +37,19 @@ Process sources **in the order they appear in the config**. For each source, use
 
 ### Type: `reddit`
 
-Reddit blocks Claude's `WebFetch` User-Agent and rate-limits GitHub Actions runner IPs hard, so the workflow **pre-fetches** Reddit JSON in a shell step (with a polite UA + retry) before the agent runs. The agent reads the cached JSON from disk — **do not call `WebFetch` on Reddit URLs**, it will return 403.
+Reddit gated the anonymous `.json` API in late 2025 (403 to all anonymous clients regardless of IP/UA), but the RSS/Atom feed at `/r/{sub}/top.rss` is still ungated. The workflow **pre-fetches** the Atom XML in a shell step (with a polite UA + retry) before the agent runs. The agent reads the cached XML from disk — **do not call `WebFetch` on Reddit URLs**, it will return 403.
 
-- **Source:** `./data/.fetched/reddit/{subreddit}.json` — read with the `Read` tool.
+- **Source:** `./data/.fetched/reddit/{subreddit}.xml` — read with the `Read` tool.
 - **If the file is missing** for a configured Reddit source, the pre-fetch failed for that subreddit. Per the error-handling table below, emit a section heading with a one-line "no items available today" note and continue.
-- **Extract for each post** (`data.children[].data`):
-  - `title` (post title)
-  - `url` (the outbound article URL — may equal the Reddit permalink for self posts)
-  - `permalink` (Reddit comment thread path; prepend `https://reddit.com` for a full URL)
-  - `selftext` (body of self posts, may be empty)
-  - `score`, `num_comments` (optional, for display)
-  - `is_self` (true if it's a text post with no outbound link)
+- **Format:** Atom XML. Each post is an `<entry>` element. Per entry, extract:
+  - **Title:** inner text of `<title>`.
+  - **Comment thread URL:** entry-level `<link href="…">` (Reddit's comments page for the post).
+  - **Author:** `<author><name>` (e.g. `/u/jkmonger`).
+  - **Published time:** `<published>` (ISO timestamp; available, not always rendered).
+  - **Outbound article URL:** parse from the HTML-escaped `<content type="html">`. Find the `<a href="…">[link]</a>` anchor and read its `href`.
+  - **Self-post detection:** if the outbound URL's host is `reddit.com` (or it equals the entry's `<link href>`), treat it as a self-post.
+  - **Self-post body** (when present): the markdown body appears inside `<div class="md">…</div>` within `<content>`. Strip HTML tags before using it as summary input.
+- **Not available in RSS:** `score`, `num_comments`. Omit those from the bullet.
 - **Section heading:** use the source's `label` if set, otherwise `r/{subreddit}`.
 
 ### Type: `hackernews`
@@ -96,8 +98,8 @@ Emit the output file at `./data/digests/YYYY-MM-DD.md` with this exact structure
 
 **Link conventions:**
 
-- **Primary link** (on the bolded title): the outbound article URL. For Reddit self-posts where `is_self` is true or there is no outbound URL, use the full permalink URL instead. For HN text posts (no `url`), use the HN thread URL as the primary link.
-- **Secondary link** (labeled "Discussion" or "HN thread"): the comment thread — `https://reddit.com{permalink}` for Reddit, `https://news.ycombinator.com/item?id={id}` for Hacker News. Omit the secondary link only if it would duplicate the primary link.
+- **Primary link** (on the bolded title): the outbound article URL. For Reddit self-posts (outbound URL host is `reddit.com`), use the comment-thread URL as the primary link instead. For HN text posts (no `url`), use the HN thread URL as the primary link.
+- **Secondary link** (labeled "Discussion" or "HN thread"): the comment thread — the entry-level `<link href>` for Reddit, `https://news.ycombinator.com/item?id={id}` for Hacker News. Omit the secondary link only if it would duplicate the primary link.
 
 Use one blank line between sections. Do not add a table of contents, a footer, or any other boilerplate.
 
