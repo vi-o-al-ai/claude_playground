@@ -45,9 +45,16 @@ Reddit gated the anonymous `.json` API in late 2025 (403 to all anonymous client
   - **Title:** inner text of `<title>`.
   - **Comment thread URL:** entry-level `<link href="…">` (Reddit's comments page for the post).
   - **Author:** `<author><name>` (e.g. `/u/jkmonger`).
-  - **Published time:** `<published>` (ISO timestamp; available, not always rendered).
-  - **Outbound article URL:** parse from the HTML-escaped `<content type="html">`. Find the `<a href="…">[link]</a>` anchor and read its `href`.
-  - **Self-post detection:** if the outbound URL's host is `reddit.com` (or it equals the entry's `<link href>`), treat it as a self-post.
+  - **Published time:** `<published>` (ISO 8601 timestamp — used for the relative-time field, see Step 4).
+  - **Outbound article URL — explicit extraction procedure** (this is the part agents get wrong, follow it literally):
+    1. Read the `<content type="html">` text. Reddit double-escapes the inner HTML; after one pass of un-escaping (`&lt;` → `<`, `&quot;` → `"`, `&amp;` → `&`) you'll see normal HTML containing two anchors: one with the visible text `[link]` and one with the visible text `[comments]`.
+    2. Find the anchor whose **visible text is exactly `[link]`** (usually wrapped in `<span>…</span>`, sibling to the `[comments]` anchor). Read its `href`. That's the outbound URL.
+    3. **Self-post test** — the entry is a self-post if **any** of the following is true:
+       - The `[link]` anchor cannot be found.
+       - The `[link]` `href` equals the entry's `<link href>` (the comment-thread URL).
+       - The `[link]` `href`'s host is exactly `reddit.com` or `www.reddit.com`.
+    4. If self-post → use the comment-thread URL as the primary link and **omit** the Discussion link.
+       If link post → use the `[link]` `href` as the primary link and the comment-thread URL as the Discussion link.
   - **Self-post body** (when present): the markdown body appears inside `<div class="md">…</div>` within `<content>`. Strip HTML tags before using it as summary input.
 - **Not available in RSS:** `score`, `num_comments`. Omit those from the bullet.
 - **Section heading:** use the source's `label` if set, otherwise `r/{subreddit}`.
@@ -88,8 +95,8 @@ Emit the output file at `./data/digests/YYYY-MM-DD.md` with this exact structure
 
 ## {section heading for source 1}
 
-- **[Item title](https://primary-link)** — 1–2 sentence summary. [Discussion](https://secondary-link)
-- **[Item title](https://primary-link)** — 1–2 sentence summary. [Discussion](https://secondary-link)
+- **[Item title](https://primary-link)** — 1–2 sentence summary. [Discussion](https://secondary-link) _(2h ago)_
+- **[Item title](https://primary-link)** — 1–2 sentence summary. [Discussion](https://secondary-link) _(1d ago)_
 
 ## {section heading for source 2}
 
@@ -98,8 +105,19 @@ Emit the output file at `./data/digests/YYYY-MM-DD.md` with this exact structure
 
 **Link conventions:**
 
-- **Primary link** (on the bolded title): the outbound article URL. For Reddit self-posts (outbound URL host is `reddit.com`), use the comment-thread URL as the primary link instead. For HN text posts (no `url`), use the HN thread URL as the primary link.
+- **Primary link** (on the bolded title): the outbound article URL. For Reddit self-posts (decided by the procedure in the Reddit section above), use the comment-thread URL as the primary link instead. For HN text posts (no `url`), use the HN thread URL as the primary link.
 - **Secondary link** (labeled "Discussion" or "HN thread"): the comment thread — the entry-level `<link href>` for Reddit, `https://news.ycombinator.com/item?id={id}` for Hacker News. Omit the secondary link only if it would duplicate the primary link.
+
+**Posted-time field** (the `*(Xh ago)*` italic at the end of each bullet):
+
+- Source: `<published>` for Reddit (ISO 8601), `time` (Unix epoch seconds) for HN.
+- Compute the elapsed time between the post's published time and the current UTC time (use the `date` Bash tool if you need to confirm "now").
+- Format:
+  - Under 1 hour → `(just now)`
+  - 1–23 hours → `(Xh ago)`
+  - 1–6 days → `(Xd ago)`
+  - 7+ days → use the absolute date: `(May 22)` (the source rarely surfaces posts this old, but render gracefully if it happens).
+- Place the field after the Discussion link, with one space, wrapped in `*(…)*`. If there is no Discussion link (self-post), place it after the summary period: `… summary. *(2h ago)*`.
 
 Use one blank line between sections. Do not add a table of contents, a footer, or any other boilerplate.
 
