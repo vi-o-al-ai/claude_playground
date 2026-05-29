@@ -26,7 +26,8 @@
       "items": {
         "oneOf": [
           { "$ref": "#/definitions/redditSource" },
-          { "$ref": "#/definitions/hackernewsSource" }
+          { "$ref": "#/definitions/hackernewsSource" },
+          { "$ref": "#/definitions/rssSource" }
         ]
       }
     }
@@ -80,6 +81,29 @@
         "label": {
           "type": "string",
           "description": "Optional display label for the section heading. Defaults to 'Hacker News ({list})'."
+        }
+      }
+    },
+    "rssSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "url"],
+      "properties": {
+        "type": { "const": "rss" },
+        "url": {
+          "type": "string",
+          "description": "Absolute URL of an RSS 2.0 or Atom feed.",
+          "format": "uri",
+          "pattern": "^https?://"
+        },
+        "topN": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "label": {
+          "type": "string",
+          "description": "Optional display label for the section heading. Defaults to the feed's own title."
         }
       }
     }

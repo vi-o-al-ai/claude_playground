@@ -21,7 +21,7 @@ Read `./data/sources.json`. Validate that:
 
 1. It is valid JSON
 2. It has a non-empty `sources` array
-3. Each source has a `type` that is either `reddit` or `hackernews`
+3. Each source has a `type` that is one of `reddit`, `hackernews`, or `rss`
 
 If any validation fails, abort with a clear error message and do not commit.
 
@@ -74,6 +74,26 @@ Reddit gated the anonymous `.json` API in late 2025 (403 to all anonymous client
   - `text` (present on Ask HN / Show HN / text posts)
 - **Section heading:** use the source's `label` if set, otherwise `Hacker News ({list})`.
 
+### Type: `rss`
+
+A generic RSS 2.0 / Atom feed (blogs, news sites, release feeds). Unlike Reddit, public feeds are not gated — fetch the feed directly.
+
+- **Fetch:** call `WebFetch` on the source's `url`. If the fetch fails or the body is not a feed (HTML, 404, empty), per the error-handling table emit a section heading with a one-line "no items available today" note and continue.
+- **Format:** detect RSS 2.0 vs Atom by the root element:
+  - **RSS 2.0** — items are `<item>` under `<channel>`. The feed title is `<channel><title>`.
+  - **Atom** — items are `<entry>` under `<feed>`. The feed title is the top-level `<feed><title>`.
+- **Item order:** feeds are conventionally newest-first. Take the first `topN` items **as they appear**; do not re-sort.
+- **Per item, extract:**
+  - **Title:** inner text of `<title>`.
+  - **Article URL (primary link):**
+    - RSS: inner text of `<link>`.
+    - Atom: the `href` of `<link rel="alternate">`; if no `rel` is present, use the first `<link href>`.
+  - **Author** (optional, omit if absent): RSS `<author>` or `<dc:creator>`; Atom `<author><name>`.
+  - **Published time:** RSS `<pubDate>` (RFC 822, e.g. `Thu, 28 May 2026 18:18:43 +0000`); Atom `<published>`, falling back to `<updated>` (ISO 8601). Used for the relative-time field, see Step 4.
+  - **Summary input** (for Step 3 fallback): RSS `<description>` or `<content:encoded>`; Atom `<summary>` or `<content>`. These usually contain HTML — strip tags before use.
+- **No comment thread:** RSS feeds have no discussion page. Omit the secondary "Discussion" link entirely.
+- **Section heading:** use the source's `label` if set, otherwise the feed's own title (`<channel><title>` for RSS, `<feed><title>` for Atom).
+
 ## Step 3: Summarize each item
 
 For each item you fetched, write a **1–2 sentence neutral summary** (no editorializing, no marketing language, no exclamation points).
@@ -105,12 +125,12 @@ Emit the output file at `./data/digests/YYYY-MM-DD.md` with this exact structure
 
 **Link conventions:**
 
-- **Primary link** (on the bolded title): the outbound article URL. For Reddit self-posts (decided by the procedure in the Reddit section above), use the comment-thread URL as the primary link instead. For HN text posts (no `url`), use the HN thread URL as the primary link.
-- **Secondary link** (labeled "Discussion" or "HN thread"): the comment thread — the entry-level `<link href>` for Reddit, `https://news.ycombinator.com/item?id={id}` for Hacker News. Omit the secondary link only if it would duplicate the primary link.
+- **Primary link** (on the bolded title): the outbound article URL. For Reddit self-posts (decided by the procedure in the Reddit section above), use the comment-thread URL as the primary link instead. For HN text posts (no `url`), use the HN thread URL as the primary link. For `rss` items, the item's article URL.
+- **Secondary link** (labeled "Discussion" or "HN thread"): the comment thread — the entry-level `<link href>` for Reddit, `https://news.ycombinator.com/item?id={id}` for Hacker News. `rss` items have no comment thread, so they have no secondary link. Omit the secondary link only if it would duplicate the primary link (or, for `rss`, always).
 
 **Posted-time field** (the `*(Xh ago)*` italic at the end of each bullet):
 
-- Source: `<published>` for Reddit (ISO 8601), `time` (Unix epoch seconds) for HN.
+- Source: `<published>` for Reddit (ISO 8601), `time` (Unix epoch seconds) for HN, `<pubDate>`/`<published>`/`<updated>` for `rss` (RFC 822 or ISO 8601).
 - Compute the elapsed time between the post's published time and the current UTC time (use the `date` Bash tool if you need to confirm "now").
 - Format:
   - Under 1 hour → `(just now)`
