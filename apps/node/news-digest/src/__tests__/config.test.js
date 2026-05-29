@@ -9,7 +9,7 @@ const appRoot = resolve(here, "../..");
 const exampleConfig = JSON.parse(readFileSync(resolve(appRoot, "sources.example.json"), "utf8"));
 const schema = JSON.parse(readFileSync(resolve(appRoot, "sources.schema.json"), "utf8"));
 
-const SUPPORTED_TYPES = new Set(["reddit", "hackernews"]);
+const SUPPORTED_TYPES = new Set(["reddit", "hackernews", "rss"]);
 const REDDIT_TIME_WINDOWS = new Set(["hour", "day", "week", "month", "year", "all"]);
 const HN_LISTS = new Set(["topstories", "newstories", "beststories"]);
 
@@ -21,9 +21,10 @@ describe("sources.schema.json", () => {
     expect(schema.required).toContain("sources");
   });
 
-  it("defines the reddit and hackernews source variants", () => {
+  it("defines the reddit, hackernews, and rss source variants", () => {
     expect(schema.definitions.redditSource).toBeDefined();
     expect(schema.definitions.hackernewsSource).toBeDefined();
+    expect(schema.definitions.rssSource).toBeDefined();
   });
 });
 
@@ -56,6 +57,14 @@ describe("sources.example.json", () => {
       if (source.list !== undefined) {
         expect(HN_LISTS.has(source.list)).toBe(true);
       }
+    }
+  });
+
+  it("has valid rss sources when present", () => {
+    const rss = exampleConfig.sources.filter((s) => s.type === "rss");
+    for (const source of rss) {
+      expect(typeof source.url).toBe("string");
+      expect(source.url).toMatch(/^https?:\/\//);
     }
   });
 

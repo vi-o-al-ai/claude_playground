@@ -17,6 +17,12 @@
     {
       "type": "hackernews",
       "list": "topstories"
+    },
+    {
+      "type": "rss",
+      "url": "https://github.blog/feed/",
+      "label": "GitHub Blog",
+      "topN": 3
     }
   ]
 }
