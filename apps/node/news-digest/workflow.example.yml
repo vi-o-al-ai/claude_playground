@@ -43,9 +43,10 @@ jobs:
           git config user.name "news-digest-bot"
           git config user.email "news-digest-bot@users.noreply.github.com"
 
-      # Reddit blocks Claude's WebFetch UA and rate-limits the GitHub Actions IP pool.
-      # Pre-fetch each reddit source from a shell step with a polite UA so the agent
-      # can read the JSON from disk via the Read tool. HN doesn't have this problem.
+      # Reddit gated the anonymous .json API in late 2025 (403 to all anonymous
+      # clients regardless of IP/UA). The RSS feed at /r/{sub}/top.rss is still
+      # ungated, so pre-fetch the Atom XML in a shell step with a polite UA and
+      # let the agent read it from disk. HN doesn't have this problem.
       - name: Pre-fetch Reddit sources
         working-directory: data
         run: |
@@ -57,10 +58,10 @@ jobs:
             sub=$(echo "$src"     | jq -r '.subreddit')
             window=$(echo "$src"  | jq -r '.timeWindow // "day"')
             topn=$(echo "$src"    | jq -r ".topN // $DEFAULT_TOPN")
-            url="https://www.reddit.com/r/${sub}/top.json?limit=${topn}&t=${window}"
+            url="https://www.reddit.com/r/${sub}/top.rss?limit=${topn}&t=${window}"
             echo "Fetching r/${sub} (topN=${topn}, window=${window})"
             for attempt in 1 2; do
-              if curl -sSfL -m 30 -H "User-Agent: $UA" "$url" -o ".fetched/reddit/${sub}.json"; then
+              if curl -sSfL -m 30 -H "User-Agent: $UA" "$url" -o ".fetched/reddit/${sub}.xml"; then
                 echo "  → success (attempt $attempt)"
                 break
               fi
@@ -69,7 +70,7 @@ jobs:
                 sleep 30
               else
                 echo "::warning::Failed to fetch r/${sub} after retries; digest will note 'no items available today'"
-                rm -f ".fetched/reddit/${sub}.json"
+                rm -f ".fetched/reddit/${sub}.xml"
               fi
             done
           done
@@ -84,7 +85,7 @@ jobs:
 
             Context:
             - Config file: ./data/sources.json
-            - Pre-fetched Reddit JSON: ./data/.fetched/reddit/{subreddit}.json (read with Read tool)
+            - Pre-fetched Reddit Atom XML: ./data/.fetched/reddit/{subreddit}.xml (read with Read tool)
             - Output directory: ./data/digests/
             - Filename: YYYY-MM-DD.md where the date is today in UTC
             - Working directory for git operations: ./data
