@@ -5,6 +5,7 @@ import { createYouTubeClient } from "./youtube.js";
 import { convertPlaylist, withPendingResults } from "./convert.js";
 import { createAuthorizer, loadGoogleIdentity, isTokenValid, validateClientId } from "./auth.js";
 import { loadSettings, saveSettings, loadJob, saveJob, clearJob } from "./storage.js";
+import { buildResultsCsv } from "./csv.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -433,25 +434,7 @@ function resultRow(result) {
 
 el.downloadBtn.addEventListener("click", () => {
   const results = state.lastRun?.results || state.savedJob?.results || [];
-  const csv = [
-    ["#", "title", "artist", "status", "video_id", "video_title", "channel", "score"].join(","),
-    ...results.map((r) =>
-      [
-        r.index + 1,
-        r.track?.title,
-        r.track?.artist,
-        r.status,
-        r.video?.videoId ?? "",
-        r.video?.title ?? "",
-        r.video?.channelTitle ?? "",
-        r.score?.toFixed(2) ?? "",
-      ]
-        .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
-        .join(","),
-    ),
-  ].join("\n");
-
-  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  const url = URL.createObjectURL(new Blob([buildResultsCsv(results)], { type: "text/csv" }));
   const link = document.createElement("a");
   link.href = url;
   link.download = "apple-music-to-youtube.csv";
