@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "Space Invaders game for AI Games Arcade",
+  "arcade": {
+    "title": "Space Invaders",
+    "emoji": "👾",
+    "description": "Defend Earth from waves of alien invaders."
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

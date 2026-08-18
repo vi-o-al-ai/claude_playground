@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "Solitaire game for AI Games Arcade",
+  "arcade": {
+    "title": "Solitaire",
+    "emoji": "🃏",
+    "description": "The timeless single-player card game."
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "Sudoku game for AI Games Arcade",
+  "arcade": {
+    "title": "Sudoku",
+    "emoji": "🧩",
+    "description": "Fill the grid with logic in this number puzzle."
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

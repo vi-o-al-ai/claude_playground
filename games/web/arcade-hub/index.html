@@ -43,13 +43,25 @@
         font-size: 1.1rem;
       }
 
+      .section {
+        max-width: 1100px;
+        margin: 2.5rem auto;
+        padding: 0 1.5rem;
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+        color: #fff;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #2a2a4a;
+        padding-bottom: 0.5rem;
+      }
+
       .games-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1.5rem;
-        max-width: 1100px;
-        margin: 2.5rem auto;
-        padding: 0 1.5rem;
+        margin-top: 1.5rem;
       }
 
       .game-card {
@@ -106,48 +118,20 @@
       <p>A collection of browser games built with AI</p>
     </header>
 
-    <main class="games-grid">
-      <a class="game-card" href="../space-invaders/index.html">
-        <div class="game-icon">&#128126;</div>
-        <h2>Space Invaders</h2>
-        <p>Defend Earth from waves of alien invaders.</p>
-      </a>
+    <!--
+      Cards are generated at build time from each project's arcade metadata by
+      scripts/build-manifest.mjs — never hand-edit them here.
+    -->
+    <main>
+      <section class="section" id="games-section" hidden>
+        <h2 class="section-title">Games</h2>
+        <div class="games-grid" id="games-grid"></div>
+      </section>
 
-      <a class="game-card" href="../splendor/index.html">
-        <div class="game-icon">&#128142;</div>
-        <h2>Splendor</h2>
-        <p>Collect gems and build your trade empire.</p>
-      </a>
-
-      <a class="game-card" href="../sudoku/index.html">
-        <div class="game-icon">&#129529;</div>
-        <h2>Sudoku</h2>
-        <p>Fill the grid with logic in this number puzzle.</p>
-      </a>
-
-      <a class="game-card" href="../solitaire/index.html">
-        <div class="game-icon">&#127183;</div>
-        <h2>Solitaire</h2>
-        <p>The timeless single-player card game.</p>
-      </a>
-
-      <a class="game-card" href="../tic-tac-toe/index.html">
-        <div class="game-icon">&#10060;</div>
-        <h2>Tic Tac Toe</h2>
-        <p>Classic X's and O's &mdash; simple but strategic.</p>
-      </a>
-
-      <a class="game-card" href="../in-a-nutshell/index.html">
-        <div class="game-icon">&#129372;</div>
-        <h2>In a Nutshell</h2>
-        <p>Reveal clue words and race to guess the hidden answer.</p>
-      </a>
-
-      <a class="game-card" href="../../godot/runner/index.html">
-        <div class="game-icon">&#129503;</div>
-        <h2>Zombie Lane Runner</h2>
-        <p>Dodge and shoot zombies in this 3D endless lane runner.</p>
-      </a>
+      <section class="section" id="apps-section" hidden>
+        <h2 class="section-title">Apps</h2>
+        <div class="games-grid" id="apps-grid"></div>
+      </section>
     </main>
 
     <footer>
@@ -156,6 +140,8 @@
         Source on GitHub
       </a>
     </footer>
+
+    <script type="module" src="./src/main.js"></script>
 
     <script>
       if ("serviceWorker" in navigator) {

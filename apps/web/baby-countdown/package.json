@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "Baby countdown tracker for AI Games Arcade",
+  "arcade": {
+    "title": "Baby Countdown",
+    "emoji": "🫘",
+    "description": "A little-bean countdown to the due date, with Hogwarts on the horizon."
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
