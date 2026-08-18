@@ -34,7 +34,7 @@ Pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged `.js`, 
 
 ## Architecture
 
-- **`games/web/*`** — Vite + Vanilla JS games. Each has its own `index.html`, `vite.config.js`, and `package.json`. Configs use `createGameConfig()` from the root `vite.shared.js`.
+- **`games/web/*`** — Vite + Vanilla JS games. Each has its own `index.html`, `vite.config.js`, and `package.json`. Configs use `createProjectConfig()` from the root `vite.shared.js`.
 - **`games/godot/*`** — Godot 4.6 projects (GDScript, not JS). Excluded from ESLint. Uses GUT for testing; CI runs tests in a `barichello/godot-ci:4.6` container.
 - **`apps/web/*`** — Vite + Vanilla JS apps (same structure as web games).
 - **`apps/node/*`** — Node.js apps (non-browser, e.g. CI-only workflows).
@@ -67,7 +67,7 @@ Always follow test-driven development. For every feature or bug fix:
 
 ## Adding a New Game
 
-1. Create `games/web/<name>/` with `package.json` (name `@ai-arcade/<name>`), `index.html`, `vite.config.js` (use `createGameConfig()`), and `src/`.
+1. Create `games/web/<name>/` with `package.json` (name `@ai-arcade/<name>`), `index.html`, `vite.config.js` (use `createProjectConfig()`), and `src/`.
 2. Add `@ai-arcade/shared-ui` as a dependency if using shared components.
 3. Run `npm install` from root to link workspaces.
 4. Tests go in `src/__tests__/*.test.js` (Vitest + jsdom).
