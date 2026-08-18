@@ -8,7 +8,7 @@ Each game follows engine.js (pure game logic) + ui.js (DOM/Canvas rendering) sep
 
 ## Shared UI
 
-Most games depend on `@arcade/shared-ui` for consistent components: GameHeader, GameOver, Modal, and theme CSS.
+Most games depend on `@ai-arcade/shared-ui` for consistent components: GameHeader, GameOver, Modal, and theme CSS.
 
 ## Testing
 

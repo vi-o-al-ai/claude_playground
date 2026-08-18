@@ -10,6 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@arcade/shared-ui": "*"
+    "@ai-arcade/shared-ui": "*"
   }
 }

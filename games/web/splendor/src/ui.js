@@ -6,7 +6,7 @@ import { GEM_COLORS, GEM_HEX, SplendorGame } from "./engine.js";
 import { SplendorNetwork } from "./network.js";
 import { AssetStore } from "./asset-store.js";
 import { initArtCustomizer } from "./asset-ui.js";
-import { GameHeader, GameOver } from "@arcade/shared-ui";
+import { GameHeader, GameOver } from "@ai-arcade/shared-ui";
 
 const gameOverOverlay = new GameOver();
 let gameHeader = null;

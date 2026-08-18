@@ -3,7 +3,7 @@
  * Wires DOM events to engine functions.
  */
 import { createGameState, makeMove, computeComputerMove, restart } from "./engine.js";
-import { GameHeader, GameOver } from "@arcade/shared-ui";
+import { GameHeader, GameOver } from "@ai-arcade/shared-ui";
 
 const state = createGameState();
 const gameOverOverlay = new GameOver();

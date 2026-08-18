@@ -4,4 +4,4 @@ Real-time activity timeline tracker. All logic is inline in a single `index.html
 
 - localStorage for persistence.
 - Export/import JSON for data portability.
-- No external dependencies, no `@arcade/shared-ui`.
+- No external dependencies, no `@ai-arcade/shared-ui`.

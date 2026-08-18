@@ -20,7 +20,7 @@ npm run check         # lint + format:check + test (all-in-one local check)
 npx vitest run games/web/sudoku/src/__tests__/engine.test.js
 
 # Dev server for a specific game/app
-npm run dev --workspace games/web/tic-tac-toe
+npm run dev -w games/web/tic-tac-toe
 
 # Build all packages
 npm run build
@@ -38,7 +38,7 @@ Pre-commit hook (husky + lint-staged) runs ESLint and Prettier on staged `.js`, 
 - **`games/godot/*`** — Godot 4.6 projects (GDScript, not JS). Excluded from ESLint. Uses GUT for testing; CI runs tests in a `barichello/godot-ci:4.6` container.
 - **`apps/web/*`** — Vite + Vanilla JS apps (same structure as web games).
 - **`apps/node/*`** — Node.js apps (non-browser, e.g. CI-only workflows).
-- **`packages/shared-ui`** — Shared UI components (game-header, game-over, modal, theme CSS). Games depend on it via `@arcade/shared-ui`.
+- **`packages/shared-ui`** — Shared UI components (game-header, game-over, modal, theme CSS). Games depend on it via `@ai-arcade/shared-ui`.
 - **`games/web/arcade-hub`** — Landing page that links to all games.
 
 ## CI/CD
@@ -68,6 +68,6 @@ Always follow test-driven development. For every feature or bug fix:
 ## Adding a New Game
 
 1. Create `games/web/<name>/` with `package.json` (name `@ai-arcade/<name>`), `index.html`, `vite.config.js` (use `createGameConfig()`), and `src/`.
-2. Add `@arcade/shared-ui` as a dependency if using shared components.
+2. Add `@ai-arcade/shared-ui` as a dependency if using shared components.
 3. Run `npm install` from root to link workspaces.
 4. Tests go in `src/__tests__/*.test.js` (Vitest + jsdom).

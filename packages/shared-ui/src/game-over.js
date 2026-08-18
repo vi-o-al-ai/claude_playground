@@ -2,7 +2,7 @@
  * Game-over overlay with stats display and restart action.
  *
  * Usage:
- *   import { GameOver } from '@arcade/shared-ui';
+ *   import { GameOver } from '@ai-arcade/shared-ui';
  *
  *   const gameOver = new GameOver();
  *   gameOver.show({

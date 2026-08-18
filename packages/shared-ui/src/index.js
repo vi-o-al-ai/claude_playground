@@ -1,13 +1,13 @@
 /**
- * @arcade/shared-ui — Shared UI component library for AI Games Arcade
+ * @ai-arcade/shared-ui — Shared UI component library for AI Games Arcade
  *
  * Provides reusable, vanilla-JS components that any game can opt into:
  *
- *   import { Modal, GameHeader, GameOver } from '@arcade/shared-ui';
+ *   import { Modal, GameHeader, GameOver } from '@ai-arcade/shared-ui';
  *
  * For theming, import the CSS file directly:
  *
- *   import '@arcade/shared-ui/theme';   // via bundler
+ *   import '@ai-arcade/shared-ui/theme';   // via bundler
  *   <link rel="stylesheet" href="…/packages/shared-ui/src/theme.css">
  */
 

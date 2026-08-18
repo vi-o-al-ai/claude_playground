@@ -2,7 +2,7 @@
  * Game header component with arcade navigation, title, and optional settings.
  *
  * Usage:
- *   import { GameHeader } from '@arcade/shared-ui';
+ *   import { GameHeader } from '@ai-arcade/shared-ui';
  *
  *   const header = new GameHeader({
  *     title: 'Sudoku',

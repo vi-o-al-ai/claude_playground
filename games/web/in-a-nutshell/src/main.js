@@ -1,4 +1,4 @@
-import { GameHeader } from "@arcade/shared-ui";
+import { GameHeader } from "@ai-arcade/shared-ui";
 import {
   createGame,
   selectCard,

@@ -5,9 +5,9 @@
  * Override any variable in your game's own stylesheet to customize.
  *
  * Usage:
- *   <link rel="stylesheet" href="@arcade/shared-ui/theme">
+ *   <link rel="stylesheet" href="@ai-arcade/shared-ui/theme">
  *   — or —
- *   import '@arcade/shared-ui/theme';
+ *   import '@ai-arcade/shared-ui/theme';
  */
 
 :root {
