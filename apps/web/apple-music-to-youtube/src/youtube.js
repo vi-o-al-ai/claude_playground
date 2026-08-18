@@ -11,6 +11,17 @@ const QUOTA_REASONS = new Set([
   "userRateLimitExceeded",
 ]);
 
+/**
+ * Classifies a failure as the kind of stop a run can be resumed from, or null
+ * when it is a hard failure. Kept here so the quota reasons have one home.
+ */
+export function stopReasonFor(error) {
+  const reason = error?.reason;
+  if (QUOTA_REASONS.has(reason)) return "quotaExceeded";
+  if (reason === "unauthorized") return "unauthorized";
+  return null;
+}
+
 export class YouTubeError extends Error {
   constructor(message, { status = 0, reason = "unknown" } = {}) {
     super(message);

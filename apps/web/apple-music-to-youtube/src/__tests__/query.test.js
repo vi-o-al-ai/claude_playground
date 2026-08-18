@@ -58,6 +58,20 @@ describe("extractFeatured", () => {
     });
   });
 
+  it("keeps an artist name that merely starts with x", () => {
+    expect(extractFeatured("Renegades (feat. X Ambassadors)")).toEqual({
+      base: "Renegades",
+      featured: ["X Ambassadors"],
+    });
+  });
+
+  it("still splits an x-joined collaboration", () => {
+    expect(extractFeatured("Song (feat. Nas x Jay Electronica)")).toEqual({
+      base: "Song",
+      featured: ["Nas", "Jay Electronica"],
+    });
+  });
+
   it("returns an empty list when there is no credit", () => {
     expect(extractFeatured("Roads")).toEqual({ base: "Roads", featured: [] });
   });

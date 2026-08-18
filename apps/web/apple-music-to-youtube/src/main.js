@@ -278,6 +278,9 @@ async function runConversion({ playlistId, startIndex = 0, previousResults = [],
   el.resumeBtn.classList.add("hidden");
 
   const client = createYouTubeClient({ accessToken: state.token.accessToken });
+  // One array for the whole run: rebuilding it from `previousResults` on each
+  // tick would demote tracks this run already converted back to pending.
+  const liveResults = withPendingResults(trackList, previousResults);
 
   try {
     const run = await convertPlaylist({
@@ -295,13 +298,14 @@ async function runConversion({ playlistId, startIndex = 0, previousResults = [],
         el.progressLabel.textContent = `${index + 1} / ${total} — ${track.title} (${result.status}) · ${formatQuota(
           quotaUsed,
         )} units used`;
+        liveResults[result.index] = result;
         persistJob({
           playlistId: livePlaylistId,
           tracks: trackList,
-          results: partialResults(trackList, result, previousResults),
+          results: liveResults,
           resumeIndex: index + 1,
         });
-        renderResults({ playlistId: livePlaylistId, results: null });
+        renderResults({ playlistId: livePlaylistId, results: liveResults });
       },
     });
 
@@ -330,12 +334,6 @@ async function runConversion({ playlistId, startIndex = 0, previousResults = [],
     el.progressLabel.textContent = "";
     refreshGates();
   }
-}
-
-function partialResults(tracks, result, previousResults) {
-  const merged = withPendingResults(tracks, previousResults);
-  merged[result.index] = result;
-  return merged;
 }
 
 function persistJob(job) {

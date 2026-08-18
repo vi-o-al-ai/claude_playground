@@ -7,7 +7,9 @@ const NOISE =
 
 const FEAT_BRACKETED = /[([]\s*(?:feat|ft|featuring)\b\.?\s*([^)\]]+)[)\]]/i;
 const FEAT_TRAILING = /\s+(?:feat|ft|featuring)\b\.?\s+(.+)$/i;
-const FEAT_SPLIT = /\s*(?:[,&]|\bx\b)\s*/i;
+// The "A x B" collab separator needs space on both sides: a bare \bx\b would
+// also match the first word of names like "X Ambassadors" and eat it.
+const FEAT_SPLIT = /\s*,\s*|\s*&\s*|\s+x\s+/i;
 
 const collapse = (value) =>
   String(value ?? "")

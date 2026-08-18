@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createYouTubeClient, YouTubeError } from "../youtube.js";
+import { createYouTubeClient, YouTubeError, stopReasonFor } from "../youtube.js";
 
 function jsonResponse(body, status = 200) {
   return {
@@ -216,5 +216,35 @@ describe("error handling", () => {
       ),
     ]);
     await expect(client.addToPlaylist("PLnope", "v1")).rejects.toThrow(/Playlist not found/);
+  });
+});
+
+describe("stopReasonFor", () => {
+  it("treats every quota-shaped reason as a quota stop", () => {
+    for (const reason of [
+      "quotaExceeded",
+      "dailyLimitExceeded",
+      "rateLimitExceeded",
+      "userRateLimitExceeded",
+    ]) {
+      expect(stopReasonFor(new YouTubeError("x", { reason }))).toBe("quotaExceeded");
+    }
+  });
+
+  it("recognises an expired sign-in", () => {
+    expect(stopReasonFor(new YouTubeError("x", { status: 401, reason: "unauthorized" }))).toBe(
+      "unauthorized",
+    );
+  });
+
+  it("returns null for failures a run cannot be resumed from", () => {
+    expect(stopReasonFor(new YouTubeError("x", { reason: "forbidden" }))).toBeNull();
+    expect(stopReasonFor(new Error("boom"))).toBeNull();
+    expect(stopReasonFor(null)).toBeNull();
+  });
+
+  it("agrees with the isQuota flag on the error itself", () => {
+    expect(new YouTubeError("x", { reason: "quotaExceeded" }).isQuota).toBe(true);
+    expect(new YouTubeError("x", { reason: "unauthorized" }).isQuota).toBe(false);
   });
 });

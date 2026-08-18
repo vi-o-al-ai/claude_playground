@@ -7,6 +7,7 @@ const browserGlobals = {
   document: "readonly",
   console: "readonly",
   localStorage: "readonly",
+  Storage: "readonly",
   setTimeout: "readonly",
   setInterval: "readonly",
   clearTimeout: "readonly",

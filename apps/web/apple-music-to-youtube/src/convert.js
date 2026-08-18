@@ -5,14 +5,7 @@
  */
 import { buildSearchQuery } from "./query.js";
 import { pickBestMatch } from "./match.js";
-
-const STOP_REASONS = {
-  quotaExceeded: "quotaExceeded",
-  dailyLimitExceeded: "quotaExceeded",
-  rateLimitExceeded: "quotaExceeded",
-  userRateLimitExceeded: "quotaExceeded",
-  unauthorized: "unauthorized",
-};
+import { stopReasonFor } from "./youtube.js";
 
 /**
  * Lines a result up for every track: whatever an earlier run finished, and a
@@ -60,7 +53,7 @@ export async function convertPlaylist({
     } catch (error) {
       // Running out of quota or auth before the first track is still a stop the
       // caller can report and resume from, not an exception.
-      const stop = STOP_REASONS[error?.reason];
+      const stop = stopReasonFor(error);
       if (!stop) throw error;
       return {
         playlistId: undefined,
@@ -95,7 +88,7 @@ export async function convertPlaylist({
         candidatesPerTrack,
       });
     } catch (error) {
-      const stop = STOP_REASONS[error?.reason];
+      const stop = stopReasonFor(error);
       if (stop) {
         stoppedReason = stop;
         break;
