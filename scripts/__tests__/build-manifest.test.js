@@ -294,22 +294,22 @@ describe("CLI", () => {
 });
 
 describe("the real repository", () => {
-  it("produces one entry per deployable project", () => {
+  // Invariant checks only — no pinned project list, so adding a new
+  // project never requires touching this test.
+  it("produces valid entries for every deployable project", () => {
     const { entries, errors } = buildManifest(REPO_ROOT);
 
     expect(errors).toEqual([]);
-    expect(entries.map((entry) => entry.url).sort()).toEqual([
-      "apps/apple-music-to-youtube/",
-      "apps/baby-countdown/",
-      "apps/timeline-tracker/",
-      "games/in-a-nutshell/",
-      "games/runner/",
-      "games/solitaire/",
-      "games/space-invaders/",
-      "games/splendor/",
-      "games/sudoku/",
-      "games/tic-tac-toe/",
-    ]);
+    expect(entries.length).toBeGreaterThan(0);
+    for (const entry of entries) {
+      expect(entry.url).toMatch(/^(games|apps)\/[a-z0-9-]+\/$/);
+      expect(entry.url).toBe(`${entry.category}/${entry.slug}/`);
+    }
+    // Both metadata sources are represented: package.json projects and
+    // at least one arcade.json (Godot) project.
+    expect(entries.some((entry) => entry.category === "games")).toBe(true);
+    expect(entries.some((entry) => entry.category === "apps")).toBe(true);
+    expect(entries.some((entry) => entry.slug === "runner")).toBe(true);
     // The hub itself and the CI-only Node app are not deployable cards.
     expect(entries.some((entry) => entry.slug === "arcade-hub")).toBe(false);
     expect(entries.some((entry) => entry.slug === "news-digest")).toBe(false);

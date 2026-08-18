@@ -65,6 +65,29 @@ function subdirectories(dir) {
 }
 
 /**
+ * Lists every project directory in a category, across all of its stacks.
+ *
+ * A project's directory name is its deploy slug: `<category>/<stack>/<slug>`
+ * deploys to `<category>/<slug>/`, so two stacks in the same category can never
+ * share a name. Callers that care about that clash (the manifest builder, the
+ * scaffolder) share this scan rather than re-walking the tree.
+ *
+ * @param {string} repoRoot - Absolute path to the repository root
+ * @param {string} category - Top-level directory, e.g. "games"
+ * @returns {{ slug: string, stack: string, category: string, path: string }[]}
+ *   In stack order, then slug order; `path` is repo-relative.
+ */
+export function listProjects(repoRoot, category) {
+  const projects = [];
+  for (const stack of subdirectories(join(repoRoot, category))) {
+    for (const slug of subdirectories(join(repoRoot, category, stack))) {
+      projects.push({ slug, stack, category, path: `${category}/${stack}/${slug}` });
+    }
+  }
+  return projects;
+}
+
+/**
  * Checks that a metadata object declares every required field as a non-empty
  * string.
  *
@@ -132,42 +155,39 @@ export function buildManifest(repoRoot) {
     /** @type {Map<string, string>} slug -> first project path that claimed it */
     const seen = new Map();
 
-    for (const stack of subdirectories(join(repoRoot, category))) {
-      for (const slug of subdirectories(join(repoRoot, category, stack))) {
-        const label = `${category}/${stack}/${slug}`;
-        const projectDir = join(repoRoot, category, stack, slug);
+    for (const { slug, path: label } of listProjects(repoRoot, category)) {
+      const projectDir = join(repoRoot, label);
 
-        const { arcade, errors: loadErrors, found } = loadMetadata(projectDir, label);
-        if (loadErrors.length > 0) {
-          errors.push(...loadErrors);
-          continue;
-        }
-        if (!found || arcade === undefined) continue;
-
-        const problems = validate(arcade);
-        if (problems.length > 0) {
-          errors.push(`${label}: ${problems.join("; ")}`);
-          continue;
-        }
-
-        const claimed = seen.get(slug);
-        if (claimed) {
-          errors.push(
-            `duplicate slug "${slug}" in ${category}: ${claimed} and ${label} would both deploy to ${category}/${slug}/`,
-          );
-          continue;
-        }
-        seen.set(slug, label);
-
-        entries.push({
-          slug,
-          category,
-          title: arcade.title,
-          emoji: arcade.emoji,
-          description: arcade.description,
-          url: `${category}/${slug}/`,
-        });
+      const { arcade, errors: loadErrors, found } = loadMetadata(projectDir, label);
+      if (loadErrors.length > 0) {
+        errors.push(...loadErrors);
+        continue;
       }
+      if (!found || arcade === undefined) continue;
+
+      const problems = validate(arcade);
+      if (problems.length > 0) {
+        errors.push(`${label}: ${problems.join("; ")}`);
+        continue;
+      }
+
+      const claimed = seen.get(slug);
+      if (claimed) {
+        errors.push(
+          `duplicate slug "${slug}" in ${category}: ${claimed} and ${label} would both deploy to ${category}/${slug}/`,
+        );
+        continue;
+      }
+      seen.set(slug, label);
+
+      entries.push({
+        slug,
+        category,
+        title: arcade.title,
+        emoji: arcade.emoji,
+        description: arcade.description,
+        url: `${category}/${slug}/`,
+      });
     }
   }
 
