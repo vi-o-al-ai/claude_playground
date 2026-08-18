@@ -1,15 +1,18 @@
 name: CI Godot
 
+# Godot CI is slow and heavy, so it keeps path filters — but they are
+# stack-generic (`games/godot/**`), so adding a second Godot project requires
+# no workflow edits.
 on:
   push:
     branches: [main]
     paths:
-      - "games/godot/runner/**"
+      - "games/godot/**"
       - ".github/workflows/ci-godot.yml"
   pull_request:
     branches: [main]
     paths:
-      - "games/godot/runner/**"
+      - "games/godot/**"
       - ".github/workflows/ci-godot.yml"
 
 jobs:
@@ -20,12 +23,41 @@ jobs:
       image: barichello/godot-ci:4.6
     steps:
       - uses: actions/checkout@v4
-      - name: Import project
+
+      - name: Import projects
         run: |
-          cd games/godot/runner
-          godot --headless --import 2>&1 || true
-          godot --headless --import 2>&1 || true
+          set -eu
+          found=0
+          for proj in games/godot/*/; do
+            [ -f "$proj/project.godot" ] || continue
+            found=1
+            echo "::group::Importing $proj"
+            (cd "$proj" && godot --headless --import 2>&1 || true)
+            (cd "$proj" && godot --headless --import 2>&1 || true)
+            echo "::endgroup::"
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "No Godot projects found under games/godot/"
+            exit 1
+          fi
+
       - name: Run GUT tests
         run: |
-          cd games/godot/runner
-          godot --headless -s res://addons/gut/gut_cmdln.gd 2>&1
+          set -eu
+          failed=""
+          for proj in games/godot/*/; do
+            [ -f "$proj/project.godot" ] || continue
+            name=$(basename "$proj")
+            echo "::group::GUT tests for $name"
+            if (cd "$proj" && godot --headless -s res://addons/gut/gut_cmdln.gd 2>&1); then
+              echo "$name: tests passed"
+            else
+              echo "$name: tests FAILED"
+              failed="$failed $name"
+            fi
+            echo "::endgroup::"
+          done
+          if [ -n "$failed" ]; then
+            echo "Godot tests failed for:$failed"
+            exit 1
+          fi
