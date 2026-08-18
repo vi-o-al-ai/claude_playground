@@ -75,20 +75,23 @@ export function createAuthorizer({ clientId, google, now = () => Date.now() } = 
   };
 }
 
-/** Loads the GIS script once, resolving with `window.google`. */
+/** Loads the GIS script, resolving with `window.google`. */
 export function loadGoogleIdentity(doc = document, win = window) {
   if (win.google?.accounts?.oauth2) return Promise.resolve(win.google);
+
   return new Promise((resolve, reject) => {
-    const existing = doc.querySelector(`script[src="${GIS_SCRIPT_URL}"]`);
-    const script = existing || doc.createElement("script");
+    // A failed attempt leaves a dead tag behind. Its load/error event has
+    // already fired and will never fire again, so reusing it would leave this
+    // promise unsettled forever — always start from a fresh tag.
+    doc.querySelector(`script[src="${GIS_SCRIPT_URL}"]`)?.remove();
+
+    const script = doc.createElement("script");
     script.addEventListener("load", () => resolve(win.google));
     script.addEventListener("error", () =>
       reject(new Error("Could not load Google Identity Services")),
     );
-    if (!existing) {
-      script.src = GIS_SCRIPT_URL;
-      script.async = true;
-      doc.head.appendChild(script);
-    }
+    script.src = GIS_SCRIPT_URL;
+    script.async = true;
+    doc.head.appendChild(script);
   });
 }

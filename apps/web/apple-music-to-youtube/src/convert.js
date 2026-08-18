@@ -14,6 +14,17 @@ const STOP_REASONS = {
   unauthorized: "unauthorized",
 };
 
+/**
+ * Lines a result up for every track: whatever an earlier run finished, and a
+ * `pending` placeholder for everything still to do.
+ */
+export function withPendingResults(tracks, previousResults = []) {
+  return tracks.map((track, index) => {
+    const previous = previousResults?.find((r) => r.index === index);
+    return previous || { index, track, status: "pending" };
+  });
+}
+
 export async function convertPlaylist({
   tracks,
   client,
@@ -33,21 +44,34 @@ export async function convertPlaylist({
     throw new Error("a playlist title or an existing playlist id is required");
   }
 
-  const results = tracks.map((track, index) => {
-    const previous = previousResults.find((r) => r.index === index);
-    return previous || { index, track, status: "pending" };
-  });
+  const results = withPendingResults(tracks, previousResults);
 
   let resolvedPlaylistId = playlistId;
   let playlistUrl = playlistId ? `https://www.youtube.com/playlist?list=${playlistId}` : "";
   if (!resolvedPlaylistId) {
-    const created = await client.createPlaylist({
-      title: playlistTitle,
-      description,
-      privacyStatus,
-    });
-    resolvedPlaylistId = created.playlistId;
-    playlistUrl = created.url;
+    try {
+      const created = await client.createPlaylist({
+        title: playlistTitle,
+        description,
+        privacyStatus,
+      });
+      resolvedPlaylistId = created.playlistId;
+      playlistUrl = created.url;
+    } catch (error) {
+      // Running out of quota or auth before the first track is still a stop the
+      // caller can report and resume from, not an exception.
+      const stop = STOP_REASONS[error?.reason];
+      if (!stop) throw error;
+      return {
+        playlistId: undefined,
+        playlistUrl: "",
+        results,
+        quotaUsed: client.quotaUsed,
+        stoppedReason: stop,
+        resumeIndex: startIndex,
+        completed: false,
+      };
+    }
   }
 
   let stoppedReason = null;
@@ -88,12 +112,6 @@ export async function convertPlaylist({
       quotaUsed: client.quotaUsed,
       playlistId: resolvedPlaylistId,
     });
-
-    if (signal?.aborted && index + 1 < tracks.length) {
-      stoppedReason = "aborted";
-      index += 1;
-      break;
-    }
   }
 
   return {

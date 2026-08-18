@@ -65,6 +65,11 @@ function coverage(needles, haystack) {
   return needles.filter((token) => set.has(token)).length / needles.length;
 }
 
+function usableDuration(value) {
+  const seconds = Number(value);
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+}
+
 function clamp01(value) {
   return Math.min(1, Math.max(0, value));
 }
@@ -87,8 +92,10 @@ export function scoreCandidate(track, candidate) {
   const artistScore = artist ? coverage(tokenize(artist), haystack) : null;
 
   let durationScore = null;
-  const trackDuration = Number(track?.durationSec) || null;
-  const candidateDuration = Number(candidate?.durationSec) || null;
+  // A zero-length track or video carries no signal — treat it as unknown
+  // rather than scoring every real match against nothing.
+  const trackDuration = usableDuration(track?.durationSec);
+  const candidateDuration = usableDuration(candidate?.durationSec);
   if (trackDuration && candidateDuration) {
     const drift = Math.abs(trackDuration - candidateDuration);
     durationScore = clamp01(1 - drift / DURATION_TOLERANCE_SEC);

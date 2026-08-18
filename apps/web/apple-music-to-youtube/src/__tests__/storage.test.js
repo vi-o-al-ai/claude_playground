@@ -68,6 +68,26 @@ describe("job state", () => {
     expect(loadJob(store)).toBeNull();
   });
 
+  it("does not persist the per-candidate search data the UI never reads", () => {
+    saveJob(store, {
+      ...job,
+      results: [
+        {
+          index: 0,
+          status: "added",
+          video: { videoId: "v1", title: "Roads" },
+          candidates: Array.from({ length: 5 }, (_, i) => ({ videoId: `c${i}`, title: "junk" })),
+          alternatives: [{ video: { videoId: "c1" }, score: 0.4 }],
+        },
+      ],
+    });
+
+    const raw = store.getItem("apple-music-to-youtube:job");
+    expect(raw).not.toContain("candidates");
+    expect(raw).not.toContain("alternatives");
+    expect(loadJob(store).results[0]).toMatchObject({ status: "added", video: { videoId: "v1" } });
+  });
+
   it("returns null rather than throwing on corrupt job data", () => {
     store.setItem("apple-music-to-youtube:job", "]]not json[[");
     expect(loadJob(store)).toBeNull();

@@ -38,8 +38,23 @@ export function saveSettings(store, settings) {
   return writeJson(store, SETTINGS_KEY, safe);
 }
 
+/**
+ * The per-track search candidates are only useful while a run is live — the
+ * results table never reads them — and writing five of them per track on every
+ * progress tick is what would push a long playlist into the storage quota.
+ */
+function slimJob(job) {
+  if (!Array.isArray(job?.results)) return job;
+  return {
+    ...job,
+    results: job.results.map(
+      ({ candidates: _candidates, alternatives: _alternatives, ...keep }) => keep,
+    ),
+  };
+}
+
 export function saveJob(store, job) {
-  return writeJson(store, JOB_KEY, job);
+  return writeJson(store, JOB_KEY, slimJob(job));
 }
 
 export function loadJob(store) {

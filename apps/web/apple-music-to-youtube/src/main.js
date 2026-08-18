@@ -2,7 +2,7 @@
 import { parsePlaylist, decodePlaylistFile } from "./parser.js";
 import { estimateQuota, maxTracksWithin, formatQuota, DAILY_QUOTA_UNITS } from "./quota.js";
 import { createYouTubeClient } from "./youtube.js";
-import { convertPlaylist } from "./convert.js";
+import { convertPlaylist, withPendingResults } from "./convert.js";
 import { createAuthorizer, loadGoogleIdentity, isTokenValid, validateClientId } from "./auth.js";
 import { loadSettings, saveSettings, loadJob, saveJob, clearJob } from "./storage.js";
 
@@ -152,16 +152,16 @@ el.clientId.value = settings.clientId;
 el.privacy.value = settings.privacyStatus;
 el.order.value = settings.order;
 
+function updateSettings(patch) {
+  saveSettings(localStorage, { ...loadSettings(localStorage), ...patch });
+}
+
 el.clientId.addEventListener("change", () => {
-  saveSettings(localStorage, { ...loadSettings(localStorage), clientId: el.clientId.value.trim() });
+  updateSettings({ clientId: el.clientId.value.trim() });
   refreshGates();
 });
-el.privacy.addEventListener("change", () => {
-  saveSettings(localStorage, { ...loadSettings(localStorage), privacyStatus: el.privacy.value });
-});
-el.order.addEventListener("change", () => {
-  saveSettings(localStorage, { ...loadSettings(localStorage), order: el.order.value });
-});
+el.privacy.addEventListener("change", () => updateSettings({ privacyStatus: el.privacy.value }));
+el.order.addEventListener("change", () => updateSettings({ order: el.order.value }));
 
 async function connect() {
   const clientId = el.clientId.value.trim();
@@ -176,7 +176,7 @@ async function connect() {
     const authorizer = createAuthorizer({ clientId, google });
     state.token = await authorizer.requestToken();
     el.connectState.innerHTML = `<span style="color:var(--ok)">Connected.</span>`;
-    saveSettings(localStorage, { ...loadSettings(localStorage), clientId });
+    updateSettings({ clientId });
     refreshGates();
     return true;
   } catch (error) {
@@ -333,10 +333,7 @@ async function runConversion({ playlistId, startIndex = 0, previousResults = [],
 }
 
 function partialResults(tracks, result, previousResults) {
-  const merged = tracks.map((track, index) => {
-    const previous = previousResults.find((r) => r.index === index);
-    return previous || { index, track, status: "pending" };
-  });
+  const merged = withPendingResults(tracks, previousResults);
   merged[result.index] = result;
   return merged;
 }
@@ -352,7 +349,10 @@ function renderResults(run) {
   const results = run?.results || state.savedJob?.results || [];
   if (!results.length) return;
 
-  const counts = results.reduce((acc, r) => ({ ...acc, [r.status]: (acc[r.status] || 0) + 1 }), {});
+  const counts = results.reduce((acc, r) => {
+    acc[r.status] = (acc[r.status] || 0) + 1;
+    return acc;
+  }, {});
   const playlistUrl = run?.playlistUrl || state.savedJob?.playlistUrl;
 
   const summary = [];

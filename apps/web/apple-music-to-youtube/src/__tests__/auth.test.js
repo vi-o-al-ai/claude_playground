@@ -1,10 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   YOUTUBE_SCOPE,
+  GIS_SCRIPT_URL,
   validateClientId,
   tokenFromResponse,
   isTokenValid,
   createAuthorizer,
+  loadGoogleIdentity,
 } from "../auth.js";
 
 describe("YOUTUBE_SCOPE", () => {
@@ -102,5 +104,81 @@ describe("createAuthorizer", () => {
     expect(() =>
       createAuthorizer({ clientId: "x.apps.googleusercontent.com", google: undefined }),
     ).toThrow(/google identity/i);
+  });
+});
+
+describe("loadGoogleIdentity", () => {
+  function fakeDom() {
+    const scripts = [];
+    const doc = {
+      head: { appendChild: (script) => scripts.push(script) },
+      createElement: () => {
+        const listeners = {};
+        return {
+          src: "",
+          async: false,
+          removed: false,
+          addEventListener(type, fn) {
+            (listeners[type] ||= []).push(fn);
+          },
+          remove() {
+            this.removed = true;
+          },
+          fire(type) {
+            for (const fn of listeners[type] || []) fn();
+          },
+        };
+      },
+      querySelector: (selector) =>
+        scripts.find((script) => !script.removed && selector === `script[src="${script.src}"]`) ||
+        null,
+    };
+    return { doc, scripts };
+  }
+
+  it("resolves immediately when the library is already present", async () => {
+    const win = { google: { accounts: { oauth2: {} } } };
+    const { doc, scripts } = fakeDom();
+    await expect(loadGoogleIdentity(doc, win)).resolves.toBe(win.google);
+    expect(scripts).toHaveLength(0);
+  });
+
+  it("injects the script and resolves on load", async () => {
+    const win = {};
+    const { doc, scripts } = fakeDom();
+    const loading = loadGoogleIdentity(doc, win);
+
+    expect(scripts[0].src).toBe(GIS_SCRIPT_URL);
+    expect(scripts[0].async).toBe(true);
+    win.google = { accounts: { oauth2: {} } };
+    scripts[0].fire("load");
+
+    await expect(loading).resolves.toBe(win.google);
+  });
+
+  it("rejects when the script fails to load", async () => {
+    const { doc, scripts } = fakeDom();
+    const loading = loadGoogleIdentity(doc, {});
+    scripts[0].fire("error");
+    await expect(loading).rejects.toThrow(/Could not load/i);
+  });
+
+  // A dead tag's load/error event has already fired and will never fire again,
+  // so reusing it would leave the retry hanging forever.
+  it("replaces a dead script tag on retry instead of hanging", async () => {
+    const win = {};
+    const { doc, scripts } = fakeDom();
+
+    const first = loadGoogleIdentity(doc, win);
+    scripts[0].fire("error");
+    await expect(first).rejects.toThrow(/Could not load/i);
+
+    const retry = loadGoogleIdentity(doc, win);
+    expect(scripts).toHaveLength(2);
+    expect(scripts[0].removed).toBe(true);
+
+    win.google = { accounts: { oauth2: {} } };
+    scripts[1].fire("load");
+    await expect(retry).resolves.toBe(win.google);
   });
 });

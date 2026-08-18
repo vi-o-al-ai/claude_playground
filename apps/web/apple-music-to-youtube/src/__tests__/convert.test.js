@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { convertPlaylist } from "../convert.js";
+import { convertPlaylist, withPendingResults } from "../convert.js";
 import { YouTubeError } from "../youtube.js";
 
 const tracks = [
@@ -199,5 +199,66 @@ describe("convertPlaylist — bad input", () => {
 
   it("requires either a playlist title or an existing playlist id", async () => {
     await expect(convertPlaylist({ tracks, client: fakeClient() })).rejects.toThrow(/playlist/i);
+  });
+});
+
+describe("convertPlaylist — playlist creation failures", () => {
+  function failingCreate(reason) {
+    return fakeClient({
+      createPlaylist: vi.fn(async () => {
+        throw new YouTubeError("cannot create", {
+          status: reason === "unauthorized" ? 401 : 403,
+          reason,
+        });
+      }),
+    });
+  }
+
+  it("turns a quota failure while creating the playlist into a resumable stop", async () => {
+    const client = failingCreate("quotaExceeded");
+    const out = await convertPlaylist({ tracks, client, playlistTitle: "x" });
+
+    expect(out.stoppedReason).toBe("quotaExceeded");
+    expect(out.completed).toBe(false);
+    expect(out.resumeIndex).toBe(0);
+    expect(out.results.every((r) => r.status === "pending")).toBe(true);
+    expect(client.searchVideos).not.toHaveBeenCalled();
+  });
+
+  it("does the same when the token has already expired", async () => {
+    const out = await convertPlaylist({
+      tracks,
+      client: failingCreate("unauthorized"),
+      playlistTitle: "x",
+    });
+    expect(out.stoppedReason).toBe("unauthorized");
+    expect(out.resumeIndex).toBe(0);
+  });
+
+  it("still throws on a creation failure nothing can be resumed from", async () => {
+    const client = failingCreate("forbidden");
+    await expect(convertPlaylist({ tracks, client, playlistTitle: "x" })).rejects.toThrow(
+      /cannot create/,
+    );
+  });
+});
+
+describe("withPendingResults", () => {
+  it("marks every unattempted track pending", () => {
+    expect(withPendingResults(tracks, [])).toEqual([
+      { index: 0, track: tracks[0], status: "pending" },
+      { index: 1, track: tracks[1], status: "pending" },
+    ]);
+  });
+
+  it("keeps results carried over from an earlier run", () => {
+    const previous = [{ index: 1, track: tracks[1], status: "added", video: { videoId: "old" } }];
+    const merged = withPendingResults(tracks, previous);
+    expect(merged[0].status).toBe("pending");
+    expect(merged[1].video.videoId).toBe("old");
+  });
+
+  it("tolerates a missing previous-results list", () => {
+    expect(withPendingResults(tracks).map((r) => r.status)).toEqual(["pending", "pending"]);
   });
 });
