@@ -1,0 +1,12 @@
+{
+  "name": "@ai-arcade/apple-music-to-youtube",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Convert an exported Apple Music playlist into a YouTube playlist on your own account",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
