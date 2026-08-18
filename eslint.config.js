@@ -18,6 +18,8 @@ const browserGlobals = {
   prompt: "readonly",
   navigator: "readonly",
   fetch: "readonly",
+  AbortController: "readonly",
+  AbortSignal: "readonly",
   Image: "readonly",
   Audio: "readonly",
   Blob: "readonly",

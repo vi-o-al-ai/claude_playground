@@ -111,7 +111,9 @@ describe("convertPlaylist — matching outcomes", () => {
     const client = fakeClient({
       addToPlaylist: vi.fn(async () => {
         call += 1;
-        if (call === 1) throw new YouTubeError("boom", { status: 409, reason: "conflict" });
+        if (call === 1) {
+          throw new YouTubeError("boom", { status: 409, reason: "conflict" });
+        }
       }),
     });
     const out = await convertPlaylist({ tracks, client, playlistTitle: "x" });
@@ -126,8 +128,9 @@ describe("convertPlaylist — interruptions", () => {
   it("stops on quota exhaustion and leaves the rest pending", async () => {
     const client = fakeClient({
       searchVideos: vi.fn(async (query) => {
-        if (query.startsWith("Glory"))
+        if (query.startsWith("Glory")) {
           throw new YouTubeError("quota", { status: 403, reason: "quotaExceeded" });
+        }
         return [{ videoId: "v1", title: query, channelTitle: "Portishead - Topic" }];
       }),
     });
