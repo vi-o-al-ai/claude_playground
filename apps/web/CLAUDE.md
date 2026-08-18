@@ -5,5 +5,5 @@ Vite + Vanilla JS browser apps (non-game). Same build setup as web games -- conf
 ## Dev Server
 
 ```bash
-npm run dev --workspace @ai-arcade/<name>
+npm run dev -w apps/web/<name>
 ```

@@ -1,5 +1,7 @@
 # Step 2: Monorepo Structure with Vite
 
+_(Historical note: this step's flat `packages/<game>/` layout, the `createGameConfig` factory, and the hand-assigned 3001–3009 ports have all been superseded. Projects now live at `<category>/<stack>/<project>` and derive their own ports and base paths — see [docs/02b](./02b-heterogeneous-tech-stacks.md) and the root [README](../README.md). The reasoning below still explains why the repo is a workspaces monorepo at all.)_
+
 ## Overview
 
 The project has been restructured from a flat directory layout into an **npm workspaces monorepo**. Each game and utility is now an independent package with its own build pipeline powered by **Vite**.
@@ -74,6 +76,8 @@ export default createGameConfig({
 ```
 
 Each game gets its own dev server port (3001–3009) so you can run multiple games simultaneously during development.
+
+_(Historical note: superseded. The factory is now `createProjectConfig({ root })`, and the port is derived from the project's directory name (3100–3499) instead of hand-picked — see the root [README](../README.md).)_
 
 ## Usage
 

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/vi-o-al-ai/claude_playground/apps/news-digest/sources.schema.json",
+  "$id": "https://github.com/vi-o-al-ai/claude_playground/apps/node/news-digest/sources.schema.json",
   "title": "News Digest Sources Config",
   "description": "Configuration for the news-digest engine. Lists sources to fetch, summarize, and render into a daily markdown digest.",
   "type": "object",

@@ -17,5 +17,5 @@ Tests go in `src/__tests__/*.test.js` using Vitest + jsdom.
 ## Dev Server
 
 ```bash
-npm run dev --workspace @ai-arcade/<name>
+npm run dev -w games/web/<name>
 ```
