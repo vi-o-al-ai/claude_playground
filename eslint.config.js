@@ -1,56 +1,7 @@
 import js from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
 import html from "eslint-plugin-html";
-
-const browserGlobals = {
-  window: "readonly",
-  document: "readonly",
-  console: "readonly",
-  localStorage: "readonly",
-  Storage: "readonly",
-  setTimeout: "readonly",
-  setInterval: "readonly",
-  clearTimeout: "readonly",
-  clearInterval: "readonly",
-  requestAnimationFrame: "readonly",
-  cancelAnimationFrame: "readonly",
-  alert: "readonly",
-  confirm: "readonly",
-  prompt: "readonly",
-  navigator: "readonly",
-  fetch: "readonly",
-  AbortController: "readonly",
-  AbortSignal: "readonly",
-  Image: "readonly",
-  Audio: "readonly",
-  Blob: "readonly",
-  File: "readonly",
-  FileReader: "readonly",
-  TextEncoder: "readonly",
-  TextDecoder: "readonly",
-  createImageBitmap: "readonly",
-  OffscreenCanvas: "readonly",
-  indexedDB: "readonly",
-  IDBKeyRange: "readonly",
-  HTMLElement: "readonly",
-  Node: "readonly",
-  KeyboardEvent: "readonly",
-  MouseEvent: "readonly",
-  Event: "readonly",
-  CustomEvent: "readonly",
-  URLSearchParams: "readonly",
-  URL: "readonly",
-  location: "readonly",
-  history: "readonly",
-  performance: "readonly",
-  crypto: "readonly",
-  structuredClone: "readonly",
-  ClipboardEvent: "readonly",
-  Clipboard: "readonly",
-  btoa: "readonly",
-  atob: "readonly",
-  Peer: "readonly",
-};
+import globals from "globals";
 
 const sharedRules = {
   "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
@@ -80,7 +31,7 @@ export default [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
-      globals: browserGlobals,
+      globals: globals.browser,
     },
     rules: sharedRules,
   },
@@ -90,29 +41,31 @@ export default [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "script",
-      globals: browserGlobals,
+      globals: globals.browser,
     },
     rules: {
       ...sharedRules,
-      "no-unused-vars": [
-        "warn",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern:
-            "^(startGame|toggleMode|startLocalGame|createRoom|joinRoom|sendChatMsg|resetTimeline|exportData|importData|startOnlineGame|copyRoomCode|confirmAction|confirmGemReturn|showChat|hideChat|elapsedInterval)$",
-        },
-      ],
+      // Inline <script> handlers are referenced from `onclick="..."` (and
+      // similar) attributes in the surrounding markup, which ESLint does not
+      // parse. Every such function looks unused, so the rule is off for HTML.
+      "no-unused-vars": "off",
     },
   },
   {
     // Service worker files — use service worker globals
     files: ["**/sw.js"],
     languageOptions: {
-      globals: {
-        self: "readonly",
-        caches: "readonly",
-        clients: "readonly",
-      },
+      globals: globals.serviceworker,
     },
+  },
+  {
+    // Repo tooling scripts run under Node, not the browser
+    files: ["scripts/**/*.{js,mjs}"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: globals.node,
+    },
+    rules: sharedRules,
   },
 ];
