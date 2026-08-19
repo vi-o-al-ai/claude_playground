@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 
-import { planOutputs, hotkeyForIndex, isVirtualCableLabel, formatBytes } from "../audio.js";
+import {
+  planOutputs,
+  hotkeyForIndex,
+  isVirtualCableLabel,
+  formatBytes,
+  passthroughTarget,
+} from "../audio.js";
 
 describe("planOutputs", () => {
   it("plays only on the default output when no device is chosen", () => {
@@ -51,6 +57,21 @@ describe("isVirtualCableLabel", () => {
     expect(isVirtualCableLabel("Speakers (Realtek High Definition Audio)")).toBe(false);
     expect(isVirtualCableLabel("AirPods Pro")).toBe(false);
     expect(isVirtualCableLabel("")).toBe(false);
+  });
+});
+
+describe("passthroughTarget", () => {
+  it("routes the mic to an explicitly chosen device", () => {
+    expect(passthroughTarget({ deviceId: "cable-1" })).toBe("cable-1");
+  });
+
+  it("refuses when no device is chosen (would echo through speakers)", () => {
+    expect(passthroughTarget({ deviceId: "" })).toBeNull();
+    expect(passthroughTarget({ deviceId: null })).toBeNull();
+  });
+
+  it("refuses the default device (same echo problem)", () => {
+    expect(passthroughTarget({ deviceId: "default" })).toBeNull();
   });
 });
 
