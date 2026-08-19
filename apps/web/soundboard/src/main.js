@@ -1,27 +1,33 @@
 /**
- * Placeholder entry point for Soundboard.
- *
- * Replace this with the real app: keep pure logic in its own modules and
- * DOM rendering separate.
+ * Soundboard entry point: wires the persistent SoundStore and the Player
+ * to the DOM. All logic lives in store.js / audio.js / ui.js.
  */
 
-/**
- * The greeting shown while this project is still a stub.
- *
- * @returns {string}
- */
-export function greeting() {
-  return "🔊 Soundboard";
+import "./style.css";
+import { SoundStore } from "./store.js";
+import { Player } from "./audio.js";
+import { mount } from "./ui.js";
+
+async function start() {
+  const app = document.querySelector("#app");
+  if (!app) return;
+
+  const store = new SoundStore();
+  await store.init();
+  const player = new Player(store);
+
+  mount(app, {
+    store,
+    player,
+    media: navigator.mediaDevices,
+    storage: window.localStorage,
+  });
 }
 
-/**
- * Renders the placeholder into a container element.
- *
- * @param {HTMLElement} root - Element to render into
- */
-export function mount(root) {
-  root.textContent = greeting();
+if (typeof document !== "undefined") {
+  start().catch((err) => {
+    console.error("Soundboard failed to start:", err);
+    const app = document.querySelector("#app");
+    if (app) app.textContent = `Soundboard failed to start: ${err.message}`;
+  });
 }
-
-const app = typeof document === "undefined" ? null : document.querySelector("#app");
-if (app) mount(app);
