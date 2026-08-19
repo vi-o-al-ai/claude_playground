@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "Timeline Tracker game for AI Games Arcade",
+  "arcade": {
+    "title": "Timeline Tracker",
+    "emoji": "⏱️",
+    "description": "Track how your day is spent on a real-time activity timeline."
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

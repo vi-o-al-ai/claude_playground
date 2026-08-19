@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "Convert an exported Apple Music playlist into a YouTube playlist on your own account",
+  "arcade": {
+    "title": "Apple Music → YouTube",
+    "emoji": "🎵",
+    "description": "Turn an exported Apple Music playlist into a YouTube playlist of your own."
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

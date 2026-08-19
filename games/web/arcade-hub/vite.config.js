@@ -1,7 +1,7 @@
 import { resolve } from "path";
-import { createGameConfig } from "../../../vite.shared.js";
+import { createProjectConfig } from "../../../vite.shared.js";
 
-export default createGameConfig({
+export default createProjectConfig({
   root: resolve(import.meta.dirname, "."),
-  port: 3001,
+  siteRoot: true,
 });

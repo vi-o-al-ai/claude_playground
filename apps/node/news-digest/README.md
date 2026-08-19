@@ -19,7 +19,7 @@ The **engine** (this folder) is public. Your **sources list and generated digest
                        │
                        ▼
       anthropics/claude-code-action@v1 runs with prompt:
-          "Follow ./engine/apps/news-digest/PROMPT.md.
+          "Follow ./engine/apps/node/news-digest/PROMPT.md.
            Config: ./data/sources.json.
            Output: ./data/digests/$(date +%F).md.
            Commit and push."
@@ -41,12 +41,12 @@ No Anthropic API key to manage — the workflow authenticates with your existing
 2. **Copy the workflow template** from this folder into your private repo at `.github/workflows/daily.yml`:
    ```bash
    curl -o .github/workflows/daily.yml \
-     https://raw.githubusercontent.com/vi-o-al-ai/claude_playground/main/apps/news-digest/workflow.example.yml
+     https://raw.githubusercontent.com/vi-o-al-ai/claude_playground/main/apps/node/news-digest/workflow.example.yml
    ```
 3. **Copy the example config** into your private repo at the repo root, rename to `sources.json`, and edit it with your real sources:
    ```bash
    curl -o sources.json \
-     https://raw.githubusercontent.com/vi-o-al-ai/claude_playground/main/apps/news-digest/sources.example.json
+     https://raw.githubusercontent.com/vi-o-al-ai/claude_playground/main/apps/node/news-digest/sources.example.json
    ```
 4. **Set the secret** in your private repo: `Settings → Secrets and variables → Actions → New repository secret`
    - Name: `CLAUDE_CODE_OAUTH_TOKEN`

@@ -101,9 +101,11 @@ The runner is a GDScript project, so it's excluded from JS tooling:
 
 ## Adding Another Godot Game
 
-1. Create `games/<name>/` with a Godot project
+_(Historical note: superseded — most of these steps are now automatic. The runner lives at `games/godot/runner/`, and `ci-godot.yml` and `deploy.yml` loop over `games/godot/*/`, so no workflow edits are needed. Hub cards are generated from each project's `arcade.json`, never hand-written into the hub's `index.html`. See [docs/02b](./02b-heterogeneous-tech-stacks.md).)_
+
+Today the list is:
+
+1. Create `games/godot/<name>/` with a Godot project
 2. Add `export_presets.cfg` with a "Web" preset
-3. Add to ESLint ignores and `.prettierignore`
-4. Update the `build-godot` job to export the new game
-5. Update the `assemble` job to copy the export to `_site/<name>/`
-6. Add a card to `games/arcade-hub/index.html`
+3. Add `arcade.json` with `title`, `emoji`, and `description`
+4. Add `games/godot/<name>/` to the ESLint ignores and `.prettierignore`

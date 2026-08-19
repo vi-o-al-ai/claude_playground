@@ -5,7 +5,9 @@
   "description": "Arcade Hub game for AI Games Arcade",
   "type": "module",
   "scripts": {
+    "predev": "node ../../../scripts/build-manifest.mjs",
     "dev": "vite",
+    "prebuild": "node ../../../scripts/build-manifest.mjs",
     "build": "vite build",
     "preview": "vite preview"
   }

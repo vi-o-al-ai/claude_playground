@@ -20,7 +20,7 @@ import {
   deserializeState,
   shareUrl,
 } from "./game-state.js";
-import { Modal, GameHeader, GameOver } from "@arcade/shared-ui";
+import { Modal, GameHeader, GameOver } from "@ai-arcade/shared-ui";
 
 let state = createGameState("easy");
 let timerInterval = null;

@@ -1,34 +1,13 @@
 name: CI Web
 
+# Runs on every push and pull request to main. The suite is fast (~2 min) and
+# stack-generic, so there are deliberately no `paths:` filters — adding a new
+# project must never require editing this workflow.
 on:
   push:
     branches: [main]
-    paths:
-      - "games/**"
-      - "!games/godot/**"
-      - "apps/**"
-      - "packages/**"
-      - "package.json"
-      - "package-lock.json"
-      - "vite.shared.js"
-      - "eslint.config.js"
-      - ".prettierrc"
-      - ".prettierignore"
-      - ".github/workflows/ci-web.yml"
   pull_request:
     branches: [main]
-    paths:
-      - "games/**"
-      - "!games/godot/**"
-      - "apps/**"
-      - "packages/**"
-      - "package.json"
-      - "package-lock.json"
-      - "vite.shared.js"
-      - "eslint.config.js"
-      - ".prettierrc"
-      - ".prettierignore"
-      - ".github/workflows/ci-web.yml"
 
 jobs:
   lint:
@@ -43,6 +22,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check
+      - name: Validate project metadata
+        run: node scripts/build-manifest.mjs --check
 
   test:
     name: Unit Tests

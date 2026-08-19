@@ -18,3 +18,5 @@ NOT a browser app. Runs as a Claude Code agent in scheduled GitHub Actions workf
 ## Notes
 
 No Vite, no UI, no npm dev/build scripts. Designed to run headless in CI.
+
+`workflow.example.yml` is a template for a **separate private repo** (the one holding your sources and digests) — this repo never runs it. What this repo does run is `ci-web.yml`, which lints and unit-tests this package (`src/__tests__/config.test.js`) along with every other workspace.

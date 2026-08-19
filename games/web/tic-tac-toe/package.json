@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "description": "Tic Tac Toe game for AI Games Arcade",
+  "arcade": {
+    "title": "Tic Tac Toe",
+    "emoji": "❌",
+    "description": "Classic X's and O's — simple but strategic."
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +15,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@arcade/shared-ui": "*"
+    "@ai-arcade/shared-ui": "*"
   }
 }

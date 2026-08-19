@@ -4,6 +4,8 @@
  * Depends on the global `Peer` object provided by PeerJS.
  */
 
+/* global Peer */
+
 export class SplendorNetwork {
   constructor() {
     this.peer = null;

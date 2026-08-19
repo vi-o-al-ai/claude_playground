@@ -1,0 +1,17 @@
+{
+  "name": "@ai-arcade/__NAME__",
+  "version": "1.0.0",
+  "private": true,
+  "description": "__TITLE__ app for AI Games Arcade",
+  "arcade": {
+    "title": "__TITLE__",
+    "emoji": "__EMOJI__",
+    "description": "__DESCRIPTION__"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}

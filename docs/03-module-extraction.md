@@ -1,5 +1,7 @@
 # Step 3: Game Logic Module Extraction
 
+_(Historical note: paths here are from the old flat `packages/<game>/` layout — these games now live at `games/web/<game>/`. The legacy `sudoku.js` and `game.js` files described below have since been deleted. The engine/UI split itself is still how every web game is written; see [docs/02b](./02b-heterogeneous-tech-stacks.md) and the root [README](../README.md) for the current layout.)_
+
 ## Overview
 
 Game logic for **Sudoku** and **Tic-Tac-Toe** has been extracted from inline scripts into separate ES module files. This separates pure game logic (testable, no DOM) from UI rendering (DOM-dependent).

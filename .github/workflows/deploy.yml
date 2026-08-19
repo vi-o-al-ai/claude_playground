@@ -1,5 +1,7 @@
 name: Deploy to GitHub Pages
 
+# Path filters stay tree-level and stack-generic: any project under games/ or
+# apps/ triggers a deploy, so adding a new project requires no workflow edits.
 on:
   push:
     branches: [main]
@@ -7,6 +9,7 @@ on:
       - "games/**"
       - "apps/**"
       - "packages/**"
+      - "scripts/**"
       - "package.json"
       - "package-lock.json"
       - "vite.shared.js"
@@ -33,6 +36,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Validate project metadata
+        run: node scripts/build-manifest.mjs --check
       - run: npm run build
         env:
           PAGES_BASE: /claude_playground
@@ -60,23 +65,36 @@ jobs:
           unzip -q /tmp/templates.zip -d /tmp/templates
           mv /tmp/templates/templates/* "$TEMPLATE_DIR/"
 
-      - name: Import Godot project
+      - name: Export Godot projects to Web
         run: |
-          cd games/godot/runner
-          godot --headless --import 2>&1 || true
-          godot --headless --import 2>&1 || true
-
-      - name: Export to Web
-        run: |
-          mkdir -p games/godot/runner/web
-          cd games/godot/runner
-          godot --headless --export-release "Web" web/index.html 2>&1
+          set -eu
+          mkdir -p godot-export
+          found=0
+          for proj in games/godot/*/; do
+            [ -f "$proj/project.godot" ] || continue
+            found=1
+            name=$(basename "$proj")
+            echo "::group::Exporting $name"
+            # Double import is a Godot CI workaround: the first pass populates
+            # the resource cache, the second resolves imports that depend on it.
+            (cd "$proj" && godot --headless --import 2>&1 || true)
+            (cd "$proj" && godot --headless --import 2>&1 || true)
+            mkdir -p "$proj/web"
+            (cd "$proj" && godot --headless --export-release "Web" web/index.html 2>&1)
+            # Stage under the project name so the artifact keeps that structure.
+            cp -r "$proj/web" "godot-export/$name"
+            echo "::endgroup::"
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "No Godot projects found under games/godot/"
+            exit 1
+          fi
 
       - name: Upload Godot build
         uses: actions/upload-artifact@v4
         with:
           name: godot-games
-          path: games/godot/runner/web/
+          path: godot-export/
 
   assemble:
     name: Assemble Site
@@ -103,18 +121,54 @@ jobs:
 
       - name: Assemble site
         run: |
-          mkdir _site
-          # Copy Vite-built games and apps
-          for pkg in games/web/*/ apps/web/*/; do
-            name=$(basename "$pkg")
-            if [ -d "$pkg/dist" ]; then
-              cp -r "$pkg/dist" "_site/$name"
+          set -eu
+          mkdir -p _site
+
+          # Copies a built directory to its namespaced slot, refusing to
+          # clobber an existing one (e.g. a web game and a Godot project
+          # sharing a name).
+          copy_project() {
+            src="$1"
+            target="$2"
+            if [ -e "$target" ]; then
+              echo "collision: $target"
+              exit 1
             fi
-          done
-          # Copy Godot-exported game
-          if [ -d "godot-export" ]; then
-            cp -r godot-export _site/runner
+            mkdir -p "$(dirname "$target")"
+            cp -r "$src" "$target"
+          }
+
+          # The arcade hub is the site landing page: its contents go to the root.
+          if [ ! -d games/web/arcade-hub/dist ]; then
+            echo "missing build: games/web/arcade-hub/dist"
+            exit 1
           fi
+          cp -r games/web/arcade-hub/dist/. _site/
+
+          # Every other web game -> _site/games/<name>
+          for pkg in games/web/*/; do
+            name=$(basename "$pkg")
+            if [ "$name" = "arcade-hub" ]; then continue; fi
+            [ -d "$pkg/dist" ] || continue
+            copy_project "$pkg/dist" "_site/games/$name"
+          done
+
+          # Web apps -> _site/apps/<name>
+          for pkg in apps/web/*/; do
+            name=$(basename "$pkg")
+            [ -d "$pkg/dist" ] || continue
+            copy_project "$pkg/dist" "_site/apps/$name"
+          done
+
+          # Godot exports -> _site/games/<name>
+          for exp in godot-export/*/; do
+            [ -d "$exp" ] || continue
+            name=$(basename "$exp")
+            copy_project "$exp" "_site/games/$name"
+          done
+
+          echo "Assembled site:"
+          find _site -maxdepth 2 -mindepth 1 | sort
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

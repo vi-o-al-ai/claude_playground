@@ -2,7 +2,7 @@
  * Reusable modal component for AI Games Arcade.
  *
  * Usage:
- *   import { Modal } from '@arcade/shared-ui';
+ *   import { Modal } from '@ai-arcade/shared-ui';
  *
  *   const modal = new Modal();
  *   modal.show({

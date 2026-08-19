@@ -12,7 +12,7 @@ import {
   createLevelState,
   update,
 } from "./engine.js";
-import { GameHeader, GameOver } from "@arcade/shared-ui";
+import { GameHeader, GameOver } from "@ai-arcade/shared-ui";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
