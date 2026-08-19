@@ -61,6 +61,81 @@ export function isVirtualCableLabel(label) {
 }
 
 /**
+ * Where mic passthrough may route to. Passthrough into the default output
+ * would feed the mic straight back through the speakers (echo/feedback),
+ * so it is only allowed onto an explicitly chosen non-default device —
+ * in practice, a virtual cable.
+ *
+ * @param {{deviceId: string | null | undefined}} settings
+ * @returns {string | null} target sink id, or null when passthrough is not allowed
+ */
+export function passthroughTarget({ deviceId }) {
+  if (!deviceId || deviceId === "default") return null;
+  return deviceId;
+}
+
+/**
+ * Live mic → output-device bridge. While running, the microphone is mixed
+ * into the same (virtual cable) device the soundboard plays on, so voice
+ * chat hears both the user and the sounds without extra mixer software.
+ */
+export class MicPassthrough {
+  /** @param {MediaDevices} [media] injected for tests; defaults to navigator.mediaDevices */
+  constructor(media) {
+    this._media = media ?? (typeof navigator !== "undefined" ? navigator.mediaDevices : null);
+    this._ctx = null;
+    this._stream = null;
+    this._audio = null;
+  }
+
+  get active() {
+    return !!this._ctx;
+  }
+
+  /** @param {string} deviceId output device to bridge the mic onto */
+  async start(deviceId) {
+    const target = passthroughTarget({ deviceId });
+    if (!target) {
+      throw new Error("Pick a virtual cable output first — your speakers would echo.");
+    }
+    if (!this._media?.getUserMedia || typeof AudioContext === "undefined") {
+      throw new Error("Mic passthrough isn't supported in this browser.");
+    }
+    this.stop();
+    // Raw mic: processing like echo cancellation garbles a mix that voice
+    // chat re-processes anyway.
+    this._stream = await this._media.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+    });
+    this._ctx = new AudioContext({ latencyHint: "interactive" });
+    const source = this._ctx.createMediaStreamSource(this._stream);
+    const dest = this._ctx.createMediaStreamDestination();
+    source.connect(dest);
+    this._audio = new Audio();
+    this._audio.srcObject = dest.stream;
+    try {
+      if (typeof this._audio.setSinkId === "function") {
+        await this._audio.setSinkId(target);
+      }
+      await this._audio.play();
+    } catch (err) {
+      this.stop();
+      throw err instanceof Error ? err : new Error(String(err));
+    }
+  }
+
+  stop() {
+    this._audio?.pause();
+    if (this._audio) this._audio.srcObject = null;
+    this._audio = null;
+    this._stream?.getTracks().forEach((t) => t.stop());
+    this._stream = null;
+    this._ctx?.close().catch(() => {});
+    this._ctx = null;
+  }
+}
+
+/**
  * @param {number} bytes
  * @returns {string}
  */

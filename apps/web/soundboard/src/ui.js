@@ -7,7 +7,13 @@
  * APIs (MediaDevices, MediaRecorder).
  */
 
-import { hotkeyForIndex, isVirtualCableLabel, formatBytes } from "./audio.js";
+import {
+  hotkeyForIndex,
+  isVirtualCableLabel,
+  formatBytes,
+  passthroughTarget,
+  MicPassthrough,
+} from "./audio.js";
 import { soundNameFromFile } from "./store.js";
 
 const SETTINGS_KEY = "soundboard-settings";
@@ -50,6 +56,10 @@ export function mount(root, { store, player, media, storage }) {
   let outputDeviceId = settings.outputDeviceId ?? "";
   let outputDeviceLabel = settings.outputDeviceLabel ?? "";
   let monitor = settings.monitor ?? true;
+  /** @type {string | null} null = "All" */
+  let activeGroup = null;
+  let searchQuery = "";
+  const mic = new MicPassthrough(media);
   player.setOutput(outputDeviceId);
   player.setMonitor(monitor);
 
@@ -79,7 +89,8 @@ export function mount(root, { store, player, media, storage }) {
   fileInput.addEventListener("change", async () => {
     for (const file of fileInput.files ?? []) {
       try {
-        await store.addSound(soundNameFromFile(file.name), file);
+        // New sounds land in the group currently being viewed.
+        await store.addSound(soundNameFromFile(file.name), file, { group: activeGroup ?? "" });
       } catch (err) {
         setStatus(`Couldn't add "${file.name}": ${err.message}`, true);
       }
@@ -96,8 +107,49 @@ export function mount(root, { store, player, media, storage }) {
   stopBtn.id = "stop-all";
   stopBtn.addEventListener("click", () => player.stopAll());
 
-  toolbar.append(addBtn, recordBtn, stopBtn, fileInput);
+  const exportBtn = el("button", "sb-btn", "📤 Export");
+  exportBtn.type = "button";
+  exportBtn.id = "export-sounds";
+  exportBtn.title = "Save your sounds (current group, or everything) to a file you can share";
+  exportBtn.addEventListener("click", () => exportSounds());
+
+  const importInput = el("input");
+  importInput.type = "file";
+  importInput.accept = "application/json,.json";
+  importInput.id = "import-file-input";
+  importInput.hidden = true;
+
+  const importBtn = el("button", "sb-btn", "📥 Import");
+  importBtn.type = "button";
+  importBtn.addEventListener("click", () => importInput.click());
+  importInput.addEventListener("change", async () => {
+    const file = importInput.files?.[0];
+    importInput.value = "";
+    if (!file) return;
+    try {
+      const imported = await store.importBundle(JSON.parse(await file.text()));
+      setStatus(`Imported ${imported} sound${imported === 1 ? "" : "s"}.`);
+    } catch (err) {
+      setStatus(`Couldn't import "${file.name}": ${err.message}`, true);
+    }
+  });
+
+  toolbar.append(addBtn, recordBtn, stopBtn, exportBtn, importBtn, fileInput, importInput);
   app.append(toolbar);
+
+  // ── Groups + search ────────────────────────────────────────────────
+  const filters = el("div", "sb-filters");
+  const groupsRow = el("div", "sb-groups");
+  const searchInput = el("input", "sb-search");
+  searchInput.type = "search";
+  searchInput.id = "sound-search";
+  searchInput.placeholder = "Search sounds…";
+  searchInput.addEventListener("input", () => {
+    searchQuery = searchInput.value.trim().toLowerCase();
+    renderGrid();
+  });
+  filters.append(groupsRow, searchInput);
+  app.append(filters);
 
   // ── Output routing ─────────────────────────────────────────────────
   const routing = el("section", "sb-routing");
@@ -111,6 +163,12 @@ export function mount(root, { store, player, media, storage }) {
     outputDeviceLabel = deviceSelect.selectedOptions[0]?.textContent ?? "";
     player.setOutput(outputDeviceId);
     saveSettings(storage, { outputDeviceId, outputDeviceLabel });
+    if (mic.active) {
+      mic.stop();
+      micCheck.checked = false;
+      setStatus("Output changed — re-enable mic passthrough if you still want it.");
+    }
+    updateMicToggle();
     updateRoutingHint();
   });
 
@@ -134,6 +192,38 @@ export function mount(root, { store, player, media, storage }) {
   monitorLabel.append(monitorCheck, document.createTextNode(" Also play through my speakers"));
   routing.append(monitorLabel);
 
+  const micRow = el("label", "sb-monitor");
+  const micCheck = el("input");
+  micCheck.type = "checkbox";
+  micCheck.id = "mic-toggle";
+  micCheck.addEventListener("change", async () => {
+    if (micCheck.checked) {
+      try {
+        await mic.start(outputDeviceId);
+        setStatus("Mic passthrough on — voice chat hears you and your sounds.");
+      } catch (err) {
+        micCheck.checked = false;
+        setStatus(`Couldn't start mic passthrough: ${err.message}`, true);
+      }
+    } else {
+      mic.stop();
+      setStatus("Mic passthrough off.");
+    }
+  });
+  micRow.append(
+    micCheck,
+    document.createTextNode(" Mix my mic into the output (skip VoiceMeeter)"),
+  );
+  routing.append(micRow);
+
+  function updateMicToggle() {
+    micCheck.disabled = !passthroughTarget({ deviceId: outputDeviceId });
+    micRow.title = micCheck.disabled
+      ? "Pick a virtual cable output first — passthrough to your own speakers would echo."
+      : "Bridge your microphone onto the selected output so Discord hears both you and the sounds.";
+  }
+  updateMicToggle();
+
   const routingHint = el("p", "sb-hint");
   routing.append(routingHint);
 
@@ -152,9 +242,10 @@ export function mount(root, { store, player, media, storage }) {
         <strong>microphone / input device</strong> to the cable's <em>output</em> end
         (e.g. "CABLE Output").</li>
       <li>Keep <strong>Also play through my speakers</strong> on so you hear the sounds too.</li>
-      <li>To mix your real mic in as well, use
+      <li>Turn on <strong>Mix my mic into the output</strong> so friends hear your voice
+        alongside the sounds (keep this tab open while chatting). Prefer a dedicated mixer?
         <a href="https://vb-audio.com/Voicemeeter/" target="_blank" rel="noreferrer">VoiceMeeter</a>
-        (Windows) or an aggregate device (macOS) and point Discord at that instead.</li>
+        (Windows) or a macOS aggregate device works too.</li>
     </ol>`;
   help.append(helpSummary, helpBody);
   routing.append(help);
@@ -265,7 +356,7 @@ export function mount(root, { store, player, media, storage }) {
         const name = window.prompt("Name this sound:", "new recording");
         if (name === null) return;
         try {
-          await store.addSound(name, blob);
+          await store.addSound(name, blob, { group: activeGroup ?? "" });
         } catch (err) {
           setStatus(`Couldn't save recording: ${err.message}`, true);
         }
@@ -287,10 +378,62 @@ export function mount(root, { store, player, media, storage }) {
     });
   }
 
+  async function exportSounds() {
+    try {
+      const bundle = await store.exportBundle(activeGroup === null ? {} : { group: activeGroup });
+      if (bundle.sounds.length === 0) {
+        setStatus("Nothing to export yet.", true);
+        return;
+      }
+      const blob = new Blob([JSON.stringify(bundle)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = activeGroup ? `soundboard-${activeGroup}.json` : "soundboard-all.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+      setStatus(
+        `Exported ${bundle.sounds.length} sound${bundle.sounds.length === 1 ? "" : "s"} — send the file to a friend to import.`,
+      );
+    } catch (err) {
+      setStatus(`Export failed: ${err.message}`, true);
+    }
+  }
+
+  function visibleSounds() {
+    return store
+      .listSounds()
+      .filter((s) => activeGroup === null || s.group === activeGroup)
+      .filter((s) => !searchQuery || s.name.toLowerCase().includes(searchQuery));
+  }
+
+  function renderGroups() {
+    groupsRow.innerHTML = "";
+    const groups = [...new Set(store.listSounds().map((s) => s.group))]
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+    if (activeGroup !== null && !groups.includes(activeGroup)) activeGroup = null;
+    if (groups.length === 0) return;
+    for (const group of [null, ...groups]) {
+      const tab = el("button", "sb-group-tab", group ?? "All");
+      tab.type = "button";
+      tab.classList.toggle("sb-group-tab-active", group === activeGroup);
+      tab.addEventListener("click", () => {
+        activeGroup = group;
+        renderGrid();
+      });
+      groupsRow.append(tab);
+    }
+  }
+
   function renderGrid() {
-    const sounds = store.listSounds();
+    renderGroups();
+    const sounds = visibleSounds();
     grid.innerHTML = "";
     empty.hidden = sounds.length > 0;
+    empty.textContent =
+      store.listSounds().length === 0
+        ? "No sounds yet — add an audio file or record one!"
+        : "No sounds match this group/search.";
 
     sounds.forEach((sound, index) => {
       const pad = el("button", "sound-pad");
@@ -313,6 +456,15 @@ export function mount(root, { store, player, media, storage }) {
         if (name !== null) store.renameSound(sound.id, name);
       });
 
+      const groupBtn = el("span", "sound-pad-action", "📁");
+      groupBtn.title = "Move to group";
+      groupBtn.setAttribute("role", "button");
+      groupBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const group = window.prompt("Group name (leave empty for none):", sound.group || "");
+        if (group !== null) store.setGroup(sound.id, group);
+      });
+
       const deleteBtn = el("span", "sound-pad-action", "🗑️");
       deleteBtn.title = "Delete";
       deleteBtn.setAttribute("role", "button");
@@ -324,7 +476,7 @@ export function mount(root, { store, player, media, storage }) {
         }
       });
 
-      actions.append(renameBtn, deleteBtn);
+      actions.append(renameBtn, groupBtn, deleteBtn);
       pad.append(actions);
       grid.append(pad);
     });
@@ -335,7 +487,7 @@ export function mount(root, { store, player, media, storage }) {
       return;
     }
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    const sounds = store.listSounds();
+    const sounds = visibleSounds();
     const index = e.key === "0" ? 9 : Number.parseInt(e.key, 10) - 1;
     if (Number.isInteger(index) && index >= 0 && index < sounds.length && hotkeyForIndex(index)) {
       playSound(sounds[index].id);
@@ -354,6 +506,7 @@ export function mount(root, { store, player, media, storage }) {
   return {
     unmount() {
       window.removeEventListener("keydown", onKeydown);
+      mic.stop();
     },
   };
 }
