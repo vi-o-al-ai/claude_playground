@@ -1,0 +1,17 @@
+{
+  "name": "@ai-arcade/image-to-svg",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Image to SVG app for AI Games Arcade",
+  "arcade": {
+    "title": "Image to SVG",
+    "emoji": "🖼️",
+    "description": "Convert raster images into scalable vector SVGs, right in the browser."
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
